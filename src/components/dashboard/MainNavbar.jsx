@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import Logo from "../Authentication/Logo";
-import Dropdown from "../navigation/dropdown";
+import Dropdown from "../navigation/Dropdown";
 import DropdownMenu from "../navigation/DropdownMenu";
 import NavDropdown from "../navigation/NavDropdown";
 
