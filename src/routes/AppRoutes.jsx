@@ -18,6 +18,7 @@ import Help from "../pages/menuPages/supportMenu/Help";
 import ContactSupport from "../pages/menuPages/supportMenu/ContactSupport";
 import SecurityCenter from "../pages/menuPages/AdminMenu/SecurityCenter";
 import AccessControl from "../pages/menuPages/AdminMenu/AccessControl";
+import IdpDoc from "../pages/menuPages/operationMenu/IdpDoc";
 
 const AppRoutes = () => {
   return (
@@ -60,6 +61,9 @@ const AppRoutes = () => {
       {/* Admin Menu */}
       <Route path="/admin/security-center" element={<SecurityCenter />} />
       <Route path="/admin/access-control" element={<AccessControl />} />
+
+      {/* IDP */}
+      <Route path="/operations/idp" element={<IdpDoc />} />
 
       {/* 404 */}
       <Route path="*" element={<h1>404 - Page not found</h1>} />
