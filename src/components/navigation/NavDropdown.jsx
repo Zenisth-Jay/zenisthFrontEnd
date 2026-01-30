@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import Dropdown from "./dropdown";
+import Dropdown from "./Dropdown";
 import DropdownMenu from "./DropdownMenu";
 
 const NavDropdown = ({ label, menu, pathPrefix }) => {
