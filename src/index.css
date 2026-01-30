@@ -15,7 +15,7 @@
 
 
     /* Images */
-    --background-image-auth: url('./authentication/auth_bg.png');
+    --background-image-auth: url('/authentication/auth_bg.png');
 } 
 
 
