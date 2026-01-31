@@ -15,9 +15,28 @@ import { learnMenu } from "../navigation/menus/learn.menu";
 import { supportMenu } from "../navigation/menus/support.menu";
 import { resourcesMenu } from "../navigation/menus/resources.menu";
 import { adminMenu } from "../navigation/menus/admin.menu";
+import { useGetTokensQuery } from "../../api/token.api";
+import NotificationDropdown from "../notification/NotificationDropdown";
 
 const MainNavbar = () => {
-  const location = useLocation();
+  const notifications = [
+    {
+      notification_id: "1",
+      title: "Translation completed",
+      message: "Your document has been translated successfully.",
+      is_read: false,
+      created_at: new Date().toISOString(),
+    },
+    {
+      notification_id: "2",
+      title: "New feature released",
+      message: "IDP now supports tables.",
+      is_read: true,
+      created_at: new Date().toISOString(),
+    },
+  ];
+
+  const { data, isLoading } = useGetTokensQuery();
 
   return (
     <nav className=" border-b w-full h-16 bg-white border-[#CBC5EB] shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_1px_3px_1px_rgba(0,0,0,0.15)]">
@@ -75,15 +94,30 @@ const MainNavbar = () => {
               strokeWidth={2.2}
               className="text-[#545A7A]"
             />
-            <span className=" text-green-600 font-extrabold text-2xl">
-              1200
+            <span className=" w-25 text-green-600 font-extrabold text-2xl text-center">
+              {/* {loading ? "..." : balance} */}
+              {isLoading ? "..." : (data?.balance ?? 0)}
             </span>
           </div>
 
           {/* Notification bell */}
-          <button className="w-11 h-11 border border-[#CFD1DC] flex items-center justify-center rounded-full bg-gray-50 cursor-pointer">
+          {/* <button className="w-11 h-11 border border-[#CFD1DC] flex items-center justify-center rounded-full bg-gray-50 cursor-pointer">
             <Bell size={20} strokeWidth={2.2} className="text-[#545A7A]" />
-          </button>
+          </button> */}
+
+          <Dropdown
+            trigger={() => (
+              <button className="relative w-11 h-11 border border-[#CFD1DC] flex items-center justify-center rounded-full bg-gray-50 cursor-pointer">
+                <Bell size={20} strokeWidth={2.2} className="text-[#545A7A]" />
+
+                {notifications.some((n) => !n.is_read) && (
+                  <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                )}
+              </button>
+            )}
+          >
+            <NotificationDropdown notifications={notifications} />
+          </Dropdown>
 
           {/* Administration Setting */}
           <Dropdown

@@ -37,8 +37,6 @@ const Login = () => {
     }
   };
 
-  console.log("render");
-
   return (
     <div className=" min-h-screen flex ">
       {/* Left */}

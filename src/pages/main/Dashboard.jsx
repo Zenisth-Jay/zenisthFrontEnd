@@ -2,13 +2,15 @@ import { Search } from "lucide-react";
 import MainNavbar from "../../components/dashboard/MainNavbar";
 import ToolTabs from "../../components/dashboard/ToolTabs";
 import { useMemo, useState } from "react";
-import ToolCard from "../../components/dashboard/ToolCard";
-import { tools } from "../../data/tools.data";
 import ToolGrid from "../../components/dashboard/ToolGrid";
+import { useGetCardsQuery } from "../../api/cards.api";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
+
+  const { data, isLoading } = useGetCardsQuery();
+  const tools = data ?? [];
 
   const filteredTools = useMemo(() => {
     return tools.filter((tool) => {
@@ -22,7 +24,7 @@ const Dashboard = () => {
 
       return matchesTab && matchsSearch;
     });
-  }, [activeTab, search]);
+  }, [tools, activeTab, search]);
 
   return (
     <>
@@ -71,8 +73,11 @@ const Dashboard = () => {
 
         {/* Tool cards */}
         <section>
-          {/* <ToolGrid tools={tools} /> */}
-          {filteredTools.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-20 text-gray-400 text-xl">
+              Loading tools...
+            </div>
+          ) : filteredTools.length > 0 ? (
             <ToolGrid tools={filteredTools} />
           ) : (
             <div className="text-center py-20 text-gray-500 text-2xl">

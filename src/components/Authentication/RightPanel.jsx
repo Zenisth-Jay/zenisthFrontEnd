@@ -1,8 +1,6 @@
 import { memo } from "react";
 
 const RightPanel = () => {
-  console.log("right panel rendered");
-
   return (
     <div className="hidden lg:block lg:w-1/2 relative h-screen overflow-hidden">
       {/* Background */}

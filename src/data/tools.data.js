@@ -24,7 +24,7 @@ export const tools = [
     category: "document",
     badge: "Document Processing",
     features: 9,
-    status: "active",
+    status: "disabled",
     gradient:
       "linear-gradient(90deg, #D469D5 0%, rgba(137, 18, 102, 0.80) 100%)",
     path: "/operations/idp",

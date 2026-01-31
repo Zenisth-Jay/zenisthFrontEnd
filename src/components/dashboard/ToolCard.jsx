@@ -1,10 +1,11 @@
 import { Star, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { iconMap } from "../../constants/iconmap";
 
 const ToolCard = ({ tool }) => {
   const navigate = useNavigate();
   const isDisabled = tool.status === "disabled";
-  const Icon = tool.icon;
+  const Icon = iconMap[tool.icon];
 
   return (
     <div
@@ -31,7 +32,7 @@ const ToolCard = ({ tool }) => {
       <div className="mt-5">
         <h3 className="text-2xl font-semibold">{tool.title}</h3>
 
-        <p className=" text-xl mt-1 font-medium leading-relaxed text-white/85">
+        <p className="text-xl mt-1 font-medium leading-relaxed text-white/85 min-h-18 line-clamp-2">
           {tool.description}
         </p>
       </div>
