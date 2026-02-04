@@ -1,8 +1,23 @@
+import { useMarkNotificationReadMutation } from "../../api/notificationApi";
+
 const NotificationItem = ({ notification }) => {
-  const { title, message, is_read, created_at } = notification;
+  const { notification_id, title, message, is_read, created_at } = notification;
+
+  const [markRead] = useMarkNotificationReadMutation();
+
+  const handleNotificationClick = async () => {
+    if (is_read) return;
+
+    try {
+      await markRead(notification_id);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div
+      onClick={handleNotificationClick}
       className={`
         px-4 py-3 border-b last:border-none cursor-pointer
         ${is_read ? "bg-white" : "bg-indigo-50"}

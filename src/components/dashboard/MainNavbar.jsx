@@ -1,9 +1,4 @@
-import {
-  UserRoundCog,
-  Bell,
-  ChevronDown,
-  CirclePoundSterling,
-} from "lucide-react";
+import { UserRoundCog, Bell, CirclePoundSterling } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import Logo from "../Authentication/Logo";
 import Dropdown from "../navigation/Dropdown";
@@ -17,24 +12,22 @@ import { resourcesMenu } from "../navigation/menus/resources.menu";
 import { adminMenu } from "../navigation/menus/admin.menu";
 import { useGetTokensQuery } from "../../api/token.api";
 import NotificationDropdown from "../notification/NotificationDropdown";
+import { useGetNotificationsQuery } from "../../api/notificationApi";
+import ProfileDropdown from "../navigation/ProfielDropdown";
 
 const MainNavbar = () => {
-  const notifications = [
-    {
-      notification_id: "1",
-      title: "Translation completed",
-      message: "Your document has been translated successfully.",
-      is_read: false,
-      created_at: new Date().toISOString(),
-    },
-    {
-      notification_id: "2",
-      title: "New feature released",
-      message: "IDP now supports tables.",
-      is_read: true,
-      created_at: new Date().toISOString(),
-    },
-  ];
+  const { data: notifications = [], isLoading: notificationsLoading } =
+    useGetNotificationsQuery();
+
+  const normalizedNotifications = notifications.map((n) => ({
+    notification_id: n.notificationId,
+    title: n.title,
+    message: n.message,
+    is_read: n.isRead,
+    created_at: n.createdAt,
+  }));
+
+  const hasUnread = normalizedNotifications.some((n) => !n.is_read);
 
   const { data, isLoading } = useGetTokensQuery();
 
@@ -101,22 +94,19 @@ const MainNavbar = () => {
           </div>
 
           {/* Notification bell */}
-          {/* <button className="w-11 h-11 border border-[#CFD1DC] flex items-center justify-center rounded-full bg-gray-50 cursor-pointer">
-            <Bell size={20} strokeWidth={2.2} className="text-[#545A7A]" />
-          </button> */}
 
           <Dropdown
             trigger={() => (
               <button className="relative w-11 h-11 border border-[#CFD1DC] flex items-center justify-center rounded-full bg-gray-50 cursor-pointer">
                 <Bell size={20} strokeWidth={2.2} className="text-[#545A7A]" />
 
-                {notifications.some((n) => !n.is_read) && (
+                {!isLoading && hasUnread && (
                   <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full" />
                 )}
               </button>
             )}
           >
-            <NotificationDropdown notifications={notifications} />
+            <NotificationDropdown notifications={normalizedNotifications} />
           </Dropdown>
 
           {/* Administration Setting */}
@@ -136,9 +126,19 @@ const MainNavbar = () => {
             <DropdownMenu menu={adminMenu} />
           </Dropdown>
 
-          <div className=" font-bold text-xl text-blue-600 w-12 h-12 border-3 border-indigo-100 flex items-center justify-center rounded-full bg-gray-50 cursor-pointer">
+          {/* <div className=" font-bold text-xl text-blue-600 w-12 h-12 border-3 border-indigo-100 flex items-center justify-center rounded-full bg-gray-50 cursor-pointer">
             JD
-          </div>
+          </div> */}
+
+          <Dropdown
+            trigger={(open) => (
+              <button className="w-12 h-12 font-bold text-xl text-blue-600 border-2 border-indigo-200 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 transition cursor-pointer">
+                JD
+              </button>
+            )}
+          >
+            <ProfileDropdown />
+          </Dropdown>
 
           {/* Right div end */}
         </div>

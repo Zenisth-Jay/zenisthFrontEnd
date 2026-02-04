@@ -21,7 +21,8 @@ const Dropdown = ({ trigger, children }) => {
 
       {/* {open && children} */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-2 w-54 bg-white rounded-xl shadow-lg z-50">
+          {/* w-72 */}
           {children}
         </div>
       )}

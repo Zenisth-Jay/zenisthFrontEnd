@@ -1,8 +1,8 @@
 const TABS = [
   { id: "all", label: "All Tools" },
-  { id: "translation", label: "Translation" },
-  { id: "ai", label: "AI & Automation" },
-  { id: "document", label: "Document Processing" },
+  // { id: "translation", label: "Translation" },
+  // { id: "ai", label: "AI & Automation" },
+  // { id: "document", label: "Document Processing" },
 ];
 
 const ToolTabs = ({ activeTab, onChange }) => {

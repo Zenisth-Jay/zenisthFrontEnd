@@ -19,6 +19,8 @@ import ContactSupport from "../pages/menuPages/supportMenu/ContactSupport";
 import SecurityCenter from "../pages/menuPages/AdminMenu/SecurityCenter";
 import AccessControl from "../pages/menuPages/AdminMenu/AccessControl";
 import IdpDoc from "../pages/menuPages/operationMenu/IdpDoc";
+import UserProfile from "../pages/user/UserProfile";
+import SelectTag from "../pages/translation/SelectTag";
 
 const AppRoutes = () => {
   return (
@@ -61,6 +63,12 @@ const AppRoutes = () => {
       {/* Admin Menu */}
       <Route path="/admin/security-center" element={<SecurityCenter />} />
       <Route path="/admin/access-control" element={<AccessControl />} />
+
+      {/* User Profile */}
+      <Route path="/user-profile" element={<UserProfile />} />
+
+      {/* Translation Routes */}
+      <Route path="/operations/translate/select-tag" element={<SelectTag />} />
 
       {/* IDP */}
       <Route path="/operations/idp" element={<IdpDoc />} />
