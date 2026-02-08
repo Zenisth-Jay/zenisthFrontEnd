@@ -7,14 +7,14 @@ const InputElement = ({
   icon: Icon,
 }) => {
   return (
-    <div className=" flex flex-col gap-1.5 w-full">
+    <div className=" flex flex-col gap-1.5 w-full ">
       <label htmlFor={name} className=" text-[#424242] text-[18px] font-medium">
         {label} <span className="text-red-500">*</span>
       </label>
 
       <div className="flex items-center relative">
         <div className=" absolute left-3 text-gray-400">
-          <Icon size={22} strokeWidth={2} />
+          {Icon && <Icon size={22} strokeWidth={2} />}
         </div>
 
         <input

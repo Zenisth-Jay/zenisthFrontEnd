@@ -9,12 +9,15 @@ const Button = ({
   ...props
 }) => {
   const baseStyles =
-    "inline-flex items-center justify-center rounded-lg transition-all duration-200 cursor-pointer focus:outline-none";
+    "inline-flex items-center justify-center rounded-lg transition-all duration-200 focus:outline-none";
 
   const variants = {
     primary:
-      "bg-indigo-600 border border-indigo-300 text-white hover:bg-indigo-700 active:bg-indigo-800",
-    outline: "border border-gray-800 text-gray-600 hover:bg-gray-300 font-bold",
+      "bg-indigo-600 border border-indigo-300 text-white hover:bg-indigo-700 active:bg-indigo-800 cursor-pointer",
+    outline:
+      "border border-gray-600 text-gray-600 hover:bg-gray-300 font-bold cursor-pointer",
+    disable:
+      "bg-gray-200 text-gray-400 border border-gray-200 cursor-not-allowed",
   };
 
   const sizes = {

@@ -21,6 +21,8 @@ import AccessControl from "../pages/menuPages/AdminMenu/AccessControl";
 import IdpDoc from "../pages/menuPages/operationMenu/IdpDoc";
 import UserProfile from "../pages/user/UserProfile";
 import SelectTag from "../pages/translation/SelectTag";
+import Translating from "../pages/translation/Translating";
+import CreateTag from "../pages/translation/CreateTag";
 
 const AppRoutes = () => {
   return (
@@ -69,6 +71,11 @@ const AppRoutes = () => {
 
       {/* Translation Routes */}
       <Route path="/operations/translate/select-tag" element={<SelectTag />} />
+      <Route
+        path="/operations/translate/translating"
+        element={<Translating />}
+      />
+      <Route path="/operations/translate/create-tag" element={<CreateTag />} />
 
       {/* IDP */}
       <Route path="/operations/idp" element={<IdpDoc />} />

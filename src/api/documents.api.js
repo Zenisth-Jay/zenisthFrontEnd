@@ -5,18 +5,25 @@ const api = axios.create({
 });
 
 export const createDocumentAPI = (payload) => {
-  api.post("/documents", payload);
+  return api.post("/documents", payload);
 };
 
-export const uploadToS3 = (uploadUrl, file, onProgress) => {
-  axios.put(uploadUrl, file, {
+export const uploadToS3 = async (uploadUrl, file, onProgress) => {
+  const res = await axios.put(uploadUrl, file, {
     headers: {
       "Content-Type": file.type,
     },
-    onUploadProgress: (evt) => {
-      if (!evt.total) return;
-      const percent = Math.round((evt.loaded * 100) / evt.total);
-      onProgress(percent);
+    onUploadProgress: (e) => {
+      if (e.total && onProgress) {
+        const percent = Math.round((e.loaded * 100) / e.total);
+        onProgress(percent);
+      }
     },
   });
+
+  if (res.status !== 200 && res.status !== 204) {
+    throw new Error("Upload to S3 failed");
+  }
+
+  return true;
 };
