@@ -15,6 +15,7 @@ import {
 import { useDispatch } from "react-redux";
 import Document from "../../../components/ui/Document";
 import MainFileUpload from "../../../components/general/MainFileUpload";
+import UploadedFilesGrid from "../../../components/general/UploadedFileGrid";
 
 // ✅ Allowed file types
 const ALLOWED_TYPES = [
@@ -180,34 +181,9 @@ const TranslateDoc = () => {
     });
   };
 
-  // Progress Bar
-  // const simulateProgress = (file) => {
-  //   let progress = 0;
-
-  //   const interval = setInterval(() => {
-  //     progress += 10;
-
-  //     setFiles((prev) =>
-  //       prev.map((f) =>
-  //         f.file.name === file.name && f.file.size === file.size
-  //           ? { ...f, progress: Math.min(progress, 100) }
-  //           : f,
-  //       ),
-  //     );
-
-  //     if (progress >= 100) clearInterval(interval);
-  //   }, 200);
-  // };
-
-  // Drag and Drop
-  // const handleDrop = (e) => {
-  //   e.preventDefault();
-  //   handleFiles(e.dataTransfer.files);
-  // };
-
   // Remove Files
-  const removeFile = (index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+  const removeFile = (item) => {
+    setFiles((prev) => prev.filter((f) => f.id !== item.id));
   };
 
   return (
@@ -263,28 +239,6 @@ const TranslateDoc = () => {
             )}
           </div>
 
-          {/* When user Upload any files this header- "Uploaded Document" with next step button will apper  */}
-          {files.length != 0 && (
-            <div className="w-full">
-              <div className="flex items-center justify-between py-3">
-                <div className="flex gap-3">
-                  <Button
-                    leftIcon={<Plus size={18} />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      fileInputRef.current?.click();
-                    }}
-                  >
-                    Upload more documents
-                  </Button>
-                </div>
-                <span className=" text-gray-800 font-medium text-lg">
-                  {files.length} Documents
-                </span>
-              </div>
-            </div>
-          )}
-
           {/* When User doesn't uploaded any document, this section will appear to upload file */}
           {files.length === 0 && (
             <MainFileUpload
@@ -297,52 +251,36 @@ const TranslateDoc = () => {
           )}
 
           {/* When user Upload any file, this section will apper */}
-          {files.length != 0 && (
+          {files.length !== 0 && (
             <>
-              <div className="flex flex-col gap-6 w-full">
-                <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
-                  {/* Iterate for each file and shwo in container */}
-                  {files.map((item, index) => (
-                    <Document
-                      key={item.id}
-                      file={item.file}
-                      onDelete={() => removeFile(index)}
-                      onPreview={() => handlePreview(item.file)}
-                    />
-                  ))}
-                </div>
+              <UploadedFilesGrid
+                files={files}
+                onFilesSelected={() => fileInputRef.current?.click()}
+                onRemoveFile={(item) => removeFile(item)}
+                onPreviewFile={(item) => handlePreview(item.file)}
+              />
 
-                <p className="m-3 w-full text-center text-xl text-gray-800 font-medium">
-                  Forgot a file? You can add it using the "Upload more" button
-                  above.
-                </p>
+              <div className="flex gap-10 justify-end">
+                <Button
+                  variant="outline"
+                  className="w-67"
+                  onClick={handleCancelAll}
+                >
+                  Cancel
+                </Button>
 
-                <span className="w-full m-3 border border-gray-200"></span>
-
-                <div className="flex gap-10 justify-end">
-                  <Button
-                    variant="outline"
-                    className="w-67"
-                    onClick={handleCancelAll}
-                  >
-                    Cancel
-                  </Button>
-
-                  <Button
-                    rightIcon={<ArrowRight size={18} />}
-                    disabled={files.length === 0}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Start upload only now
-                      uploadAllFiles();
-
-                      navigate("/operations/translate/select-tag");
-                    }}
-                    className="w-67"
-                  >
-                    Next Step
-                  </Button>
-                </div>
+                <Button
+                  rightIcon={<ArrowRight size={18} />}
+                  disabled={files.length === 0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    uploadAllFiles();
+                    navigate("/operations/translate/select-tag");
+                  }}
+                  className="w-67"
+                >
+                  Next Step
+                </Button>
               </div>
             </>
           )}

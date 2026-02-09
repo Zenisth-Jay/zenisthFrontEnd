@@ -23,7 +23,22 @@ export const tagsApi = createApi({
       }),
       invalidatesTags: ["Tags"], // refetch tags after update
     }),
+
+    createTag: builder.mutation({
+      query: ({ organizationId, applicationId, tab, body }) => ({
+        url: `/tags?organizationId=${organizationId}&applicationId=${applicationId}&tab=${tab}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Tags"],
+    }),
+
+    // end of endpoints
   }),
 });
 
-export const { useGetTagsQuery, useToggleFavoriteTagMutation } = tagsApi;
+export const {
+  useGetTagsQuery,
+  useToggleFavoriteTagMutation,
+  useCreateTagMutation,
+} = tagsApi;

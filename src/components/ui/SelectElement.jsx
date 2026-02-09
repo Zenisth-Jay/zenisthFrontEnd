@@ -1,6 +1,13 @@
 import { ChevronDown } from "lucide-react";
 
-const SelectElement = ({ label, name, register, options, placeholder }) => {
+const SelectElement = ({
+  label,
+  name,
+  register,
+  rules = {},
+  options,
+  placeholder,
+}) => {
   return (
     <div className="flex flex-col gap-2 w-full">
       <label className="text-[#424242] text-[18px] font-medium">
@@ -9,12 +16,12 @@ const SelectElement = ({ label, name, register, options, placeholder }) => {
 
       <div className="relative">
         <select
-          {...register(name)}
+          {...register(name, rules)}
           className="w-full border border-gray-300 px-4 py-3 pr-12 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand bg-white appearance-none"
         >
           <option value="">{placeholder}</option>
           {options.map((opt) => (
-            <option key={opt.code} value={opt.code}>
+            <option key={opt.code} value={opt.code} disabled={opt.disabled}>
               {opt.label}
             </option>
           ))}

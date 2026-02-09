@@ -6,6 +6,7 @@ const Button = ({
   leftIcon = null,
   rightIcon = null,
   className = "",
+  type = "button",
   ...props
 }) => {
   const baseStyles =
@@ -28,6 +29,7 @@ const Button = ({
 
   return (
     <button
+      type={type}
       disabled={disabled}
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${disabled ? " opacity-50 cursor-not-allowed" : ""} ${className}`}
       {...props}

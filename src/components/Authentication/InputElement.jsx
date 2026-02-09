@@ -5,9 +5,11 @@ const InputElement = ({
   register,
   placeholder,
   icon: Icon,
+  rules = {},
+  className = "",
 }) => {
   return (
-    <div className=" flex flex-col gap-1.5 w-full ">
+    <div className={`flex flex-col gap-2 ${className}`}>
       <label htmlFor={name} className=" text-[#424242] text-[18px] font-medium">
         {label} <span className="text-red-500">*</span>
       </label>
@@ -18,7 +20,7 @@ const InputElement = ({
         </div>
 
         <input
-          {...register(name)}
+          {...register(name, rules)}
           id={name}
           type={type}
           placeholder={placeholder}
