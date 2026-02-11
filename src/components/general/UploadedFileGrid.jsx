@@ -47,6 +47,8 @@ const UploadedFilesGrid = ({
       <p className="m-3 w-full text-center text-xl text-gray-800 font-medium">
         {emptyText}
       </p>
+
+      <hr className=" text-gray-300" />
     </div>
   );
 };

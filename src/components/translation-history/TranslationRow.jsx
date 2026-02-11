@@ -141,7 +141,7 @@ const TranslationRow = ({ row }) => {
 
       {/* Accordion Content */}
       {open && (
-        <div className="bg-white border-t border-gray-200">
+        <div className="border-b border-gray-300">
           {loading && (
             <div className="px-6 py-4 text-sm text-gray-500">Loading...</div>
           )}
@@ -156,7 +156,7 @@ const TranslationRow = ({ row }) => {
             children.map((child) => (
               <div
                 key={child.id}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm border-t"
+                className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm border-t border-gray-300"
               >
                 <div className="flex items-center gap-2">
                   <FileText className="text-indigo-700" />
@@ -206,48 +206,13 @@ const TranslationRow = ({ row }) => {
 };
 
 // 🔹 Parent Grid
-export default function TranslationRowGrid() {
-  const rows = [
-    {
-      id: 1,
-      batchName: "Batch_08_12_2025_1819",
-      uploadedAt: "Uploaded 08/12/25 at 18:19",
-      documents: 47,
-      status: "Completed",
-      statusVariant: "completed",
-      sourceLanguage: "En",
-      targetLanguage: "Hi",
-      domain: "Finance",
-      credits: "2,400",
-    },
-    {
-      id: 2,
-      batchName: "Batch_09_12_2025_1020",
-      uploadedAt: "Uploaded 09/12/25 at 10:20",
-      documents: 12,
-      status: "Failed",
-      statusVariant: "failed",
-      sourceLanguage: "En",
-      targetLanguage: "Hi",
-      domain: "Legal",
-      credits: "1,200",
-    },
-    {
-      id: 3,
-      batchName: "Batch_10_12_2025_1020",
-      uploadedAt: "Uploaded 09/12/25 at 10:20",
-      documents: 12,
-      status: "Processing",
-      statusVariant: "processing",
-      sourceLanguage: "En",
-      targetLanguage: "Hi",
-      domain: "Legal",
-      credits: "1,200",
-    },
-  ];
-
+export default function TranslationRowGrid({ rows = [] }) {
   return (
     <div className="w-full">
+      {rows.length === 0 && (
+        <div className="px-6 py-4 text-sm text-gray-500">No records found.</div>
+      )}
+
       {rows.map((row) => (
         <TranslationRow key={row.id} row={row} />
       ))}

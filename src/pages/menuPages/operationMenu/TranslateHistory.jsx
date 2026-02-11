@@ -2,9 +2,45 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import MainNavbar from "../../../components/dashboard/MainNavbar";
 import { useState } from "react";
 import TranslationHistoryGrid from "../../../components/translation-history/TranslationHistoryGrid";
+import FilterPopover from "../../../components/translation-history/FilterPopover";
 
 const TranslateHistory = () => {
   const [search, setSearch] = useState("");
+
+  const [draftFilters, setDraftFilters] = useState({
+    status: "",
+    sourceLanguage: "",
+    targetLanguage: "",
+    tag: "",
+    fromDate: "",
+    toDate: "",
+  });
+
+  const [appliedFilters, setAppliedFilters] = useState(draftFilters);
+
+  const [showFilters, setShowFilters] = useState(false);
+
+  const handleDraftFilterChange = (key, value) => {
+    setDraftFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleApplyFilters = () => {
+    setAppliedFilters(draftFilters);
+    setShowFilters(false);
+  };
+
+  const handleClearFilters = () => {
+    const empty = {
+      status: "",
+      sourceLanguage: "",
+      targetLanguage: "",
+      tag: "",
+      fromDate: "",
+      toDate: "",
+    };
+    setDraftFilters(empty);
+    setAppliedFilters(empty);
+  };
 
   return (
     <>
@@ -39,14 +75,25 @@ const TranslateHistory = () => {
                       "
             />
           </div>
-          <div className="flex">
-            <SlidersHorizontal size={28} className=" text-gray-400" />
-          </div>
+          <button
+            onClick={() => setShowFilters(true)}
+            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+          >
+            <SlidersHorizontal size={24} className="text-gray-600" />
+          </button>
         </div>
 
         {/* History Grid */}
-        <TranslationHistoryGrid />
+        <TranslationHistoryGrid search={search} filters={appliedFilters} />
       </main>
+      <FilterPopover
+        open={showFilters}
+        onClose={() => setShowFilters(false)}
+        filters={draftFilters}
+        onChange={handleDraftFilterChange}
+        onClear={handleClearFilters}
+        onApply={handleApplyFilters}
+      />
     </>
   );
 };

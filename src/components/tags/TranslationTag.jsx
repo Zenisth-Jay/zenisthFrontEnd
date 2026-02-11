@@ -1,6 +1,12 @@
 import { ArrowRight, MoreVertical, Star, User, FileMinus } from "lucide-react";
 
-const TranslationTag = ({ tag, onToggleFavorite, onSelect, isSelected }) => {
+const TranslationTag = ({
+  tag,
+  onToggleFavorite,
+  onSelect,
+  isSelected,
+  width,
+}) => {
   const {
     name,
     sourceLanguage,
@@ -13,7 +19,7 @@ const TranslationTag = ({ tag, onToggleFavorite, onSelect, isSelected }) => {
 
   return (
     <div
-      className={` w-[48%] h-50 p-4 bg-white rounded-xl flex flex-col justify-between cursor-pointer hover:shadow-md transition
+      className={`${width} h-50 p-4 bg-white rounded-xl flex flex-col justify-between cursor-pointer hover:shadow-md transition
         ${
           isSelected
             ? "border-2 border-indigo-600 shadow-md"

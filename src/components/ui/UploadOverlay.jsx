@@ -86,7 +86,6 @@ const UploadOverlay = () => {
               className="text-sm text-red-600"
               onClick={(e) => {
                 e.stopPropagation();
-                dispatch(clearUploads());
                 dispatch(closeOverlay());
               }}
             >

@@ -1,6 +1,31 @@
-import { Languages } from "lucide-react";
+import { Languages, Check, X } from "lucide-react";
 
-const TranslatingAnimation = () => {
+const TranslatingAnimation = ({ status = "PROCESSIONG" }) => {
+  if (status === "COMPLETED") {
+    return (
+      <div className="relative flex items-center justify-center w-44 h-44">
+        {/* Success ring */}
+        <div className="absolute w-36 h-36 rounded-full bg-green-200/60" />
+        <div className="relative w-20 h-20 rounded-full bg-green-600 flex items-center justify-center shadow-lg">
+          <Check className="text-white" size={36} strokeWidth={3} />
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "FAILED") {
+    return (
+      <div className="relative flex items-center justify-center w-44 h-44">
+        {/* Error ring */}
+        <div className="absolute w-36 h-36 rounded-full bg-red-200/60" />
+        <div className="relative w-20 h-20 rounded-full bg-red-600 flex items-center justify-center shadow-lg">
+          <X className="text-white" size={36} strokeWidth={3} />
+        </div>
+      </div>
+    );
+  }
+
+  // 🔄 Default: PROCESSIONG (your current animation)
   return (
     <div className="relative flex items-center justify-center w-44 h-44">
       {/* Outer ping ring */}

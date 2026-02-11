@@ -12,6 +12,11 @@ import {
   useToggleFavoriteTagMutation,
 } from "../../api/tags.api";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { clearUploads } from "../../redux/features/uploadSlice";
+import { useStartTranslationMutation } from "../../api/translate.api";
+import { useGetBatchSummaryQuery } from "../../api/batchSummary.api";
 
 const STEPS = ["Upload Document", "Select Tag", "Translation", "Review & Done"];
 
@@ -40,7 +45,11 @@ const TAG_TABS = [
 ];
 
 const SelectTag = () => {
+  const userId = "550e8400-e29b-41d4-a716-446655440000"; // later from auth
+  const application = "TRANSLATE";
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const { data: tags = [], isLoading, isError } = useGetTagsQuery();
   const [toggleFavoriteTag] = useToggleFavoriteTagMutation();
@@ -48,6 +57,22 @@ const SelectTag = () => {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("company");
   const [selectedTag, setSelectedTag] = useState(null);
+
+  const [startTranslation, { isLoading: isTranslating }] =
+    useStartTranslationMutation();
+
+  const { files: uploadedFiles, hasCompletedBatch } = useSelector(
+    (state) => state.upload,
+  );
+
+  const {
+    data: batchSummary,
+    isLoading: isBatchLoading,
+    isError: isBatchError,
+  } = useGetBatchSummaryQuery(
+    { application, userId },
+    { skip: !hasCompletedBatch }, // only fetch after uploads complete
+  );
 
   // Filtering
   const filteredTags = useMemo(() => {
@@ -113,9 +138,9 @@ const SelectTag = () => {
         <Tabs tabs={TAG_TABS} activeTab={activeTab} onChange={setActiveTab} />
 
         {/* last Div containing tags and Batch summary container */}
-        <div className=" w-full flex">
+        <div className=" w-full flex gap-3">
           {/* Left Tag container */}
-          <div className="w-[66.66%] h-fit flex flex-wrap gap-6">
+          <div className="w-[66.66%] max-h-[calc(100vh-280px)] overflow-y-auto flex flex-wrap gap-6">
             {isLoading && <p>Loading tags...</p>}
             {isError && <p>Failed to load tags</p>}
 
@@ -127,6 +152,7 @@ const SelectTag = () => {
               <TranslationTag
                 key={tag.id}
                 tag={tag}
+                width={"w-[47%]"}
                 isSelected={selectedTag?.id === tag.id}
                 onSelect={(t) => setSelectedTag(t)}
                 onToggleFavorite={(t) =>
@@ -135,69 +161,152 @@ const SelectTag = () => {
               />
             ))}
           </div>
-
           {/* Right batch summary container */}
-          <div className=" w-[33.33%] border flex flex-col gap-3 items-start p-6 rounded-2xl border-gray-300 bg-white">
+          <div className=" w-[33.33%] h-fit border flex flex-col gap-4 items-start p-6 rounded-2xl border-gray-300 bg-white">
             <h2 className=" text-2xl text-gray-900 font-semibold">
               Batch Summary
             </h2>
-            <div className="flex flex-col">
-              <span className=" text-xl text-gray-700">Document detected</span>
-              <span className="text-gray-800 text-2xl font-bold">6</span>
-            </div>
-            <div className="flex flex-col">
-              <span className=" text-xl text-gray-700">Language detected</span>
-              <span className="text-gray-800 text-2xl font-semibold">
-                English
-              </span>
-            </div>
+            {hasCompletedBatch ? (
+              <>
+                {isBatchLoading && <p>Calculating credits...</p>}
+                {isBatchError && (
+                  <p className="text-red-500">Failed to load batch summary</p>
+                )}
 
-            <hr className=" w-full text-gray-300" />
+                {batchSummary && (
+                  <>
+                    <div className=" w-full flex justify justify-between">
+                      <span className=" text-xl text-gray-700">
+                        Document Uploaded
+                      </span>
+                      <span className="text-gray-800 text-2xl font-bold">
+                        {batchSummary.total_documents}
+                      </span>
+                    </div>
+                    <div className="w-full flex justify justify-between">
+                      <span className=" text-xl text-gray-700">
+                        Total Characters detected
+                      </span>
+                      <span className="text-gray-800 text-2xl font-semibold">
+                        {batchSummary.total_count.toLocaleString()}
+                      </span>
+                    </div>
 
-            <div className=" w-full flex flex-col gap-3">
-              <h3 className=" text-xl text-gray-900 font-medium">
-                Estimated Credits
-              </h3>
-              <ul className=" list-disc list-inside">
-                <li className=" w-full flex items-center justify-between">
-                  <span className=" text-gray-600 text-[16px]">
-                    Translation :
-                  </span>
-                  <span className=" text-gray-900 font-semibold text-[16px]">
-                    5 Credits
-                  </span>
-                </li>
-              </ul>
-            </div>
+                    <hr className=" w-full text-gray-300" />
 
-            <hr className=" w-full text-gray-300" />
+                    <div className="w-full flex flex-col gap-5">
+                      <h3 className="text-xl text-gray-900 font-semibold">
+                        Translation Credits
+                      </h3>
 
-            <div className="flex w-full justify-between items-center">
-              <h2 className=" text-xl font-semibold text-gray-900">
-                Total Estimated :{" "}
-              </h2>
-              <span className="text-xl font-semibold text-gray-800">
-                5 Credits
-              </span>
-            </div>
+                      <div className="flex items-center justify-between">
+                        {/* Left side: dot + formula */}
+                        <div className=" pl-1 flex items-center gap-3 text-gray-600 text-[16px]">
+                          {/* Custom bullet */}
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-600 inline-block" />
 
-            <div className="w-full flex justify-between mt-2">
-              <Button variant="outline" className="w-[47%]">
-                Back
-              </Button>
-              <Button className="w-[47%]" disabled={!selectedTag}>
-                Start Translation
-              </Button>
-            </div>
+                          {/* Formula */}
+                          <div className="flex items-center text-gray-600 gap-1.5">
+                            <span>{batchSummary.total_count}</span>
+                            <span>÷</span>
+                            <span>{batchSummary.unit_size}</span>
+                            <span>×</span>
+                            <span>{batchSummary.credits_per_unit}</span>
+                          </div>
+                        </div>
 
-            <div
-              className="p-4 mt-2 rounded-lg text-lg font-medium border border-indigo-200 bg-indigo-50 text-gray-700
-            shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_2px_6px_2px_rgba(0,0,0,0.15)]
-            "
-            >
-              Final credit usage may vary slightly depending on document length
-              and formatting.
-            </div>
+                        {/* Right side: result */}
+                        <span className="text-gray-900 font-medium text-[16px]">
+                          {batchSummary.total_credits} Credits
+                        </span>
+                      </div>
+                    </div>
+
+                    <hr className=" w-full text-gray-300" />
+
+                    <div className="flex w-full justify-between items-center">
+                      <h2 className=" text-xl font-semibold text-gray-900">
+                        Total Credits :
+                      </h2>
+                      <span className="text-xl font-bold text-gray-800">
+                        {batchSummary.total_credits} Credits
+                      </span>
+                    </div>
+
+                    <div className="w-full flex justify-between mt-2">
+                      <Button
+                        variant="outline"
+                        className="w-[47%]"
+                        onClick={() => {
+                          dispatch(clearUploads()); // reset batch
+                          navigate("/operations/translate"); // or your upload page
+                        }}
+                      >
+                        Back
+                      </Button>
+
+                      {/* <Button
+                    className="w-[47%]"
+                    disabled={!selectedTag}
+                    onClick={() => {
+                      dispatch(clearUploads()); // ✅ clear batch ONLY here
+                      navigate("/operations/translate/translating"); // or next step
+                    }}
+                  >
+                    Start Translation
+                  </Button> */}
+
+                      <Button
+                        className="w-[47%]"
+                        disabled={!selectedTag || isTranslating}
+                        onClick={async () => {
+                          try {
+                            const res = await startTranslation({
+                              tagId: selectedTag.id,
+                            }).unwrap();
+
+                            console.log("Translation started ✅", res);
+
+                            // clear batch only AFTER successful call
+                            dispatch(clearUploads());
+
+                            // go to translating screen
+                            navigate(
+                              `/operations/translate/translating?source=${selectedTag.sourceLanguage}&target=${selectedTag.targetLanguage}`,
+                            );
+                          } catch (err) {
+                            console.error(
+                              "Failed to start translation ❌",
+                              err,
+                            );
+                            alert(
+                              "Failed to start translation. Please try again.",
+                            );
+                          }
+                        }}
+                      >
+                        {isTranslating ? "Starting..." : "Start Translation"}
+                      </Button>
+                    </div>
+
+                    <div
+                      className=" w-full  p-4 pl-7 mt-2 rounded-lg text-lg font-medium border border-indigo-200 bg-indigo-50 text-gray-700
+              shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_2px_6px_2px_rgba(0,0,0,0.15)] 
+              "
+                    >
+                      💡 {batchSummary.credits_per_unit} credit ={" "}
+                      {batchSummary.unit_size} characters
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <div>
+                  <p>Please wait while uploading your documents.</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>

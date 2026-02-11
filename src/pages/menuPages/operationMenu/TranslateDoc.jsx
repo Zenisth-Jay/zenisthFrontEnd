@@ -13,7 +13,6 @@ import {
   markError,
 } from "../../../redux/features/uploadSlice";
 import { useDispatch } from "react-redux";
-import Document from "../../../components/ui/Document";
 import MainFileUpload from "../../../components/general/MainFileUpload";
 import UploadedFilesGrid from "../../../components/general/UploadedFileGrid";
 
@@ -45,11 +44,22 @@ const TranslateDoc = () => {
   }, [uploadStatus, showUploadOverlay]);
 
   const uploadAllFiles = async () => {
-    // Open overlay
+    // 1️⃣ Open overlay
     dispatch(openOverlay());
-    setShowUploadOverlay(true);
 
-    // Upload each file
+    // 2️⃣ Add ALL files to redux first
+    files.forEach((fileObj) => {
+      dispatch(
+        addUpload({
+          id: fileObj.id,
+          name: fileObj.file.name,
+          progress: 0,
+          status: "uploading",
+        }),
+      );
+    });
+
+    // 3️⃣ Then start uploading them one by one
     for (const fileObj of files) {
       await startUpload(fileObj);
     }
@@ -59,40 +69,25 @@ const TranslateDoc = () => {
     const id = fileObj.id;
 
     try {
-      // 1. Ask backend for presigned URL (NO TOAST)
+      // 1. Ask backend for presigned URL
       const res = await createDocumentAPI({
         fileName: fileObj.file.name,
         fileSize: fileObj.file.size,
         application: "TRANSLATE",
       });
 
-      const { documentId, uploadUrl } = res.data;
+      const { uploadUrl } = res.data;
 
-      // 2. Add to overlay & open it
-      dispatch(openOverlay());
-      dispatch(
-        addUpload({
-          id,
-          name: fileObj.file.name,
-          progress: 0,
-          status: "uploading",
-        }),
-      );
-
-      // 3. REAL upload to S3
+      // 2. REAL upload to S3
       await uploadToS3(uploadUrl, fileObj.file, (percent) => {
         dispatch(updateProgress({ id, progress: percent }));
       });
 
-      // 4. Mark success ONLY after S3 succeeds
+      // 3. Mark success
       dispatch(markSuccess({ id }));
-      // toast.success(`Uploaded: ${fileObj.file.name}`);
     } catch (err) {
       console.error(err);
-
-      // 5. Mark error if ANYTHING fails (especially S3)
       dispatch(markError({ id }));
-      // toast.error(`Upload failed: ${fileObj.file.name}`);
     }
   };
 
@@ -224,6 +219,7 @@ const TranslateDoc = () => {
             {files.length == 0 && (
               <div>
                 <Button
+                  onClick={() => navigate("/operations/translate-history")}
                   variant="outline"
                   leftIcon={
                     <History
@@ -260,6 +256,32 @@ const TranslateDoc = () => {
                 onPreviewFile={(item) => handlePreview(item.file)}
               />
 
+              {/* Uploaded Processing Cost Section */}
+              <div className=" p-6 flex flex-col gap-6 bg-white border border-gray-300 shadow-sm rounded-2xl">
+                <div className="flex flex-col gap-4">
+                  <h3 className=" text-[28px] font-semibold text-gray-900">
+                    Upload processing cost
+                  </h3>
+                  <hr className=" text-gray-300" />
+                  <div className="flex items-center justify-between">
+                    <span className=" text-2xl font-semibold text-gray-800">
+                      Total Cost :{" "}
+                    </span>
+                    <span className=" text-[28px] font-bold text-gray-800">
+                      2 credits
+                    </span>
+                  </div>
+                </div>
+                <div
+                  className=" bg-indigo-50 border-indigo-200 text-gray-600 rounded-lg p-4 text-xl 
+                   shadow-md
+                  "
+                >
+                  💡 Credits will be deducted when you confirm by clicking
+                  “Next” and the upload begins.
+                </div>
+              </div>
+
               <div className="flex gap-10 justify-end">
                 <Button
                   variant="outline"
@@ -284,15 +306,6 @@ const TranslateDoc = () => {
               </div>
             </>
           )}
-
-          {/* <div
-            className=" bg-indigo-50 border-indigo-200 rounded-lg text-black p-4 text-xl 
-        shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_2px_6px_2px_rgba(0,0,0,0.15)]
-        "
-          >
-            💡 No tokens are used during upload. Token estimation will be shown
-            before translation starts.
-          </div> */}
         </div>
       </section>
     </>
