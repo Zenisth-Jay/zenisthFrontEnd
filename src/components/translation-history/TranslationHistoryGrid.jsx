@@ -2,29 +2,71 @@ import { useMemo, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import Pagination from "../ui/Pagination";
 import TranslationRowGrid from "./TranslationRow";
+import { useGetHistoryBatchesQuery } from "../../api/HistoryBatch.api";
 
 export default function TranslationHistoryGrid({ search = "", filters = {} }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Page information
   const page = Number(searchParams.get("page") || 1);
   const pageSize = 5; // 🔹 rows per page
 
+  // Fetch history batches from API
+  const {
+    data: historyResponse,
+    isLoading: isHistoryLoading,
+    isError: isHistoryError,
+  } = useGetHistoryBatchesQuery({
+    page,
+    limit: pageSize,
+  });
+
   // 🔹 Mock 30 rows (later this will come from API)
+  // const allRows = useMemo(() => {
+  //   return Array.from({ length: 30 }).map((_, i) => ({
+  //     id: i + 1,
+  //     batchName: `Batch_${i + 1}_12_2025_1819`,
+  //     uploadedAt: "Uploaded 08/12/25 at 18:19",
+  //     documents: Math.floor(Math.random() * 50) + 1,
+  //     status: i % 3 === 0 ? "Completed" : i % 3 === 1 ? "Failed" : "Processing",
+  //     statusVariant:
+  //       i % 3 === 0 ? "completed" : i % 3 === 1 ? "failed" : "processing",
+  //     sourceLanguage: "En",
+  //     targetLanguage: "Hi",
+  //     domain: i % 2 === 0 ? "Finance" : "Legal",
+  //     credits: `${1000 + i * 100}`,
+  //   }));
+  // }, []);
+
+  // 🔹 Map API response to UI rows
   const allRows = useMemo(() => {
-    return Array.from({ length: 30 }).map((_, i) => ({
-      id: i + 1,
-      batchName: `Batch_${i + 1}_12_2025_1819`,
-      uploadedAt: "Uploaded 08/12/25 at 18:19",
-      documents: Math.floor(Math.random() * 50) + 1,
-      status: i % 3 === 0 ? "Completed" : i % 3 === 1 ? "Failed" : "Processing",
+    if (!historyResponse?.jobs) return [];
+
+    return historyResponse.jobs.map((job) => ({
+      id: job.job_id,
+      batchName: job.tag_name,
+      uploadedAt: new Date(job.created_at).toLocaleString(),
+      documents: job.total_documents,
+      status:
+        job.job_status === "FAILED"
+          ? "Failed"
+          : job.job_status === "COMPLETED"
+            ? "Completed"
+            : "Processing",
       statusVariant:
-        i % 3 === 0 ? "completed" : i % 3 === 1 ? "failed" : "processing",
-      sourceLanguage: "En",
-      targetLanguage: "Hi",
-      domain: i % 2 === 0 ? "Finance" : "Legal",
-      credits: `${1000 + i * 100}`,
+        job.job_status === "FAILED"
+          ? "failed"
+          : job.job_status === "COMPLETED"
+            ? "completed"
+            : "processing",
+      sourceLanguage: job.source_language.toUpperCase(),
+      targetLanguage: job.target_language.toUpperCase(),
+      domain: job.tag_industry,
+      credits: job.total_tokens,
     }));
-  }, []);
+  }, [historyResponse]);
+
+  const totalPages = historyResponse?.pagination?.total_pages || 1;
 
   // 🔹 Apply search + filters
   const filteredRows = useMemo(() => {
@@ -85,10 +127,26 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
     }
   }, [filterKey, setSearchParams]);
 
-  const totalPages = Math.ceil(filteredRows.length / pageSize);
+  // const totalPages = Math.ceil(filteredRows.length / pageSize);
 
   const startIndex = (page - 1) * pageSize;
   const currentRows = filteredRows.slice(startIndex, startIndex + pageSize);
+
+  if (isHistoryLoading) {
+    return (
+      <div className="bg-white border border-gray-300 shadow-md p-6 text-gray-600">
+        Loading history...
+      </div>
+    );
+  }
+
+  if (isHistoryError) {
+    return (
+      <div className="bg-white border border-gray-300 shadow-md p-6 text-red-600">
+        Failed to load history.
+      </div>
+    );
+  }
 
   return (
     <div className=" bg-white border border-gray-300 shadow-md">

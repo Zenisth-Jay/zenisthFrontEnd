@@ -1,12 +1,23 @@
-import { FileText, Trash2 } from "lucide-react";
+import { FileText, ImageIcon, Trash2 } from "lucide-react";
 
 const Document = ({ file, onDelete, onPreview }) => {
+  // Check type First
   const isPdf = file.type === "application/pdf";
   const isDocx =
     file.type ===
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  const isImage = file.type === "image/jpeg" || file.type === "image/png";
 
-  const fileTypeLabel = isPdf ? "PDF" : isDocx ? "Word" : "File";
+  // Decide Label
+  const fileTypeLabel = isPdf
+    ? "PDF"
+    : isDocx
+      ? "Word"
+      : isImage
+        ? file.type === "image/png"
+          ? "PNG"
+          : "JPG"
+        : "File";
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 B";
@@ -35,11 +46,15 @@ const Document = ({ file, onDelete, onPreview }) => {
         >
           <Trash2 size={18} strokeWidth={1.5} />
         </div>
-        <FileText
-          size={35}
-          strokeWidth={2}
-          className={isPdf ? "text-red-600" : "text-indigo-600"}
-        />
+        {isImage ? (
+          <ImageIcon size={35} strokeWidth={2} className=" text-green-600" />
+        ) : (
+          <FileText
+            size={35}
+            strokeWidth={2}
+            className={isPdf ? "text-red-600" : "text-indigo-600"}
+          />
+        )}
       </div>
 
       {/* Second remaining section */}

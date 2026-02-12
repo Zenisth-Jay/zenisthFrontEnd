@@ -11,7 +11,8 @@ export const tokenApi = createApi({
 
   endpoints: (builder) => ({
     getTokens: builder.query({
-      query: () => "/credits?organizationId=org_002",
+      query: () =>
+        "/credits?organizationId=7b2f5a9c-3c3e-4e9c-8d4b-1c7f9b123456",
       providesTags: ["Tokens"],
     }),
   }),

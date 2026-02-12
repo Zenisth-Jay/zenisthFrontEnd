@@ -4,6 +4,7 @@ import Button from "../../../components/ui/Button";
 import { History, Upload, FileText, Plus, ArrowRight, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { createDocumentAPI, uploadToS3 } from "../../../api/documents.api";
 import {
   openOverlay,
@@ -16,23 +17,30 @@ import { useDispatch } from "react-redux";
 import MainFileUpload from "../../../components/general/MainFileUpload";
 import UploadedFilesGrid from "../../../components/general/UploadedFileGrid";
 
-// ✅ Allowed file types
-const ALLOWED_TYPES = [
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  // "text/plain",
-];
-
 const TranslateDoc = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // Check Tool Type
+  const { toolType } = useParams();
+  const isIdp = toolType == "idp";
+
+  // Allowed FIles
+  const ALLOWED_TYPES = isIdp
+    ? ["application/pdf", "image/png", "image/jpeg"]
+    : [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+
+  // initialize files array
   const fileInputRef = useRef(null);
   const [files, setFiles] = useState([]);
 
+  // initialize overlay status
   const [showUploadOverlay, setShowUploadOverlay] = useState(false);
   const [uploadStatus, setUploadStatus] = useState({});
 
+  // Overlay showing
   useEffect(() => {
     if (!showUploadOverlay) return;
 
@@ -43,6 +51,7 @@ const TranslateDoc = () => {
     }
   }, [uploadStatus, showUploadOverlay]);
 
+  // *** First Upload all files
   const uploadAllFiles = async () => {
     // 1️⃣ Open overlay
     dispatch(openOverlay());
@@ -65,6 +74,7 @@ const TranslateDoc = () => {
     }
   };
 
+  // *** Function to Start Uploading
   const startUpload = async (fileObj) => {
     const id = fileObj.id;
 
@@ -73,7 +83,7 @@ const TranslateDoc = () => {
       const res = await createDocumentAPI({
         fileName: fileObj.file.name,
         fileSize: fileObj.file.size,
-        application: "TRANSLATE",
+        application: isIdp ? "IDP" : "TRANSLATE",
       });
 
       const { uploadUrl } = res.data;
@@ -91,6 +101,7 @@ const TranslateDoc = () => {
     }
   };
 
+  // *** To remove all files Func
   const handleCancelAll = () => {
     setFiles([]);
     setShowUploadOverlay(false);
@@ -101,6 +112,7 @@ const TranslateDoc = () => {
     }
   };
 
+  // *** Function to Preview File
   const handlePreview = (file) => {
     const url = URL.createObjectURL(file);
     window.open(url, "_blank", "noopener,noreferrer");
@@ -110,7 +122,7 @@ const TranslateDoc = () => {
   const MAX_SINGLE_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
   const MAX_TOTAL_SIZE = 5 * 1024 * 1024 * 1024; // 5 GB
 
-  // Handle Duplicate + File Type Validation
+  // *** Handle Duplicate + File Type Validation
   const handleFiles = (selectedFiles) => {
     const incoming = Array.from(selectedFiles);
 
@@ -120,9 +132,12 @@ const TranslateDoc = () => {
     );
 
     if (invalidFiles.length > 0) {
-      toast.error("Only PDF and DOCX files are allowed", {
-        autoClose: 3000,
-      });
+      toast.error(
+        isIdp
+          ? "Only PDF, PNG, and JPG files are allowed"
+          : "Only DOCX files are allowed",
+        { autoClose: 3000 },
+      );
     }
 
     // Size validation (single file > 20MB)
@@ -176,7 +191,7 @@ const TranslateDoc = () => {
     });
   };
 
-  // Remove Files
+  // *** Delete File using delete btn
   const removeFile = (item) => {
     setFiles((prev) => prev.filter((f) => f.id !== item.id));
   };
@@ -193,7 +208,7 @@ const TranslateDoc = () => {
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".pdf,.docx"
+            accept={isIdp ? ".pdf,.png,.jpg,.jpeg" : ".docx"}
             hidden
             onChange={(e) => {
               handleFiles(e.target.files);
@@ -211,7 +226,9 @@ const TranslateDoc = () => {
               </h2>
               <p className=" text-lg font-medium text-gray-800">
                 {files.length == 0
-                  ? "Upload the documents you want to translate. We’ll prepare it for the next step."
+                  ? isIdp
+                    ? "Just upload your scanned file we'll automatically detect and separate the documents inside."
+                    : "Upload the documents you want to translate. We’ll prepare it for the next step."
                   : "Verify your uploads and make any changes before processing."}
               </p>
             </div>
@@ -241,8 +258,8 @@ const TranslateDoc = () => {
               onFilesSelected={handleFiles}
               onBrowseClick={() => fileInputRef.current?.click()}
               title="Drag and drop your documents here, or click to browse"
-              supportedText="Supported formats: PDF, DOCX, TXT"
-              helperText="Max file size: 2 GB, Max pages: 2500"
+              supportedText={`Supported formats: ${isIdp ? "PDF , PNG, JPG, JPEG" : "DOCX"}`}
+              helperText="Max file size: 20 MB, Max Total File Size: 5GB"
             />
           )}
 

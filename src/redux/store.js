@@ -6,6 +6,7 @@ import uploadReducer from "./features/uploadSlice";
 import { tagsApi } from "../api/tags.api";
 import { translateApi } from "../api/translate.api";
 import { batchSummaryApi } from "../api/batchSummary.api";
+import { historyBatchApi } from "../api/HistoryBatch.api";
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     [tagsApi.reducerPath]: tagsApi.reducer,
     [translateApi.reducerPath]: translateApi.reducer,
     [batchSummaryApi.reducerPath]: batchSummaryApi.reducer,
+    [historyBatchApi.reducerPath]: historyBatchApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -25,5 +27,6 @@ export const store = configureStore({
       tagsApi.middleware,
       translateApi.middleware,
       batchSummaryApi.middleware,
+      historyBatchApi.middleware,
     ),
 });

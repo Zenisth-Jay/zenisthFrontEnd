@@ -9,14 +9,16 @@ import { useSearchParams } from "react-router-dom";
 const STEPS = ["Upload Document", "Select Tag", "Translation", "Review & Done"];
 
 const Translating = () => {
-  const [status, setStatus] = useState("FAILED");
+  // const [status, setStatus] = useState("FAILED");
 
   const [searchParams] = useSearchParams();
 
   const sourceLanguage = searchParams.get("source");
   const targetLanguage = searchParams.get("target");
+  const jobId = searchParams.get("jobId");
+  const status = searchParams.get("status");
 
-  const isProcessing = status === "PROCESSING";
+  const isProcessing = status === "PROCESSING" || status == "QUEUED";
   const isCompleted = status === "COMPLETED";
   const isFailed = status === "FAILED";
 

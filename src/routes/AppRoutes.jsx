@@ -39,7 +39,7 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={<Dashboard />} />
 
       {/* Operation Menu */}
-      <Route path="/operations/translate" element={<TranslateDoc />} />
+      {/* <Route path="/operations/translate" element={<TranslateDoc />} /> */}
       <Route
         path="/operations/translate-history"
         element={<TranslateHistory />}
@@ -70,7 +70,7 @@ const AppRoutes = () => {
       <Route path="/user-profile" element={<UserProfile />} />
 
       {/* Translation Routes */}
-      <Route path="/operations/translate/select-tag" element={<SelectTag />} />
+      {/* <Route path="/operations/translate/select-tag" element={<SelectTag />} /> */}
       <Route
         path="/operations/translate/translating"
         element={<Translating />}
@@ -78,7 +78,9 @@ const AppRoutes = () => {
       <Route path="/operations/translate/create-tag" element={<CreateTag />} />
 
       {/* IDP */}
-      <Route path="/operations/idp" element={<IdpDoc />} />
+      {/* <Route path="/operations/idp" element={<TranslateDoc />} /> */}
+      <Route path="/operations/:toolType" element={<TranslateDoc />} />
+      <Route path="/operations/:toolType/select-tag" element={<SelectTag />} />
 
       {/* 404 */}
       <Route path="*" element={<h1>404 - Page not found</h1>} />

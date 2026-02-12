@@ -11,42 +11,68 @@ import {
   useGetTagsQuery,
   useToggleFavoriteTagMutation,
 } from "../../api/tags.api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { clearUploads } from "../../redux/features/uploadSlice";
 import { useStartTranslationMutation } from "../../api/translate.api";
 import { useGetBatchSummaryQuery } from "../../api/batchSummary.api";
 
-const STEPS = ["Upload Document", "Select Tag", "Translation", "Review & Done"];
-
-const TAG_TABS = [
-  {
-    label: "My Tags",
-    id: "my",
-    icon: Star,
-    iconClassName: "text-[#FBC02D]",
-    iconFill: true,
-  },
-  {
-    label: "Company Tags",
-    id: "company",
-    icon: Briefcase,
-    iconClassName: "text-gray-800",
-    iconFill: false,
-  },
-  {
-    label: "Default Tags",
-    id: "default",
-    icon: Star,
-    iconClassName: "text-gray-800",
-    iconFill: false,
-  },
-];
-
 const SelectTag = () => {
+  // fetch tool
+  const { toolType } = useParams();
+  const isIdp = toolType == "idp";
+
+  const STEPS = [
+    "Upload Document",
+    "Select Tag",
+    isIdp ? "Extraction" : "Translation",
+    "Review & Done",
+  ];
+
+  const TAG_TABS = isIdp
+    ? [
+        {
+          label: "My Tags",
+          id: "my",
+          icon: Star,
+          iconClassName: "text-[#FBC02D]",
+          iconFill: true,
+        },
+        {
+          label: "Company Tags",
+          id: "company",
+          icon: Briefcase,
+          iconClassName: "text-gray-800",
+          iconFill: false,
+        },
+      ]
+    : [
+        {
+          label: "My Tags",
+          id: "my",
+          icon: Star,
+          iconClassName: "text-[#FBC02D]",
+          iconFill: true,
+        },
+        {
+          label: "Company Tags",
+          id: "company",
+          icon: Briefcase,
+          iconClassName: "text-gray-800",
+          iconFill: false,
+        },
+        {
+          label: "Default Tags",
+          id: "default",
+          icon: Star,
+          iconClassName: "text-gray-800",
+          iconFill: false,
+        },
+      ];
+
   const userId = "550e8400-e29b-41d4-a716-446655440000"; // later from auth
-  const application = "TRANSLATE";
+  const application = isIdp ? "IDP" : "TRANSLATE";
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -116,7 +142,9 @@ const SelectTag = () => {
           <div>
             <h2 className=" text-4xl font-bold text-gray-800">Select Tag</h2>
             <p className=" text-gray-700 font-normal text-lg">
-              Select a tag to apply translation rules, tone, and glossary.
+              {isIdp
+                ? "Choose a tag from your favorites or company tags"
+                : "Select a tag to apply translation rules, tone, and glossary."}
             </p>
           </div>
           <Button
@@ -158,6 +186,7 @@ const SelectTag = () => {
                 onToggleFavorite={(t) =>
                   toggleFavoriteTag({ id: t.id, isFavorite: !t.isFavorite })
                 }
+                idp={false}
               />
             ))}
           </div>
@@ -180,7 +209,7 @@ const SelectTag = () => {
                         Document Uploaded
                       </span>
                       <span className="text-gray-800 text-2xl font-bold">
-                        {batchSummary.total_documents}
+                        {batchSummary?.total_documents ?? "Loading"}
                       </span>
                     </div>
                     <div className="w-full flex justify justify-between">
@@ -188,7 +217,9 @@ const SelectTag = () => {
                         Total Characters detected
                       </span>
                       <span className="text-gray-800 text-2xl font-semibold">
-                        {batchSummary.total_count.toLocaleString()}
+                        {batchSummary?.total_count
+                          ? batchSummary.total_count.toLocaleString()
+                          : "Loading"}
                       </span>
                     </div>
 
@@ -207,17 +238,21 @@ const SelectTag = () => {
 
                           {/* Formula */}
                           <div className="flex items-center text-gray-600 gap-1.5">
-                            <span>{batchSummary.total_count}</span>
+                            <span>
+                              {batchSummary?.total_count ?? "Loading"}
+                            </span>
                             <span>÷</span>
-                            <span>{batchSummary.unit_size}</span>
+                            <span>{batchSummary?.unit_size ?? "Loading"}</span>
                             <span>×</span>
-                            <span>{batchSummary.credits_per_unit}</span>
+                            <span>
+                              {batchSummary?.credits_per_unit ?? "Loading"}
+                            </span>
                           </div>
                         </div>
 
                         {/* Right side: result */}
                         <span className="text-gray-900 font-medium text-[16px]">
-                          {batchSummary.total_credits} Credits
+                          {batchSummary?.total_credits ?? "Loading"} Credits
                         </span>
                       </div>
                     </div>
@@ -229,7 +264,7 @@ const SelectTag = () => {
                         Total Credits :
                       </h2>
                       <span className="text-xl font-bold text-gray-800">
-                        {batchSummary.total_credits} Credits
+                        {batchSummary?.total_credits ?? "Loading"} Credits
                       </span>
                     </div>
 
@@ -266,13 +301,14 @@ const SelectTag = () => {
                             }).unwrap();
 
                             console.log("Translation started ✅", res);
+                            const { jobId, status } = res;
 
                             // clear batch only AFTER successful call
                             dispatch(clearUploads());
 
                             // go to translating screen
                             navigate(
-                              `/operations/translate/translating?source=${selectedTag.sourceLanguage}&target=${selectedTag.targetLanguage}`,
+                              `/operations/translate/translating?jobId=${jobId}&status=${status}&source=${selectedTag.sourceLanguage}&target=${selectedTag.targetLanguage}`,
                             );
                           } catch (err) {
                             console.error(

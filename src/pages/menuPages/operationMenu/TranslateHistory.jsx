@@ -5,8 +5,10 @@ import TranslationHistoryGrid from "../../../components/translation-history/Tran
 import FilterPopover from "../../../components/translation-history/FilterPopover";
 
 const TranslateHistory = () => {
+  // Search bar
   const [search, setSearch] = useState("");
 
+  // Filters
   const [draftFilters, setDraftFilters] = useState({
     status: "",
     sourceLanguage: "",
@@ -15,20 +17,21 @@ const TranslateHistory = () => {
     fromDate: "",
     toDate: "",
   });
-
   const [appliedFilters, setAppliedFilters] = useState(draftFilters);
-
   const [showFilters, setShowFilters] = useState(false);
 
+  // On filter change
   const handleDraftFilterChange = (key, value) => {
     setDraftFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  // ApPly Filters
   const handleApplyFilters = () => {
     setAppliedFilters(draftFilters);
     setShowFilters(false);
   };
 
+  // Clear Filters
   const handleClearFilters = () => {
     const empty = {
       status: "",

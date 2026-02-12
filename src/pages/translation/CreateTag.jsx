@@ -123,6 +123,7 @@ const CreateTag = () => {
 
       const body = {
         name: data.tagName, // from form
+        tag_type: "TRANSLATION",
         orgId: ORGANIZATION_ID,
         sourceLanguage: data.sourceLanguage,
         targetLanguage: data.targetLanguage,

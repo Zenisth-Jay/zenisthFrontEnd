@@ -1,4 +1,11 @@
-import { ArrowRight, MoreVertical, Star, User, FileMinus } from "lucide-react";
+import {
+  ArrowRight,
+  MoreVertical,
+  Star,
+  User,
+  FileMinus,
+  Coins,
+} from "lucide-react";
 
 const TranslationTag = ({
   tag,
@@ -6,6 +13,7 @@ const TranslationTag = ({
   onSelect,
   isSelected,
   width,
+  idp,
 }) => {
   const {
     name,
@@ -30,7 +38,9 @@ const TranslationTag = ({
     >
       {/* Row 1: Title + Actions */}
       <div className="flex justify-between">
-        <div className=" text-black text-lg font-medium truncate">{name}</div>
+        <div className=" text-black text-lg font-medium truncate">
+          {tag.name}
+        </div>
 
         <div className="flex items-center gap-2">
           <button
@@ -57,18 +67,23 @@ const TranslationTag = ({
         {/* Left */}
         <div className="flex items-center gap-2">
           <div className=" h-8.5 flex items-center gap-2 border rounded-[50px] px-4 py-2 bg-gray-50 border-gray-400">
-            <span className="text-sm font-medium text-[#262938]">
-              {sourceLanguage?.toUpperCase()}
-            </span>
-            <ArrowRight size={18} className=" text-gray-900" />
-            <span className="text-sm font-medium text-[#262938]">
-              {targetLanguage?.toUpperCase()}
-            </span>
+            {idp ? (
+              <></>
+            ) : (
+              <>
+                <span className="text-sm font-medium text-[#262938]">
+                  {tag.sourceLanguage?.toUpperCase()}
+                </span>
+                <ArrowRight size={18} className=" text-gray-900" />
+                <span className="text-sm font-medium text-[#262938]">
+                  {tag.targetLanguage?.toUpperCase()}
+                </span>
+              </>
+            )}
           </div>
-
           <div>
             <span className="w-12.5 h-3.5 px-4 py-2 border border-indigo-200 bg-indigo-50 text-sm font-semibold text-indigo-700 rounded-[50px]">
-              {type}
+              {tag.type}
             </span>
           </div>
         </div>
@@ -82,13 +97,28 @@ const TranslationTag = ({
       </div>
 
       {/* Row 4 */}
-      <div className=" w-fit px-3 py-2 rounded-[48px] border border-indigo-300">
-        <div className="flex gap-1 items-center">
-          <FileMinus size={16} className=" text-indigo-500" />
-          <span className=" text-sm font-medium text-gray-800">
-            {termCount} Glossary
-          </span>
+      <div className="flex gap-5">
+        <div className=" flex gap-5 w-fit px-3 py-2 rounded-[48px] border border-indigo-300">
+          <div className="flex gap-1 items-center">
+            <FileMinus size={16} className=" text-indigo-500" />
+            <span className=" text-sm font-medium text-gray-800">
+              {termCount} Glossary
+            </span>
+          </div>
         </div>
+
+        {idp && (
+          <>
+            <div className=" flex gap-5 w-fit px-3 py-2 rounded-[48px] border border-yellow-500">
+              <div className="flex gap-2 items-center">
+                <Coins size={18} strokeWidth={1.5} className=" text-gray-700" />
+                <span className=" text-sm font-medium text-gray-800">
+                  3 credits<span className=" text-gray-500">/doc</span>
+                </span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Row last */}
