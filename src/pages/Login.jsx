@@ -53,7 +53,7 @@ const Login = () => {
           </p>
 
           {/* Google Login Button */}
-          <button
+          {/* <button
             className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-3 px-4 bg-white hover:bg-gray-50 mb-4 cursor-pointer
             active:scale-99 
             transition-all duration-200 ease-in-out 
@@ -62,14 +62,14 @@ const Login = () => {
           >
             <img src="/authentication/google_icon.svg" />
             <span className="font-medium text-gray-700">Login with Google</span>
-          </button>
+          </button> */}
 
           {/* Divider */}
-          <div className="flex items-center gap-4 mb-3">
+          {/* <div className="flex items-center gap-4 mb-3">
             <div className="flex-1 h-px bg-gray-200"></div>
             <span className="text-gray-400 text-sm">Or</span>
             <div className="flex-1 h-px bg-gray-200"></div>
-          </div>
+          </div> */}
 
           {/* Sign in Form */}
 

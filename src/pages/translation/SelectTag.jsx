@@ -23,6 +23,7 @@ const SelectTag = () => {
   const { toolType } = useParams();
   const isIdp = toolType == "idp";
 
+  // Stpes For the stepper : 1,2,3,4
   const STEPS = [
     "Upload Document",
     "Select Tag",
@@ -30,6 +31,7 @@ const SelectTag = () => {
     "Review & Done",
   ];
 
+  // Tabs of Tags
   const TAG_TABS = isIdp
     ? [
         {
@@ -71,24 +73,27 @@ const SelectTag = () => {
         },
       ];
 
+  // DATA FOR API
   const userId = "550e8400-e29b-41d4-a716-446655440000"; // later from auth
   const application = isIdp ? "IDP" : "TRANSLATE";
-
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  // FETCH TAGS DATA
   const organizationId = "7b2f5a9c-3c3e-4e9c-8d4b-1c7f9b123456"; // later from auth/store
   const applicationId = isIdp ? "IDP" : "TRANSLATION";
 
+  // NAVIGATE AND DISPATCH VARS
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // FETCH TAGS DATA FROM API
   const {
     data: tags = [],
     isLoading,
     isError,
   } = useGetTagsQuery({ organizationId, applicationId });
 
+  // FETCH FUNCTION TO FAVIOURITE TAG
   const [toggleFavoriteTag] = useToggleFavoriteTagMutation();
 
+  // STATES
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("company");
   const [selectedTag, setSelectedTag] = useState(null);
@@ -158,7 +163,9 @@ const SelectTag = () => {
           </div>
           <Button
             leftIcon={<Plus size={22} className=" text-white" />}
-            onClick={() => navigate("/operations/translate/create-tag")}
+            onClick={() =>
+              navigate(`/operations/${isIdp ? "idp" : "translate"}/create-tag`)
+            }
           >
             Create new Tag
           </Button>
@@ -218,17 +225,19 @@ const SelectTag = () => {
                         Document Uploaded
                       </span>
                       <span className="text-gray-800 text-2xl font-bold">
-                        {batchSummary?.total_documents ?? "Loading"}
+                        {batchSummary?.total_documents ?? "refresh"}
                       </span>
                     </div>
                     <div className="w-full flex justify justify-between">
                       <span className=" text-xl text-gray-700">
-                        Total Characters detected
+                        {isIdp
+                          ? "Total pages detected"
+                          : "Total Characters detected"}
                       </span>
                       <span className="text-gray-800 text-2xl font-semibold">
-                        {batchSummary?.total_count
-                          ? batchSummary.total_count.toLocaleString()
-                          : "Loading"}
+                        {batchSummary.total_count
+                          ? batchSummary.total_count
+                          : "refresh"}
                       </span>
                     </div>
 
@@ -236,7 +245,7 @@ const SelectTag = () => {
 
                     <div className="w-full flex flex-col gap-5">
                       <h3 className="text-xl text-gray-900 font-semibold">
-                        Translation Credits
+                        {`${isIdp ? "Extraction" : "Translation"} Credits`}
                       </h3>
 
                       <div className="flex items-center justify-between">
@@ -248,20 +257,20 @@ const SelectTag = () => {
                           {/* Formula */}
                           <div className="flex items-center text-gray-600 gap-1.5">
                             <span>
-                              {batchSummary?.total_count ?? "Loading"}
+                              {batchSummary?.total_count ?? "refresh"}
                             </span>
                             <span>÷</span>
-                            <span>{batchSummary?.unit_size ?? "Loading"}</span>
+                            <span>{batchSummary?.unit_size ?? "refresh"}</span>
                             <span>×</span>
                             <span>
-                              {batchSummary?.credits_per_unit ?? "Loading"}
+                              {batchSummary?.credits_per_unit ?? "refresh"}
                             </span>
                           </div>
                         </div>
 
                         {/* Right side: result */}
                         <span className="text-gray-900 font-medium text-[16px]">
-                          {batchSummary?.total_credits ?? "Loading"} Credits
+                          {batchSummary?.total_credits ?? "refresh"} Credits
                         </span>
                       </div>
                     </div>
@@ -273,7 +282,7 @@ const SelectTag = () => {
                         Total Credits :
                       </h2>
                       <span className="text-xl font-bold text-gray-800">
-                        {batchSummary?.total_credits ?? "Loading"} Credits
+                        {batchSummary?.total_credits ?? "refresh"} Credits
                       </span>
                     </div>
 
@@ -283,7 +292,9 @@ const SelectTag = () => {
                         className="w-[47%]"
                         onClick={() => {
                           dispatch(clearUploads()); // reset batch
-                          navigate("/operations/translate"); // or your upload page
+                          navigate(
+                            `/operations/${isIdp ? "idp" : "translate"}`,
+                          ); // or your upload page
                         }}
                       >
                         Back
@@ -309,7 +320,10 @@ const SelectTag = () => {
                               tagId: selectedTag.id,
                             }).unwrap();
 
-                            console.log("Translation started ✅", res);
+                            console.log(
+                              `${isIdp ? "Extraction" : "Translation"} started ✅`,
+                              res,
+                            );
                             const { jobId, status } = res;
 
                             // clear batch only AFTER successful call
@@ -317,20 +331,22 @@ const SelectTag = () => {
 
                             // go to translating screen
                             navigate(
-                              `/operations/translate/translating?jobId=${jobId}`,
+                              `/operations/${isIdp ? "idp" : "Translate"}/${isIdp ? "extracting" : "translating"}?jobId=${jobId}`,
                             );
                           } catch (err) {
                             console.error(
-                              "Failed to start translation ❌",
+                              `Failed to start ${isIdp ? "Extraction" : "Translation"} ❌`,
                               err,
                             );
                             alert(
-                              "Failed to start translation. Please try again.",
+                              `Failed to start ${isIdp ? "Extraction" : "Translation"}. Please try again.`,
                             );
                           }
                         }}
                       >
-                        {isTranslating ? "Starting..." : "Start Translation"}
+                        {isTranslating
+                          ? "Starting..."
+                          : `Start ${isIdp ? "Extraction" : "Translation"}`}
                       </Button>
                     </div>
 
@@ -340,7 +356,8 @@ const SelectTag = () => {
               "
                     >
                       💡 {batchSummary.credits_per_unit} credit ={" "}
-                      {batchSummary.unit_size} characters
+                      {batchSummary.unit_size}{" "}
+                      {`${isIdp ? "page" : "characters"}`}
                     </div>
                   </>
                 )}

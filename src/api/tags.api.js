@@ -33,6 +33,15 @@ export const tagsApi = createApi({
       invalidatesTags: ["Tags"],
     }),
 
+    // file upload for IDP create Tag
+    uploadIdpFile: builder.mutation({
+      query: (formData) => ({
+        url: "/idp/upload", // 🔴 CHANGE this to your real upload endpoint
+        method: "POST",
+        body: formData,
+      }),
+    }),
+
     // end of endpoints
   }),
 });

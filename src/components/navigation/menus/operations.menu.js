@@ -13,7 +13,7 @@ export const operationsMenu = {
       label: "Translate History",
       description: "View past translation",
       icon: Clock,
-      path: "/operations/translate-history",
+      path: "/operations/translate/translate-history",
     },
     {
       label: "Tag Library",

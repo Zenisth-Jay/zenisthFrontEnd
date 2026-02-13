@@ -1,7 +1,14 @@
 import InputElement from "../../components/Authentication/InputElement";
 import MainNavbar from "../../components/dashboard/MainNavbar";
 import { useForm } from "react-hook-form";
-import { FileText, Tag, Languages, AlignLeft, ChevronDown } from "lucide-react";
+import {
+  FileText,
+  Tag,
+  Languages,
+  AlignLeft,
+  ChevronDown,
+  Landmark,
+} from "lucide-react";
 import SelectElement from "../../components/ui/SelectElement";
 import { useRef, useState } from "react";
 import MainFileUpload from "../../components/general/MainFileUpload";
@@ -9,7 +16,8 @@ import UploadedFilesGrid from "../../components/general/UploadedFileGrid";
 import Button from "../../components/ui/Button";
 import { useCreateTagMutation } from "../../api/tags.api";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { createDocumentAPI, uploadToS3 } from "../../api/documents.api";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -19,8 +27,20 @@ const LANGUAGES = [
   { code: "de", label: "German" },
 ];
 
+const OUTPUT_FORMAT = [
+  { code: "CSV", label: "CSV" },
+  { code: "XML", label: "XML" },
+  { code: "JSON", label: "JSON" },
+];
+
 const CreateTag = () => {
   const navigate = useNavigate();
+
+  const { toolType } = useParams();
+  const isIdp = toolType == "idp";
+
+  const [uploadedS3Key, setUploadedS3Key] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { register, handleSubmit, watch } = useForm();
   const sourceLanguage = watch("sourceLanguage");
@@ -113,28 +133,127 @@ const CreateTag = () => {
     };
   };
 
+  // const onSubmit = async (data) => {
+  //   try {
+  //     const glossaryOutput = await buildGlossaryOutput();
+
+  //     const ORGANIZATION_ID = "7b2f5a9c-3c3e-4e9c-8d4b-1c7f9b123456";
+  //     const APPLICATION_ID = "TRANSLATION"; // for query param
+  //     const TAB = "DEFAULT";
+
+  //     const body = {
+  //       name: data.tagName, // from form
+  //       tag_type: "TRANSLATION",
+  //       orgId: ORGANIZATION_ID,
+  //       sourceLanguage: data.sourceLanguage,
+  //       targetLanguage: data.targetLanguage,
+  //       applicationId: "app_translation_007", // as per your backend
+  //       glossaryContent: glossaryOutput.records, // 👈 object {a:1,b:2}
+  //       industry: data.tagCategory, // mapping Tag Category -> industry
+  //       description: data.description,
+  //       field_count: glossaryOutput.length, // 👈 number of glossary entries
+  //     };
+
+  //     console.log("CREATE TAG BODY 👉", body);
+
+  //     await createTag({
+  //       organizationId: ORGANIZATION_ID,
+  //       applicationId: APPLICATION_ID,
+  //       tab: TAB,
+  //       body,
+  //     }).unwrap();
+
+  //     toast.success("Tag created successfully!");
+
+  //     // redirect
+  //     navigate("/operations/translate/select-tag");
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error(err?.data?.message || "Failed to create tag");
+  //   }
+  // };
+
+  const getOriginalFormat = (file) => {
+    const name = file.name.toLowerCase();
+
+    if (name.endsWith(".csv")) return "CSV";
+    if (name.endsWith(".json")) return "JSON";
+    if (name.endsWith(".xml")) return "XML";
+
+    return "UNKNOWN";
+  };
+
   const onSubmit = async (data) => {
     try {
-      const glossaryOutput = await buildGlossaryOutput();
-
       const ORGANIZATION_ID = "7b2f5a9c-3c3e-4e9c-8d4b-1c7f9b123456";
-      const APPLICATION_ID = "TRANSLATION"; // for query param
+      const APPLICATION_ID = isIdp ? "IDP" : "TRANSLATION";
       const TAB = "DEFAULT";
 
+      // -------------------------
+      // ✅ IDP FLOW: just send file as-is
+      // -------------------------
+      if (isIdp) {
+        if (glossaryFiles.length !== 1) {
+          toast.error("Please upload a file first.");
+          return;
+        }
+
+        const file = glossaryFiles[0].file;
+
+        setIsUploading(true);
+
+        // 1️⃣ Ask backend for presigned URL
+        const res = await createDocumentAPI({
+          fileName: file.name,
+          fileSize: file.size,
+          application: "TAG_CREATION",
+        });
+
+        const { uploadUrl } = res.data;
+
+        // 2️⃣ Upload to S3
+        await uploadToS3(uploadUrl, file);
+
+        const body = {
+          name: data.tagName,
+          tag_type: "IDP",
+          orgId: ORGANIZATION_ID,
+          industry: data.tagIndustry,
+          description: data.description,
+          outputFormat: data.outputFormat?.toUpperCase(),
+          originalFormat: getOriginalFormat(glossaryFiles[0].file),
+          s3Key: uploadUrl, // 👈 reference to uploaded file
+        };
+
+        await createTag({
+          organizationId: ORGANIZATION_ID,
+          applicationId: "IDP",
+          tab: TAB,
+          body, // 👈 FormData with raw file
+        }).unwrap();
+
+        toast.success("IDP Tag created successfully!");
+        navigate("/operations/idp/select-tag");
+        return;
+      }
+
+      // -------------------------
+      // ✅ TRANSLATION FLOW (unchanged)
+      // -------------------------
+      const glossaryOutput = await buildGlossaryOutput();
+
       const body = {
-        name: data.tagName, // from form
+        name: data.tagName,
         tag_type: "TRANSLATION",
         orgId: ORGANIZATION_ID,
         sourceLanguage: data.sourceLanguage,
         targetLanguage: data.targetLanguage,
-        applicationId: "app_translation_007", // as per your backend
-        glossaryContent: glossaryOutput.records, // 👈 object {a:1,b:2}
-        industry: data.tagCategory, // mapping Tag Category -> industry
+        applicationId: "app_translation_007",
+        glossaryContent: glossaryOutput.records,
+        industry: data.tagCategory,
         description: data.description,
-        field_count: glossaryOutput.length, // 👈 number of glossary entries
+        field_count: glossaryOutput.length,
       };
-
-      console.log("CREATE TAG BODY 👉", body);
 
       await createTag({
         organizationId: ORGANIZATION_ID,
@@ -144,8 +263,6 @@ const CreateTag = () => {
       }).unwrap();
 
       toast.success("Tag created successfully!");
-
-      // redirect
       navigate("/operations/translate/select-tag");
     } catch (err) {
       console.error(err);
@@ -153,33 +270,42 @@ const CreateTag = () => {
     }
   };
 
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
+
   const handleGlossaryFiles = (selectedFiles) => {
     const incoming = Array.from(selectedFiles);
-
     if (incoming.length === 0) return;
 
-    // ✅ Only allow ONE file
     if (incoming.length > 1) {
-      toast.error("You can upload only one glossary file.");
+      toast.error("You can upload only one file.");
       return;
     }
 
     const file = incoming[0];
 
-    // Optional: if already exists, block replace
-    if (glossaryFiles.length >= 1) {
+    // Size check
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File size must be less than 20 MB.");
+      return;
+    }
+
+    // Type check
+    const ALLOWED_TYPES = isIdp
+      ? ["text/csv", "application/json", "application/xml", "text/xml"]
+      : ["text/csv"];
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
       toast.error(
-        "Only one glossary file is allowed. Remove the existing one first.",
+        isIdp
+          ? "Only CSV, JSON, and XML files are allowed"
+          : "Only CSV files are allowed",
       );
       return;
     }
 
-    const newFile = {
-      id: crypto.randomUUID(),
-      file,
-    };
-
-    setGlossaryFiles([newFile]); // always replace / set single file
+    // Just store file in state (NO UPLOAD HERE)
+    const fileObj = { id: crypto.randomUUID(), file };
+    setGlossaryFiles([fileObj]);
   };
 
   const handleRemoveGlossaryFile = (item) => {
@@ -199,7 +325,7 @@ const CreateTag = () => {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv"
+          accept={isIdp ? ".csv,.json,.xml" : ".csv"}
           hidden
           onChange={(e) => {
             handleGlossaryFiles(e.target.files);
@@ -215,7 +341,9 @@ const CreateTag = () => {
               Create New Tag
             </h1>
             <span className=" text-lg font-normal text-gray-700">
-              Define rules for consistent translations
+              {isIdp
+                ? "Define how data should be extracted from documents of this type."
+                : "Define rules for consistent translations"}
             </span>
           </div>
 
@@ -235,13 +363,19 @@ const CreateTag = () => {
               />
 
               <InputElement
-                label="Tag Category"
-                name="tagCategory"
+                label={isIdp ? "Industry" : "Tag Category"}
+                name={isIdp ? "tagIndustry" : "tagCategory"}
                 type="text"
-                placeholder="e.g. Finance, Marketing etc..."
-                icon={FileText}
+                placeholder={
+                  isIdp
+                    ? "Select Industry..."
+                    : "e.g. Finance, Marketing etc..."
+                }
+                icon={isIdp ? Landmark : FileText}
                 register={register}
-                rules={{ required: "Tag category is required" }}
+                rules={{
+                  required: `Tag ${isIdp ? "industry" : "category"} is required`,
+                }}
                 className="w-full"
               />
             </div>
@@ -268,60 +402,87 @@ const CreateTag = () => {
               </div>
             </div>
 
-            {/* Languages */}
-            <div className="grid grid-cols-2 gap-6">
-              <SelectElement
-                label="Source Language"
-                name="sourceLanguage"
-                register={register}
-                rules={{ required: "Source language is required" }}
-                options={LANGUAGES}
-                placeholder="Select language"
-              />
+            {isIdp ? (
+              <div>
+                <SelectElement
+                  label="Select output format"
+                  name="outputFormat"
+                  register={register}
+                  rules={{ required: "Output format is required" }}
+                  options={OUTPUT_FORMAT}
+                  placeholder="Select output format"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-6">
+                <SelectElement
+                  label="Source Language"
+                  name="sourceLanguage"
+                  register={register}
+                  rules={{ required: "Source language is required" }}
+                  options={LANGUAGES}
+                  placeholder="Select language"
+                />
 
-              <SelectElement
-                label="Target Language"
-                name="targetLanguage"
-                register={register}
-                rules={{ required: "Target language is required" }}
-                options={LANGUAGES.map((lang) => ({
-                  ...lang,
-                  disabled: lang.code === sourceLanguage,
-                }))}
-                placeholder="Select language"
-              />
-            </div>
+                <SelectElement
+                  label="Target Language"
+                  name="targetLanguage"
+                  register={register}
+                  rules={{ required: "Target language is required" }}
+                  options={LANGUAGES.map((lang) => ({
+                    ...lang,
+                    disabled: lang.code === sourceLanguage,
+                  }))}
+                  placeholder="Select language"
+                />
+              </div>
+            )}
           </div>
 
           {/* Glossary Card */}
           <div className="px-10 py-8 bg-white border border-gray-300 rounded-2xl flex flex-col gap-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-gray-900">Glossary</h2>
-              <button
-                type="button"
-                onClick={() => setGlossaryMode("manual")}
-                className="px-4 py-2 rounded-lg text-indigo-500 font-medium hover:text-indigo-900 cursor-pointer"
-              >
-                + Add Term
-              </button>
-            </div>
-
+            {/* Gloassary Header */}
+            {!isIdp && (
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  Glossary
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setGlossaryMode("manual")}
+                  className="px-4 py-2 rounded-lg text-indigo-500 font-medium hover:text-indigo-900 cursor-pointer"
+                >
+                  + Add Term
+                </button>
+              </div>
+            )}
             {/* Sub header */}
-            <div className="flex items-center justify-between">
-              <p className="text-gray-700 text-lg">
-                No glossary terms added yet. Click ‘Add Term’ to get started.
-              </p>
+            {!isIdp && (
+              <div className="flex items-center justify-between">
+                <p className="text-gray-700 text-lg">
+                  No glossary terms added yet. Click ‘Add Term’ to get started.
+                </p>
 
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg text-indigo-500 font-medium hover:text-indigo-900 cursor-pointer flex items-center gap-1"
-              >
-                <span className="w-4 h-4 rounded-full border border-indigo-500 flex items-center justify-center text-sm">
-                  ?
-                </span>
-                <span>Sample Document</span>
-              </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg text-indigo-500 font-medium hover:text-indigo-900 cursor-pointer flex items-center gap-1"
+                >
+                  <span className="w-4 h-4 rounded-full border border-indigo-500 flex items-center justify-center text-sm">
+                    ?
+                  </span>
+                  <span>Sample Document</span>
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-col">
+              <h3 className=" text-2xl font-semibold text-[#171717]">
+                Upload Sample Document
+              </h3>
+              <p className=" text-lg font-normal text-[#525252]">
+                AI will analyze your document and suggest a schema
+                automatically. This helps build the perfect structure faster.
+              </p>
             </div>
 
             {/* If no files yet → show uploader */}
@@ -332,8 +493,12 @@ const CreateTag = () => {
                   <MainFileUpload
                     onFilesSelected={handleGlossaryFiles}
                     onBrowseClick={() => fileInputRef.current?.click()}
-                    title="Drag and drop your glossaries here, or click to browse"
-                    supportedText="Supported formats: CSV"
+                    title={`Drag and drop your ${isIdp ? "documents" : "glossaries"} here, or click to browse`}
+                    supportedText={
+                      isIdp
+                        ? "Supported formats: CSV, JSON, XML"
+                        : "Supported formats: CSV"
+                    }
                     helperText="Max file size: 2 GB, Max glossaries: 250"
                   />
                 )}
@@ -350,7 +515,6 @@ const CreateTag = () => {
                 )}
               </>
             )}
-
             {/* MANUAL MODE */}
             {glossaryMode === "manual" && (
               <div className="flex flex-col gap-4">
@@ -430,8 +594,16 @@ const CreateTag = () => {
               Cancel
             </Button>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Tag"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading || isUploading}
+            >
+              {isUploading
+                ? "Uploading..."
+                : isLoading
+                  ? "Creating..."
+                  : "Create Tag"}
             </Button>
           </div>
 

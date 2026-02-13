@@ -41,7 +41,7 @@ const AppRoutes = () => {
       {/* Operation Menu */}
       {/* <Route path="/operations/translate" element={<TranslateDoc />} /> */}
       <Route
-        path="/operations/translate-history"
+        path="/operations/:toolType/translate-history"
         element={<TranslateHistory />}
       />
       <Route path="/operations/tags-library" element={<TagLibrary />} />
@@ -72,15 +72,19 @@ const AppRoutes = () => {
       {/* Translation Routes */}
       {/* <Route path="/operations/translate/select-tag" element={<SelectTag />} /> */}
       <Route
-        path="/operations/translate/translating"
+        path="/operations/:toolType/translating"
         element={<Translating />}
       />
-      <Route path="/operations/translate/create-tag" element={<CreateTag />} />
+      <Route path="/operations/:toolType/create-tag" element={<CreateTag />} />
 
       {/* IDP */}
       {/* <Route path="/operations/idp" element={<TranslateDoc />} /> */}
       <Route path="/operations/:toolType" element={<TranslateDoc />} />
       <Route path="/operations/:toolType/select-tag" element={<SelectTag />} />
+      <Route
+        path="/operations/:toolType/extracting"
+        element={<Translating />}
+      />
 
       {/* 404 */}
       <Route path="*" element={<h1>404 - Page not found</h1>} />

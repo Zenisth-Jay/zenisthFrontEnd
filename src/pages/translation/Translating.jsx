@@ -4,15 +4,22 @@ import Stepper from "../../components/general/Stepper";
 import { Languages, Eye, SquarePen, FileText, Download } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useGetJobStatusQuery } from "../../api/HistoryBatch.api";
 import { useNavigate } from "react-router-dom";
 
-const STEPS = ["Upload Document", "Select Tag", "Translation", "Review & Done"];
-
 const Translating = () => {
-  // const [status, setStatus] = useState("FAILED");
   const navigate = useNavigate();
+
+  const { toolType } = useParams();
+  const isIdp = toolType == "idp";
+
+  const STEPS = [
+    "Upload Document",
+    "Select Tag",
+    isIdp ? "Extraction" : "Translation",
+    "Review & Done",
+  ];
 
   const [searchParams] = useSearchParams();
 
@@ -45,7 +52,7 @@ const Translating = () => {
         <MainNavbar />
         <main className="px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
           <div className="text-red-600 text-lg">
-            Failed to load translation status.
+            Failed to load {isIdp ? "Extraction" : "translation"} status.
           </div>
         </main>
       </>
@@ -83,36 +90,40 @@ const Translating = () => {
           <div className="flex flex-col gap-2 items-center">
             <h2 className=" text-5xl font-bold text-black">
               {isProcessing
-                ? "Translating...."
+                ? isIdp
+                  ? "Extracting...."
+                  : "Translating...."
                 : isCompleted
-                  ? "Translation Completed"
-                  : "Translation Failed"}
+                  ? `${isIdp ? "IDP" : "Translation"} Completed`
+                  : `${isIdp ? "IDP" : "Translation"} Failed`}
             </h2>
 
             <p className=" text-gray-600 text-xl font-semibold">
               {isProcessing
-                ? "We are applying your custom instructions and translating the content. Please wait..."
+                ? `We are applying your custom instructions and ${isIdp ? "extracting" : "translating"} the content. Please wait...`
                 : isCompleted
-                  ? "Your documents have been successfully translated and are ready to download."
-                  : "Something went wrong while translating your documents."}
+                  ? `Your documents have been successfully ${isIdp ? "extracted" : "translated"} and are ready to download.`
+                  : `Something went wrong while ${isIdp ? "extracting" : "translating"} your documents.`}
             </p>
           </div>
 
-          <div className="flex items-center gap-6">
-            <span className=" text-indigo-500 text-lg font-bold">
-              {sourceLanguage}
-            </span>
-            <div className="w-10 h-10 rounded-full border border-gray-300 bg-white flex items-center justify-center ">
-              <Languages
-                size={22}
-                strokeWidth={1.5}
-                className=" text-indigo-600"
-              />
+          {!isIdp && (
+            <div className="flex items-center gap-6">
+              <span className=" text-indigo-500 text-lg font-bold">
+                {sourceLanguage}
+              </span>
+              <div className="w-10 h-10 rounded-full border border-gray-300 bg-white flex items-center justify-center ">
+                <Languages
+                  size={22}
+                  strokeWidth={1.5}
+                  className=" text-indigo-600"
+                />
+              </div>
+              <span className=" text-indigo-500 text-lg font-bold">
+                {targetLanguage}
+              </span>
             </div>
-            <span className=" text-indigo-500 text-lg font-bold">
-              {targetLanguage}
-            </span>
-          </div>
+          )}
 
           <div className="flex justify-between w-full">
             <Button
@@ -147,13 +158,13 @@ const Translating = () => {
             <h2 className="text-2xl font-bold">What happens next?</h2>
             <p className=" text-lg font-normal text-gray-700">
               {isProcessing
-                ? `Once completed , you’ll be able to review translations, compare
+                ? `Once completed , you’ll be able to review ${isIdp ? "Extractions" : "translations"}, compare
               with the original, and download the final document. We’ll
               highlight suggested fixes and improvements.`
                 : isCompleted
-                  ? `Your files were translated using the selected tag and glossary.
-                  Download the translated documents or continue with another upload.`
-                  : `Retry the translation with the same configuration, or upload the documents again to try a new batch.`}
+                  ? `Your files were ${isIdp ? "extracted" : "translated"} using the selected tag and ${isIdp ? "uploaded file" : "glossary"}.
+                  Download the ${isIdp ? "extracted" : "translated"} documents or continue with another upload.`
+                  : `Retry the ${isIdp ? "extraction" : "translation"} with the same configuration, or upload the documents again to try a new batch.`}
             </p>
           </div>
         </section>
