@@ -314,7 +314,9 @@ const TranslateDoc = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     uploadAllFiles();
-                    navigate("/operations/translate/select-tag");
+                    isIdp
+                      ? navigate("/operations/idp/select-tag")
+                      : navigate("/operations/translate/select-tag");
                   }}
                   className="w-67"
                 >

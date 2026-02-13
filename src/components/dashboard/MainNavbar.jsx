@@ -21,8 +21,10 @@ const MainNavbar = () => {
 
   const normalizedNotifications = notifications.map((n) => ({
     notification_id: n.notificationId,
+    job_id: n.job_id,
     title: n.title,
     message: n.message,
+    type: n.type,
     is_read: n.isRead,
     created_at: n.createdAt,
   }));

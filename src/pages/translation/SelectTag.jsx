@@ -77,7 +77,16 @@ const SelectTag = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { data: tags = [], isLoading, isError } = useGetTagsQuery();
+  // FETCH TAGS DATA
+  const organizationId = "7b2f5a9c-3c3e-4e9c-8d4b-1c7f9b123456"; // later from auth/store
+  const applicationId = isIdp ? "IDP" : "TRANSLATION";
+
+  const {
+    data: tags = [],
+    isLoading,
+    isError,
+  } = useGetTagsQuery({ organizationId, applicationId });
+
   const [toggleFavoriteTag] = useToggleFavoriteTagMutation();
 
   const [search, setSearch] = useState("");
@@ -186,7 +195,7 @@ const SelectTag = () => {
                 onToggleFavorite={(t) =>
                   toggleFavoriteTag({ id: t.id, isFavorite: !t.isFavorite })
                 }
-                idp={false}
+                idp={isIdp}
               />
             ))}
           </div>
@@ -308,7 +317,7 @@ const SelectTag = () => {
 
                             // go to translating screen
                             navigate(
-                              `/operations/translate/translating?jobId=${jobId}&status=${status}&source=${selectedTag.sourceLanguage}&target=${selectedTag.targetLanguage}`,
+                              `/operations/translate/translating?jobId=${jobId}`,
                             );
                           } catch (err) {
                             console.error(
@@ -327,7 +336,7 @@ const SelectTag = () => {
 
                     <div
                       className=" w-full  p-4 pl-7 mt-2 rounded-lg text-lg font-medium border border-indigo-200 bg-indigo-50 text-gray-700
-              shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_2px_6px_2px_rgba(0,0,0,0.15)] 
+              shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_2px_6px_2px_rgba(0,0,0,0.15)]
               "
                     >
                       💡 {batchSummary.credits_per_unit} credit ={" "}

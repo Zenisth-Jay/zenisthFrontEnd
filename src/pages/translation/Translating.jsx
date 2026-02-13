@@ -5,20 +5,66 @@ import { Languages, Eye, SquarePen, FileText, Download } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useGetJobStatusQuery } from "../../api/HistoryBatch.api";
+import { useNavigate } from "react-router-dom";
 
 const STEPS = ["Upload Document", "Select Tag", "Translation", "Review & Done"];
 
 const Translating = () => {
   // const [status, setStatus] = useState("FAILED");
+  const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
 
-  const sourceLanguage = searchParams.get("source");
-  const targetLanguage = searchParams.get("target");
   const jobId = searchParams.get("jobId");
-  const status = searchParams.get("status");
 
-  const isProcessing = status === "PROCESSING" || status == "QUEUED";
+  // 🔹 Fetch job status from API
+  const {
+    data: jobResponse,
+    isLoading,
+    isError,
+  } = useGetJobStatusQuery(jobId, {
+    skip: !jobId,
+    // pollingInterval: 5000, // 🔁 auto-refresh every 5s while processing
+  });
+
+  if (isLoading) {
+    return (
+      <>
+        <MainNavbar />
+        <main className="px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
+          <div className="text-gray-600 text-lg">Loading job status...</div>
+        </main>
+      </>
+    );
+  }
+
+  if (isError || !jobResponse) {
+    return (
+      <>
+        <MainNavbar />
+        <main className="px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
+          <div className="text-red-600 text-lg">
+            Failed to load translation status.
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  let status = jobResponse.job_status;
+  const sourceLanguage = jobResponse.source_language?.toUpperCase();
+  const targetLanguage = jobResponse.target_language?.toUpperCase();
+  const downloadLink = jobResponse.download_link;
+
+  if (status == "QUEUED" || status == "PARTIAL_FAILURE") {
+    status = "PROCESSING";
+  }
+
+  const isProcessing =
+    status === "PROCESSING" ||
+    status == "QUEUED" ||
+    status == "PARTIAL_FAILURE";
   const isCompleted = status === "COMPLETED";
   const isFailed = status === "FAILED";
 
@@ -70,9 +116,14 @@ const Translating = () => {
 
           <div className="flex justify-between w-full">
             <Button
-              variant={isCompleted ? "primary" : "disable"}
+              variant={isCompleted && downloadLink ? "primary" : "disable"}
               className="w-[31%] shadow-sm"
               leftIcon={<Download />}
+              onClick={() => {
+                if (downloadLink) {
+                  window.open(downloadLink, "_blank");
+                }
+              }}
             >
               Download
             </Button>

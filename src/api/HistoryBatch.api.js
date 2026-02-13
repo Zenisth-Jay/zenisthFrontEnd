@@ -19,8 +19,16 @@ export const historyBatchApi = createApi({
       query: ({ jobId, page = 1, limit = 10 }) =>
         `/translate/${jobId}?page=${page}&limit=${limit}`,
     }),
+
+    // Status of a job
+    getJobStatus: builder.query({
+      query: (jobId) => `/translate/${jobId}`,
+    }),
   }),
 });
 
-export const { useGetHistoryBatchesQuery, useGetBatchFilesQuery } =
-  historyBatchApi;
+export const {
+  useGetHistoryBatchesQuery,
+  useGetBatchFilesQuery,
+  useGetJobStatusQuery,
+} = historyBatchApi;

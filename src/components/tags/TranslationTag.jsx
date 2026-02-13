@@ -53,7 +53,8 @@ const TranslationTag = ({
             <Star
               size={20}
               strokeWidth={1.5}
-              className={isFavorite ? "text-[#FBC02D]" : "text-[#262938]"}
+              className={`${isFavorite ? "text-[#FBC02D]" : "text-[#262938]"} transform transition-all duration-200 ease-out 
+             hover:scale-105 active:scale-95`}
               fill={isFavorite ? "#FBC02D" : "none"}
             />
           </button>
@@ -68,7 +69,7 @@ const TranslationTag = ({
         <div className="flex items-center gap-2">
           <div className=" h-8.5 flex items-center gap-2 border rounded-[50px] px-4 py-2 bg-gray-50 border-gray-400">
             {idp ? (
-              <></>
+              <>CSV</>
             ) : (
               <>
                 <span className="text-sm font-medium text-[#262938]">
@@ -92,7 +93,7 @@ const TranslationTag = ({
       {/* Row 3 */}
       <div className="">
         <div className=" text-sm text-gray-600 font-normal line-clamp-2">
-          {description || "No description provided for this tag."}
+          {tag.description || "No description provided for this tag."}
         </div>
       </div>
 
@@ -102,7 +103,7 @@ const TranslationTag = ({
           <div className="flex gap-1 items-center">
             <FileMinus size={16} className=" text-indigo-500" />
             <span className=" text-sm font-medium text-gray-800">
-              {termCount} Glossary
+              {idp ? `${tag.fieldCount} Fields` : `${tag.termCount} Glossary`}
             </span>
           </div>
         </div>
@@ -113,7 +114,8 @@ const TranslationTag = ({
               <div className="flex gap-2 items-center">
                 <Coins size={18} strokeWidth={1.5} className=" text-gray-700" />
                 <span className=" text-sm font-medium text-gray-800">
-                  3 credits<span className=" text-gray-500">/doc</span>
+                  {tag.credits} credits
+                  <span className=" text-gray-500">/doc</span>
                 </span>
               </div>
             </div>

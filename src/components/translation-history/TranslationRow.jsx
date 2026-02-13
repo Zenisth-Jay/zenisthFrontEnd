@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useGetBatchFilesQuery } from "../../api/HistoryBatch.api";
+import { useNavigate } from "react-router-dom";
 
 const VARIANTS = {
   neutral: "border-[#787D9C] text-[#373B4F] bg-gray-50",
@@ -35,6 +36,7 @@ const CircleContainer = ({ children, variant = "neutral", className = "" }) => {
 
 // 🔹 Single Accordion Row
 const TranslationRow = ({ row }) => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   // for SUB pages
@@ -76,7 +78,12 @@ const TranslationRow = ({ row }) => {
       <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm">
         {/* Job Document */}
         <div className=" w-full flex items-center truncate gap-5">
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() =>
+              navigate(`/operations/translate/translating?jobId=${row.id}`)
+            }
+          >
             <LibrarySquare className="text-gray-800" />
             <div className="flex flex-col w-36 truncate items-start">
               <h1 className="text-gray-900 text-[16px] truncate font-semibold">

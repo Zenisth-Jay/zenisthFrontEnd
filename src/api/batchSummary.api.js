@@ -1,5 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+// helper delay
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const batchSummaryApi = createApi({
   reducerPath: "batchSummaryApi",
   baseQuery: fetchBaseQuery({
@@ -7,8 +10,20 @@ export const batchSummaryApi = createApi({
   }),
   endpoints: (builder) => ({
     getBatchSummary: builder.query({
-      query: ({ application, userId }) =>
-        `/credits/quote?application=${application}&user_id=${userId}`,
+      // Use queryFn instead of query
+      async queryFn(args, _queryApi, _extraOptions, baseQuery) {
+        const { application, userId } = args;
+
+        // ⏱ Wait 1 second before calling API
+        await sleep(2000);
+
+        // Then call the real API
+        const result = await baseQuery(
+          `/credits/quote?application=${application}&user_id=${userId}`,
+        );
+
+        return result;
+      },
     }),
   }),
 });

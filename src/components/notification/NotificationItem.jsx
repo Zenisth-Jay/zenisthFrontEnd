@@ -1,17 +1,35 @@
+import { useNavigate } from "react-router-dom";
 import { useMarkNotificationReadMutation } from "../../api/notificationApi";
 
 const NotificationItem = ({ notification }) => {
-  const { notification_id, title, message, is_read, created_at } = notification;
+  const navigate = useNavigate();
+
+  const { notification_id, job_id, title, message, type, is_read, created_at } =
+    notification;
 
   const [markRead] = useMarkNotificationReadMutation();
 
-  const handleNotificationClick = async () => {
-    if (is_read) return;
+  // const handleNotificationClick = async () => {
+  //   try {
+  //     if (!is_read) {
+  //       await markRead(notification_id).unwrap(); // only mark if unread
+  //     }
 
-    try {
-      await markRead(notification_id);
-    } catch (error) {
-      console.log(error);
+  //     if (type === "TRANSLATION") {
+  //       navigate("/operations/translate-history"); // always navigate
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
+  const handleNotificationClick = () => {
+    if (!is_read) {
+      markRead(notification_id);
+    }
+
+    if (type === "TRANSLATION") {
+      navigate("/operations/translate-history");
     }
   };
 

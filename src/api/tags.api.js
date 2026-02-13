@@ -9,8 +9,8 @@ export const tagsApi = createApi({
   endpoints: (builder) => ({
     // GET all translation tags
     getTags: builder.query({
-      query: () =>
-        "/tags?organizationId=7b2f5a9c-3c3e-4e9c-8d4b-1c7f9b123456&applicationId=TRANSLATION",
+      query: ({ organizationId, applicationId }) =>
+        `/tags?organizationId=${organizationId}&applicationId=${applicationId}`,
       providesTags: ["Tags"],
     }),
 

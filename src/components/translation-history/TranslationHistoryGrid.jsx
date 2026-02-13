@@ -21,23 +21,6 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
     limit: pageSize,
   });
 
-  // 🔹 Mock 30 rows (later this will come from API)
-  // const allRows = useMemo(() => {
-  //   return Array.from({ length: 30 }).map((_, i) => ({
-  //     id: i + 1,
-  //     batchName: `Batch_${i + 1}_12_2025_1819`,
-  //     uploadedAt: "Uploaded 08/12/25 at 18:19",
-  //     documents: Math.floor(Math.random() * 50) + 1,
-  //     status: i % 3 === 0 ? "Completed" : i % 3 === 1 ? "Failed" : "Processing",
-  //     statusVariant:
-  //       i % 3 === 0 ? "completed" : i % 3 === 1 ? "failed" : "processing",
-  //     sourceLanguage: "En",
-  //     targetLanguage: "Hi",
-  //     domain: i % 2 === 0 ? "Finance" : "Legal",
-  //     credits: `${1000 + i * 100}`,
-  //   }));
-  // }, []);
-
   // 🔹 Map API response to UI rows
   const allRows = useMemo(() => {
     if (!historyResponse?.jobs) return [];
