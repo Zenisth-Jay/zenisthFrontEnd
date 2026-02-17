@@ -19,6 +19,7 @@ const Button = ({
       "border border-gray-600 text-gray-600 hover:bg-gray-300 font-bold cursor-pointer",
     disable:
       "bg-gray-200 text-gray-400 border border-gray-200 cursor-not-allowed",
+    logout: "text-red-600 cursor-pointer hover:text-red-500",
   };
 
   const sizes = {

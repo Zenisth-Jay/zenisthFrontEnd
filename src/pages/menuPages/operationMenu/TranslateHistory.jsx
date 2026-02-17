@@ -3,10 +3,15 @@ import MainNavbar from "../../../components/dashboard/MainNavbar";
 import { useState } from "react";
 import TranslationHistoryGrid from "../../../components/translation-history/TranslationHistoryGrid";
 import FilterPopover from "../../../components/translation-history/FilterPopover";
+import { useParams } from "react-router-dom";
 
 const TranslateHistory = () => {
   // Search bar
   const [search, setSearch] = useState("");
+
+  // Tool Type
+  const { toolType } = useParams();
+  const isIdp = toolType == "idp";
 
   // Filters
   const [draftFilters, setDraftFilters] = useState({
@@ -51,9 +56,12 @@ const TranslateHistory = () => {
       <main className="w-full bg-gray-50 min-h-[calc(100vh-64px)] px-16 py-10 flex flex-col gap-8">
         {/* Heading */}
         <div>
-          <h1 className=" text-[40px] font-bold">Translation History</h1>
+          <h1 className=" text-[40px] font-bold">
+            {isIdp ? "Extraction" : "Translation"} History
+          </h1>
           <p className=" text-gray-700 text-lg">
-            View and manage all your translation jobs
+            View and manage all your{" "}
+            {isIdp ? "document extraction" : "translation"} jobs
           </p>
         </div>
 

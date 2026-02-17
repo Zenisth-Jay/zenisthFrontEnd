@@ -1,0 +1,340 @@
+import { Coins, Plus, SquareActivity, TrendingUp } from "lucide-react";
+import MainNavbar from "../../components/dashboard/MainNavbar";
+import Button from "../../components/ui/Button";
+import AnalysisCard from "../../components/creditManagement/AnalysisCard";
+import { useState } from "react";
+import { FileText } from "lucide-react";
+import DataTable from "../../components/table/DataTable";
+import { useSearchParams } from "react-router-dom";
+import Pagination from "../../components/ui/Pagination";
+import { useGetCreditManagementQuery } from "../../api/creditManage.api";
+
+const VARIANTS = {
+  neutral: "border-[#787D9C] text-[#373B4F] bg-gray-50",
+  completed: "bg-green-50 border-green-700 text-gray-800",
+  failed: "border-red-700 text-gray-800 bg-red-50",
+  processing: "border-orange-700 text-gray-800 bg-orange-50",
+  language: "bg-gray-50 border-gray-500 text-[#262938]",
+  tag: "border-indigo-200 text-indigo-700 bg-indigo-50 text-lg",
+};
+
+const CircleContainer = ({ children, variant = "neutral", className = "" }) => {
+  return (
+    <div
+      className={`
+        inline-flex items-center justify-center w-[95%] 
+        px-4 py-3 rounded-[48px] border
+        font-semibold whitespace-nowrap
+        ${VARIANTS[variant] || VARIANTS.neutral}
+        ${className}
+      `}
+    >
+      {children}
+    </div>
+  );
+};
+
+const columns = [
+  {
+    key: "operation",
+    header: "Operation",
+    width: "1fr",
+    headerClassName: "justify-center",
+    cellClassName: " justify-center text-center text-lg font-semibold",
+  },
+  {
+    key: "job",
+    header: "Job Document",
+    width: "1.8fr",
+    headerClassName: "justify-center",
+    cellClassName: "justify-center",
+    render: (_, row) => (
+      <div className="flex items-center gap-3">
+        <FileText className="text-indigo-500" size={22} />
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-900 truncate">{row.name}</span>
+          <span className="text-xs text-gray-500">{row.uploadedAt}</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    width: "1fr",
+    headerClassName: "justify-center",
+    cellClassName: "justify-center",
+    render: (v) => (
+      <CircleContainer
+        variant={
+          v === "Completed"
+            ? "completed"
+            : v === "Failed"
+              ? "failed"
+              : v === "Processing"
+                ? "processing"
+                : "neutral"
+        }
+      >
+        {v}
+      </CircleContainer>
+    ),
+  },
+  {
+    key: "label",
+    header: "Tag Name",
+    width: "1fr",
+    headerClassName: "justify-center",
+    cellClassName: "justify-center",
+    render: (v) => v && <CircleContainer variant="tag">{v}</CircleContainer>,
+  },
+  {
+    key: "units",
+    header: "Units",
+    width: "1fr",
+    headerClassName: "justify-center",
+    cellClassName: "justify-center text-[16px]",
+  },
+  {
+    key: "credits",
+    header: "Credits",
+    width: "1fr",
+    headerClassName: "justify-center",
+    cellClassName: "justify-center text-lg",
+  },
+  {
+    key: "review",
+    header: "Review",
+    width: "0.6fr",
+    headerClassName: "justify-center",
+    cellClassName: "justify-center text-lg",
+    render: () => "-",
+  },
+];
+
+const allRows = Array.from({ length: 20 }).map((_, i) => {
+  const type = i % 4; // rotate between 4 operation types
+
+  const operation =
+    type === 0
+      ? "Translation"
+      : type === 1
+        ? "IDP"
+        : type === 2
+          ? "Doc Upload"
+          : "Add Credit";
+
+  const name = type === 2 ? "Legal_contract_FR.pdf" : "Marketing_Value.doc";
+
+  const status = type === 1 ? "Failed" : "Completed";
+
+  const label = type === 0 ? "Finance" : type === 1 ? "Marketing" : "";
+
+  const units =
+    type === 0
+      ? "9760 chars"
+      : type === 1
+        ? "32 pages"
+        : type === 2
+          ? "6 Docs"
+          : "500 Credits";
+
+  const credits =
+    type === 3 ? "+500" : type === 1 ? "-29" : type === 0 ? "-49" : "-2";
+
+  return {
+    id: i + 1,
+    operation,
+    name,
+    uploadedAt: "Uploaded 08/12/25 at 18:19",
+    status,
+    label,
+    units,
+    credits,
+  };
+});
+
+const CreditManage = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showAddCreditsModal, setShowAddCreditsModal] = useState(false);
+
+  const limit = isExpanded ? 7 : 3;
+
+  // For Pagination
+  const [searchParams] = useSearchParams();
+  const page = Number(searchParams.get("page") || 1);
+
+  // CREDIT ROWS API FETCH
+  const { data, isLoading, isError } = useGetCreditManagementQuery({
+    page,
+    limit,
+  });
+
+  const stats = data?.stats;
+  const rows = data?.transactions || [];
+
+  const tableRows = rows.map((t) => ({
+    id: t.transaction_id,
+    operation: t.operation, // e.g. UPLOAD_FEE
+    name: t.job_document || "-",
+    uploadedAt: new Date(t.created_at).toLocaleString(),
+    status:
+      t.status === "COMPLETED"
+        ? "Completed"
+        : t.status === "FAILED"
+          ? "Failed"
+          : "Processing",
+    label: t.label === "-" ? "" : t.label,
+    units: t.units,
+    credits: t.credits > 0 ? `+${t.credits}` : String(t.credits),
+  }));
+
+  const totalPages = data?.total_pages ?? 1;
+
+  return (
+    <div>
+      <MainNavbar />
+
+      {!isExpanded ? (
+        <main className="flex flex-col gap-10 px-16 py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
+          {/* Header Section */}
+          <header className="flex items-center justify-between">
+            <div>
+              <h1 className=" text-4xl font-bold">Credit Management</h1>
+              <p className=" text-gray-700 text-lg">
+                Manage your Credit and Credit Usage.
+              </p>
+            </div>
+            <Button
+              leftIcon={<Plus />}
+              onClick={() => setShowAddCreditsModal(true)}
+            >
+              Add Credits
+            </Button>
+          </header>
+
+          {/* Analysis Card Section */}
+          <section className="flex gap-6">
+            <AnalysisCard
+              icon={<Coins size={27} strokeWidth={2.5} />}
+              title="Remaining Credits"
+              value={stats?.remaining_credits ?? "..."}
+              subValue="5000(limit)"
+              lastRowValue="+62"
+              lastRowText="Standard Translation"
+              className="bg-yellow-50"
+            />
+
+            <AnalysisCard
+              icon={<TrendingUp size={27} strokeWidth={2.5} />}
+              title="Usage This Month"
+              value={stats?.usage_this_month ?? "..."}
+              lastRowValue="+0.8% vs"
+              lastRowText="last month"
+              positive={true}
+            />
+
+            <AnalysisCard
+              icon={<SquareActivity size={27} strokeWidth={2.5} />}
+              title="Avg Usage Per Day"
+              value={stats?.avg_usage_per_day ?? "..."}
+              lastRowValue="-5%"
+              lastRowText="decerese"
+              positive={false}
+            />
+          </section>
+
+          {/* Credit lists  */}
+          <section className=" bg-white w-full rounded-2xl shadow-md border border-gray-300">
+            <DataTable columns={columns} rows={tableRows} />
+
+            <div className="border-t border-gray-400 px-6 py-4 text-center">
+              <button
+                onClick={() => setIsExpanded(true)}
+                className="text-indigo-500 font-medium hover:underline cursor-pointer"
+              >
+                View All
+              </button>
+            </div>
+          </section>
+        </main>
+      ) : (
+        // 🔹 EXPANDED VIEW (FULL PAGE TABLE)
+        <main className="px-16 py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
+          <div className="flex items-center justify-start mb-10">
+            <h1 className="text-3xl font-bold">All Credit Usage</h1>
+          </div>
+
+          <div className="bg-white w-full rounded-2xl border border-gray-300">
+            {isLoading && <div className="p-6">Loading...</div>}
+            {isError && (
+              <div className="p-6 text-red-500">Failed to load data</div>
+            )}
+            {!isLoading && !isError && (
+              <DataTable columns={columns} rows={tableRows} />
+            )}
+
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="text-indigo-500 font-medium hover:underline mr-16 cursor-pointer p-5"
+              >
+                View Less
+              </button>
+
+              {/* Pagination */}
+              <Pagination totalPages={totalPages} />
+            </div>
+          </div>
+        </main>
+      )}
+
+      {showAddCreditsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl w-105 p-8 relative">
+            {/* Close button */}
+            <button
+              onClick={() => setShowAddCreditsModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+
+            {/* Content */}
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-2xl font-bold">
+                💳
+              </div>
+
+              <h2 className="text-2xl font-semibold text-gray-900">
+                Need More Credits?
+              </h2>
+
+              <p className="text-gray-600 text-lg">
+                To get more credits, please contact us at
+              </p>
+
+              <a
+                href="mailto:credits@zenisth.ai"
+                className="text-indigo-600 font-semibold text-lg hover:underline"
+              >
+                credits@zenisth.ai
+              </a>
+
+              <div className="mt-6 w-full">
+                <Button
+                  className="w-full"
+                  onClick={() => setShowAddCreditsModal(false)}
+                >
+                  Got it
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CreditManage;

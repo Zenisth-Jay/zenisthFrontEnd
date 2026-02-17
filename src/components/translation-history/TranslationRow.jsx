@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useGetBatchFilesQuery } from "../../api/HistoryBatch.api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const VARIANTS = {
   neutral: "border-[#787D9C] text-[#373B4F] bg-gray-50",
@@ -36,6 +36,9 @@ const CircleContainer = ({ children, variant = "neutral", className = "" }) => {
 
 // 🔹 Single Accordion Row
 const TranslationRow = ({ row }) => {
+  const { toolType } = useParams();
+  const isIdp = toolType == "idp";
+
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -105,15 +108,23 @@ const TranslationRow = ({ row }) => {
         </div>
 
         <CircleContainer variant="language">
-          <div className="flex truncate items-center gap-2">
-            <span className="uppercase text-sm font-medium">
-              {row.sourceLanguage}
-            </span>
-            <ArrowRight size={20} strokeWidth={1.5} />
-            <span className="uppercase text-sm font-medium">
-              {row.targetLanguage}
-            </span>
-          </div>
+          {isIdp ? (
+            <>
+              <span>{row.outputFormat}</span>
+            </>
+          ) : (
+            <>
+              <div className="flex truncate items-center gap-2">
+                <span className="uppercase text-sm font-medium">
+                  {row.sourceLanguage}
+                </span>
+                <ArrowRight size={20} strokeWidth={1.5} />
+                <span className="uppercase text-sm font-medium">
+                  {row.targetLanguage}
+                </span>
+              </div>
+            </>
+          )}
         </CircleContainer>
 
         <CircleContainer variant="tag" className=" truncate">
@@ -185,15 +196,23 @@ const TranslationRow = ({ row }) => {
                 </div>
 
                 <CircleContainer variant="language">
-                  <div className="flex items-center gap-2">
-                    <span className="uppercase text-sm font-medium">
-                      {child.source_language.toUpperCase()}
-                    </span>
-                    <ArrowRight size={20} strokeWidth={1.5} />
-                    <span className="uppercase text-sm font-medium">
-                      {child.target_language.toUpperCase()}
-                    </span>
-                  </div>
+                  {isIdp ? (
+                    <>
+                      <span>{row.outputFormat}</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex truncate items-center gap-2">
+                        <span className="uppercase text-sm font-medium">
+                          {row.sourceLanguage}
+                        </span>
+                        <ArrowRight size={20} strokeWidth={1.5} />
+                        <span className="uppercase text-sm font-medium">
+                          {row.targetLanguage}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </CircleContainer>
 
                 <CircleContainer
@@ -213,7 +232,6 @@ const TranslationRow = ({ row }) => {
               </div>
             ))}
 
-          {/* Child Pagination */}
           {/* Child Pagination */}
           {!isFilesLoading && childTotalPages > 1 && (
             <div className="flex items-center gap-5 px-6 py-3 border-t bg-white justify-end">

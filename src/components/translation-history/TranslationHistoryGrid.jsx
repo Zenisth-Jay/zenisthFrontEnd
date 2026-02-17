@@ -3,8 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import Pagination from "../ui/Pagination";
 import TranslationRowGrid from "./TranslationRow";
 import { useGetHistoryBatchesQuery } from "../../api/HistoryBatch.api";
+import { useParams } from "react-router-dom";
 
 export default function TranslationHistoryGrid({ search = "", filters = {} }) {
+  const { toolType } = useParams();
+  const isIdp = toolType == "idp";
+  const appType = toolType || "translate";
+  // const appType = "translate";
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Page information
@@ -19,6 +24,7 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
   } = useGetHistoryBatchesQuery({
     page,
     limit: pageSize,
+    appType,
   });
 
   // 🔹 Map API response to UI rows
@@ -42,8 +48,9 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
           : job.job_status === "COMPLETED"
             ? "completed"
             : "processing",
-      sourceLanguage: job.source_language.toUpperCase(),
-      targetLanguage: job.target_language.toUpperCase(),
+      sourceLanguage: isIdp ? null : job.source_language.toUpperCase(),
+      targetLanguage: isIdp ? null : job.target_language.toUpperCase(),
+      outputFormat: isIdp ? job.output_format : null,
       domain: job.tag_industry,
       credits: job.total_tokens,
     }));
@@ -137,7 +144,9 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
       <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] items-center justify-center gap-4 px-6 py-4 bg-gray-100 border-b border-gray-200 text-[16px] font-semibold text-gray-800">
         <div className="text-center">Job Document</div>
         <div className="text-center">Status</div>
-        <div className="text-center">Language</div>
+        <div className="text-center">
+          {isIdp ? "Output Format" : "Language"}
+        </div>
         <div className="text-center">Tag</div>
         <div className="text-center">Tokens</div>
         <div className="text-center">Actions</div>

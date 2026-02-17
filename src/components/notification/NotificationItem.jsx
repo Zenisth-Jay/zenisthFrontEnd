@@ -27,9 +27,11 @@ const NotificationItem = ({ notification }) => {
     if (!is_read) {
       markRead(notification_id);
     }
-
     if (type === "TRANSLATION") {
-      navigate("/operations/translate-history");
+      navigate("/operations/translate/history");
+    }
+    if (type === "IDP") {
+      navigate("/operations/idp/history");
     }
   };
 

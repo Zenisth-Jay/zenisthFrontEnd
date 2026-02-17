@@ -1,11 +1,20 @@
-import { UserRoundCog, Bell, CirclePoundSterling } from "lucide-react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { UserRoundCog, Bell, CirclePoundSterling, Coins } from "lucide-react";
+import {
+  Link,
+  NavLink,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import Logo from "../Authentication/Logo";
 import Dropdown from "../navigation/Dropdown";
 import DropdownMenu from "../navigation/DropdownMenu";
 import NavDropdown from "../navigation/NavDropdown";
 
-import { operationsMenu } from "../navigation/menus/operations.menu";
+import {
+  operationsMenu,
+  operationsMenuIDP,
+} from "../navigation/menus/operations.menu";
 import { learnMenu } from "../navigation/menus/learn.menu";
 import { supportMenu } from "../navigation/menus/support.menu";
 import { resourcesMenu } from "../navigation/menus/resources.menu";
@@ -16,18 +25,24 @@ import { useGetNotificationsQuery } from "../../api/notificationApi";
 import ProfileDropdown from "../navigation/ProfielDropdown";
 
 const MainNavbar = () => {
+  const { toolType } = useParams();
+  const isIdp = toolType == "idp";
+  const navigate = useNavigate();
+
   const { data: notifications = [], isLoading: notificationsLoading } =
     useGetNotificationsQuery();
 
-  const normalizedNotifications = notifications.map((n) => ({
-    notification_id: n.notificationId,
-    job_id: n.job_id,
-    title: n.title,
-    message: n.message,
-    type: n.type,
-    is_read: n.isRead,
-    created_at: n.createdAt,
-  }));
+  const normalizedNotifications = notifications
+    .map((n) => ({
+      notification_id: n.notificationId,
+      job_id: n.job_id,
+      title: n.title,
+      message: n.message,
+      type: n.type,
+      is_read: n.isRead,
+      created_at: n.createdAt,
+    }))
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   const hasUnread = normalizedNotifications.some((n) => !n.is_read);
 
@@ -58,7 +73,7 @@ const MainNavbar = () => {
           {/* Operations */}
           <NavDropdown
             label="Operations"
-            menu={operationsMenu}
+            menu={isIdp ? operationsMenuIDP : operationsMenu}
             pathPrefix="/operations"
           />
 
@@ -83,12 +98,14 @@ const MainNavbar = () => {
         {/*##############################    Right Part   #####################################*/}
         <div className=" flex items-center gap-4">
           {/* Credits */}
-          <div className="px-5 py-2 flex items-center gap-2 border border-[#CFD1DC] rounded-full bg-gray-50">
-            <CirclePoundSterling
-              size={25}
-              strokeWidth={2.2}
-              className="text-[#545A7A]"
-            />
+          <div
+            className="px-5 py-2 flex items-center gap-2 border border-[#CFD1DC] rounded-full bg-gray-50 cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/credit-manage");
+            }}
+          >
+            <Coins size={30} strokeWidth={2.2} className="text-[#545A7A]" />
             <span className=" w-25 text-green-600 font-extrabold text-2xl text-center">
               {/* {loading ? "..." : balance} */}
               {isLoading ? "..." : (data?.balance ?? 0)}
@@ -134,8 +151,16 @@ const MainNavbar = () => {
 
           <Dropdown
             trigger={(open) => (
-              <button className="w-12 h-12 font-bold text-xl text-blue-600 border-2 border-indigo-200 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 transition cursor-pointer">
-                JD
+              <button
+                className={`w-12 h-12 rounded-full overflow-hidden border-2 ${
+                  open ? "border-indigo-500" : "border-indigo-200"
+                } bg-gray-100 transition cursor-pointer`}
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=19"
+                  alt="User Avatar"
+                  className="w-full h-full object-cover"
+                />
               </button>
             )}
           >

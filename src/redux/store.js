@@ -7,6 +7,8 @@ import { tagsApi } from "../api/tags.api";
 import { translateApi } from "../api/translate.api";
 import { batchSummaryApi } from "../api/batchSummary.api";
 import { historyBatchApi } from "../api/HistoryBatch.api";
+import { creditManageApi } from "../api/creditManage.api";
+import { userProfileApi } from "../api/userProfile.api";
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +20,8 @@ export const store = configureStore({
     [translateApi.reducerPath]: translateApi.reducer,
     [batchSummaryApi.reducerPath]: batchSummaryApi.reducer,
     [historyBatchApi.reducerPath]: historyBatchApi.reducer,
+    [creditManageApi.reducerPath]: creditManageApi.reducer,
+    [userProfileApi.reducerPath]: userProfileApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -28,5 +32,7 @@ export const store = configureStore({
       translateApi.middleware,
       batchSummaryApi.middleware,
       historyBatchApi.middleware,
+      creditManageApi.middleware,
+      userProfileApi.middleware,
     ),
 });

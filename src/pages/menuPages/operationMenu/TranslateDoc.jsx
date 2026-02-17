@@ -84,9 +84,11 @@ const TranslateDoc = () => {
         fileName: fileObj.file.name,
         fileSize: fileObj.file.size,
         application: isIdp ? "IDP" : "TRANSLATE",
+        userId: "550e8400-e29b-41d4-a716-446655440000",
       });
 
       const { uploadUrl } = res.data;
+      console.log(res);
 
       // 2. REAL upload to S3
       await uploadToS3(uploadUrl, fileObj.file, (percent) => {
@@ -236,7 +238,11 @@ const TranslateDoc = () => {
             {files.length == 0 && (
               <div>
                 <Button
-                  onClick={() => navigate("/operations/translate-history")}
+                  onClick={() =>
+                    navigate(
+                      `/operations/${isIdp ? "idp" : "translate"}/history`,
+                    )
+                  }
                   variant="outline"
                   leftIcon={
                     <History

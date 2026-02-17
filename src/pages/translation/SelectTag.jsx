@@ -15,7 +15,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { clearUploads } from "../../redux/features/uploadSlice";
-import { useStartTranslationMutation } from "../../api/translate.api";
+import { useStartJobMutation } from "../../api/translate.api";
 import { useGetBatchSummaryQuery } from "../../api/batchSummary.api";
 
 const SelectTag = () => {
@@ -98,8 +98,7 @@ const SelectTag = () => {
   const [activeTab, setActiveTab] = useState("company");
   const [selectedTag, setSelectedTag] = useState(null);
 
-  const [startTranslation, { isLoading: isTranslating }] =
-    useStartTranslationMutation();
+  const [startJob, { isLoading: isStarting }] = useStartJobMutation();
 
   const { files: uploadedFiles, hasCompletedBatch } = useSelector(
     (state) => state.upload,
@@ -142,6 +141,12 @@ const SelectTag = () => {
       );
     });
   }, [tags, search, activeTab]);
+
+  const isBatchInvalid =
+    !batchSummary ||
+    batchSummary.total_documents == null ||
+    batchSummary.total_count == null ||
+    batchSummary.total_credits == null;
 
   return (
     <div>
@@ -218,89 +223,105 @@ const SelectTag = () => {
                   <p className="text-red-500">Failed to load batch summary</p>
                 )}
 
-                {batchSummary && (
+                {isBatchInvalid && (
                   <>
-                    <div className=" w-full flex justify justify-between">
-                      <span className=" text-xl text-gray-700">
-                        Document Uploaded
-                      </span>
-                      <span className="text-gray-800 text-2xl font-bold">
-                        {batchSummary?.total_documents ?? "refresh"}
-                      </span>
-                    </div>
-                    <div className="w-full flex justify justify-between">
-                      <span className=" text-xl text-gray-700">
-                        {isIdp
-                          ? "Total pages detected"
-                          : "Total Characters detected"}
-                      </span>
-                      <span className="text-gray-800 text-2xl font-semibold">
-                        {batchSummary.total_count
-                          ? batchSummary.total_count
-                          : "refresh"}
-                      </span>
-                    </div>
+                    <p className="text-indigo-800 text-xl font-semibold">
+                      There is some error in uploading Documents.
+                    </p>
+                    <p className="text-indigo-800 text-xl font-semibold">
+                      Please Upload Again.
+                    </p>
+                  </>
+                )}
 
-                    <hr className=" w-full text-gray-300" />
+                {!isBatchLoading &&
+                  !isBatchError &&
+                  !isBatchInvalid &&
+                  batchSummary && (
+                    <>
+                      <div className=" w-full flex justify justify-between">
+                        <span className=" text-xl text-gray-700">
+                          Document Uploaded
+                        </span>
+                        <span className="text-gray-800 text-2xl font-bold">
+                          {batchSummary?.total_documents ?? "refresh"}
+                        </span>
+                      </div>
+                      <div className="w-full flex justify justify-between">
+                        <span className=" text-xl text-gray-700">
+                          {isIdp
+                            ? "Total pages detected"
+                            : "Total Characters detected"}
+                        </span>
+                        <span className="text-gray-800 text-2xl font-semibold">
+                          {batchSummary.total_count
+                            ? batchSummary.total_count
+                            : "refresh"}
+                        </span>
+                      </div>
 
-                    <div className="w-full flex flex-col gap-5">
-                      <h3 className="text-xl text-gray-900 font-semibold">
-                        {`${isIdp ? "Extraction" : "Translation"} Credits`}
-                      </h3>
+                      <hr className=" w-full text-gray-300" />
 
-                      <div className="flex items-center justify-between">
-                        {/* Left side: dot + formula */}
-                        <div className=" pl-1 flex items-center gap-3 text-gray-600 text-[16px]">
-                          {/* Custom bullet */}
-                          <span className="w-1.5 h-1.5 rounded-full bg-gray-600 inline-block" />
+                      <div className="w-full flex flex-col gap-5">
+                        <h3 className="text-xl text-gray-900 font-semibold">
+                          {`${isIdp ? "Extraction" : "Translation"} Credits`}
+                        </h3>
 
-                          {/* Formula */}
-                          <div className="flex items-center text-gray-600 gap-1.5">
-                            <span>
-                              {batchSummary?.total_count ?? "refresh"}
-                            </span>
-                            <span>÷</span>
-                            <span>{batchSummary?.unit_size ?? "refresh"}</span>
-                            <span>×</span>
-                            <span>
-                              {batchSummary?.credits_per_unit ?? "refresh"}
-                            </span>
+                        <div className="flex items-center justify-between">
+                          {/* Left side: dot + formula */}
+                          <div className=" pl-1 flex items-center gap-3 text-gray-600 text-[16px]">
+                            {/* Custom bullet */}
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-600 inline-block" />
+
+                            {/* Formula */}
+                            <div className="flex items-center text-gray-600 gap-1.5">
+                              <span>
+                                {batchSummary?.total_count ?? "refresh"}
+                              </span>
+                              <span>÷</span>
+                              <span>
+                                {batchSummary?.unit_size ?? "refresh"}
+                              </span>
+                              <span>×</span>
+                              <span>
+                                {batchSummary?.credits_per_unit ?? "refresh"}
+                              </span>
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Right side: result */}
-                        <span className="text-gray-900 font-medium text-[16px]">
+                          {/* Right side: result */}
+                          <span className="text-gray-900 font-medium text-[16px]">
+                            {batchSummary?.total_credits ?? "refresh"} Credits
+                          </span>
+                        </div>
+                      </div>
+
+                      <hr className=" w-full text-gray-300" />
+
+                      <div className="flex w-full justify-between items-center">
+                        <h2 className=" text-xl font-semibold text-gray-900">
+                          Total Credits :
+                        </h2>
+                        <span className="text-xl font-bold text-gray-800">
                           {batchSummary?.total_credits ?? "refresh"} Credits
                         </span>
                       </div>
-                    </div>
 
-                    <hr className=" w-full text-gray-300" />
+                      <div className="w-full flex justify-between mt-2">
+                        <Button
+                          variant="outline"
+                          className="w-[47%]"
+                          onClick={() => {
+                            dispatch(clearUploads()); // reset batch
+                            navigate(
+                              `/operations/${isIdp ? "idp" : "translate"}`,
+                            ); // or your upload page
+                          }}
+                        >
+                          Back
+                        </Button>
 
-                    <div className="flex w-full justify-between items-center">
-                      <h2 className=" text-xl font-semibold text-gray-900">
-                        Total Credits :
-                      </h2>
-                      <span className="text-xl font-bold text-gray-800">
-                        {batchSummary?.total_credits ?? "refresh"} Credits
-                      </span>
-                    </div>
-
-                    <div className="w-full flex justify-between mt-2">
-                      <Button
-                        variant="outline"
-                        className="w-[47%]"
-                        onClick={() => {
-                          dispatch(clearUploads()); // reset batch
-                          navigate(
-                            `/operations/${isIdp ? "idp" : "translate"}`,
-                          ); // or your upload page
-                        }}
-                      >
-                        Back
-                      </Button>
-
-                      {/* <Button
+                        {/* <Button
                     className="w-[47%]"
                     disabled={!selectedTag}
                     onClick={() => {
@@ -311,56 +332,61 @@ const SelectTag = () => {
                     Start Translation
                   </Button> */}
 
-                      <Button
-                        className="w-[47%]"
-                        disabled={!selectedTag || isTranslating}
-                        onClick={async () => {
-                          try {
-                            const res = await startTranslation({
-                              tagId: selectedTag.id,
-                            }).unwrap();
+                        <Button
+                          className="w-[47%]"
+                          disabled={!selectedTag || isStarting}
+                          onClick={async () => {
+                            try {
+                              console.log(selectedTag.id);
 
-                            console.log(
-                              `${isIdp ? "Extraction" : "Translation"} started ✅`,
-                              res,
-                            );
-                            const { jobId, status } = res;
+                              const res = await startJob({
+                                tagId: selectedTag.id,
+                                application: isIdp ? "IDP" : "TRANSLATE",
+                              }).unwrap();
 
-                            // clear batch only AFTER successful call
-                            dispatch(clearUploads());
+                              console.log(
+                                `${isIdp ? "Extraction" : "Translation"} started ✅`,
+                                res,
+                              );
 
-                            // go to translating screen
-                            navigate(
-                              `/operations/${isIdp ? "idp" : "Translate"}/${isIdp ? "extracting" : "translating"}?jobId=${jobId}`,
-                            );
-                          } catch (err) {
-                            console.error(
-                              `Failed to start ${isIdp ? "Extraction" : "Translation"} ❌`,
-                              err,
-                            );
-                            alert(
-                              `Failed to start ${isIdp ? "Extraction" : "Translation"}. Please try again.`,
-                            );
-                          }
-                        }}
-                      >
-                        {isTranslating
-                          ? "Starting..."
-                          : `Start ${isIdp ? "Extraction" : "Translation"}`}
-                      </Button>
-                    </div>
+                              const { jobId } = res;
 
-                    <div
-                      className=" w-full  p-4 pl-7 mt-2 rounded-lg text-lg font-medium border border-indigo-200 bg-indigo-50 text-gray-700
+                              dispatch(clearUploads());
+
+                              navigate(
+                                `/operations/${isIdp ? "idp" : "translate"}/${
+                                  isIdp ? "extracting" : "translating"
+                                }?jobId=${jobId}`,
+                              );
+                            } catch (err) {
+                              console.error(
+                                `Failed to start ${isIdp ? "Extraction" : "Translation"} ❌`,
+                                err,
+                              );
+                              alert(
+                                `Failed to start ${isIdp ? "Extraction" : "Translation"}. Please try again.`,
+                                err,
+                              );
+                            }
+                          }}
+                        >
+                          {isStarting
+                            ? "Starting..."
+                            : `Start ${isIdp ? "Extraction" : "Translation"}`}
+                        </Button>
+                      </div>
+
+                      <div
+                        className=" w-full  p-4 pl-7 mt-2 rounded-lg text-lg font-medium border border-indigo-200 bg-indigo-50 text-gray-700
               shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_2px_6px_2px_rgba(0,0,0,0.15)]
               "
-                    >
-                      💡 {batchSummary.credits_per_unit} credit ={" "}
-                      {batchSummary.unit_size}{" "}
-                      {`${isIdp ? "page" : "characters"}`}
-                    </div>
-                  </>
-                )}
+                      >
+                        💡 {batchSummary.credits_per_unit} credit ={" "}
+                        {batchSummary.unit_size}{" "}
+                        {`${isIdp ? "page" : "characters"}`}
+                      </div>
+                    </>
+                  )}
               </>
             ) : (
               <>

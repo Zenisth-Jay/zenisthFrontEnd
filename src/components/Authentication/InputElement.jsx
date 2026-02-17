@@ -7,6 +7,8 @@ const InputElement = ({
   type,
   register,
   placeholder,
+  value,
+  disabled,
   icon: Icon,
   rules = {},
   className = "",
@@ -32,7 +34,9 @@ const InputElement = ({
         <input
           {...register(name, rules)}
           id={name}
+          disabled={disabled}
           type={actualType}
+          value={value}
           placeholder={placeholder}
           className=" w-full border border-gray-300 pl-10 pr-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-gray-400 "
         />

@@ -209,27 +209,30 @@ const CreateTag = () => {
           application: "TAG_CREATION",
         });
 
-        const { uploadUrl } = res.data;
+        const { uploadUrl, key } = res.data;
 
         // 2️⃣ Upload to S3
         await uploadToS3(uploadUrl, file);
 
+        // 3️⃣ Create tag with S3 KEY (not URL)
         const body = {
           name: data.tagName,
           tag_type: "IDP",
           orgId: ORGANIZATION_ID,
           industry: data.tagIndustry,
           description: data.description,
-          outputFormat: data.outputFormat?.toUpperCase(),
-          originalFormat: getOriginalFormat(glossaryFiles[0].file),
-          s3Key: uploadUrl, // 👈 reference to uploaded file
+          outputFormat: data.outputFormat, // "CSV" | "JSON" | "XML"
+          originalFormat: getOriginalFormat(file), // "CSV" | "JSON" | "XML"
+          s3Key: key, // ✅ correct
         };
+
+        console.log("IDP CREATE TAG BODY 👉", body);
 
         await createTag({
           organizationId: ORGANIZATION_ID,
           applicationId: "IDP",
           tab: TAB,
-          body, // 👈 FormData with raw file
+          body,
         }).unwrap();
 
         toast.success("IDP Tag created successfully!");

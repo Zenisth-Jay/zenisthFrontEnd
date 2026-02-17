@@ -23,6 +23,7 @@ import UserProfile from "../pages/user/UserProfile";
 import SelectTag from "../pages/translation/SelectTag";
 import Translating from "../pages/translation/Translating";
 import CreateTag from "../pages/translation/CreateTag";
+import CreditManage from "../pages/main/CreditManage";
 
 const AppRoutes = () => {
   return (
@@ -41,7 +42,7 @@ const AppRoutes = () => {
       {/* Operation Menu */}
       {/* <Route path="/operations/translate" element={<TranslateDoc />} /> */}
       <Route
-        path="/operations/:toolType/translate-history"
+        path="/operations/:toolType/history"
         element={<TranslateHistory />}
       />
       <Route path="/operations/tags-library" element={<TagLibrary />} />
@@ -85,6 +86,9 @@ const AppRoutes = () => {
         path="/operations/:toolType/extracting"
         element={<Translating />}
       />
+
+      {/* Credit Management */}
+      <Route path="/credit-manage" element={<CreditManage />} />
 
       {/* 404 */}
       <Route path="*" element={<h1>404 - Page not found</h1>} />
