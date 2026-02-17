@@ -1,10 +1,20 @@
-import { Edit, Plus } from "lucide-react";
+import { Edit, MoreVertical, Plus, Trash2 } from "lucide-react";
 import MainNavbar from "../../../components/dashboard/MainNavbar";
 import Button from "../../../components/ui/Button";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 // Component
-const UserRow = ({ name, email, role }) => {
+const UserRow = ({
+  id,
+  name,
+  email,
+  role,
+  openMenuId,
+  setOpenMenuId,
+  onEdit,
+  onDelete,
+}) => {
+  const isOpen = openMenuId === id;
   return (
     <div>
       <div className=" w-full flex items-center justify-between">
@@ -29,13 +39,48 @@ const UserRow = ({ name, email, role }) => {
 
         {/* Right Div */}
         <div className="flex gap-8 items-center cursor-pointer">
-          <span className=" px-3 py-2 rounded-[50px] bg-indigo-500 border border-indigo-50">
+          <span className=" px-3 py-2 rounded-[50px] text-white font-bold bg-indigo-500 border border-indigo-50">
             {role}
           </span>
-          <div className="flex gap-2 items-center text-indigo-500">
-            <Edit />
-            <span className=" text-lg font-bold">Edit</span>
+
+          <div className="relative">
+            <button
+              onClick={() => setOpenMenuId(isOpen ? null : id)}
+              className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
+            >
+              <MoreVertical />
+            </button>
+
+            {isOpen && (
+              <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20">
+                <button
+                  onClick={() => {
+                    setOpenMenuId(null);
+                    onEdit?.();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-indigo-600 hover:bg-gray-50"
+                >
+                  <Edit size={18} />
+                  <span className="font-medium">Edit</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setOpenMenuId(null);
+                    onDelete?.();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-gray-50"
+                >
+                  <Trash2 size={18} />
+                  <span className="font-medium">Delete User</span>
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* <div className="flex gap-2 items-center text-indigo-200">
+            <MoreVertical />
+          </div> */}
         </div>
       </div>
     </div>
@@ -44,6 +89,7 @@ const UserRow = ({ name, email, role }) => {
 
 const AccessControl = () => {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   return (
     <>
@@ -65,8 +111,26 @@ const AccessControl = () => {
 
           {/* Members Div */}
           <div className="flex flex-col gap-6">
-            <UserRow name="Jaydeep Darji" email="jay@gmail.com" role="Admin" />
-            <UserRow name="Anil Patel" email="anil@gmail.com" role="User" />
+            <UserRow
+              id="1"
+              name="Jaydeep Darji"
+              email="jay@gmail.com"
+              role="Admin"
+              openMenuId={openMenuId}
+              setOpenMenuId={setOpenMenuId}
+              onEdit={() => alert("Edit Jaydeep")}
+              onDelete={() => alert("Delete Jaydeep")}
+            />
+            <UserRow
+              id="2"
+              name="Anil Patel"
+              email="anil@gmail.com"
+              role="User"
+              openMenuId={openMenuId}
+              setOpenMenuId={setOpenMenuId}
+              onEdit={() => alert("Edit Anil")}
+              onDelete={() => alert("Delete Anil")}
+            />
           </div>
         </section>
       </main>
