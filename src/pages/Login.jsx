@@ -10,33 +10,53 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginScema } from "../schemas/auth.schema";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabase/supabaseClient"; // Ensure your client is imported
 
 const Login = () => {
   const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { isSubmitting },
   } = useForm({
-    // resolver: zodResolver(loginScema),
+    resolver: zodResolver(loginScema), // Re-enable your schema validation
   });
 
-  const onSignIn = (data) => {
-    toast.success("Login successful ✅");
+  const onSignIn = async (data) => {
+    try {
+      // 1. Authenticate with Supabase
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
 
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 100);
+      // 2. Handle Authentication Errors
+      if (error) {
+        // Common errors: 'Invalid login credentials' or 'Email not confirmed'
+        throw new Error(error.message);
+      }
+
+      // 3. Success Workflow
+      toast.success("Login successful! Welcome back ✅");
+      
+      // Navigate to dashboard after the session is established
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 500);
+
+    } catch (err) {
+      toast.error(err.message || "An error occurred during sign in.");
+    }   
   };
 
+  // Add the missing onError handler to show validation errors to the user
   const onError = (errors) => {
     const firstError = Object.values(errors)[0];
-
     if (firstError?.message) {
       toast.error(firstError.message);
     }
   };
-
+  
   return (
     <div className=" min-h-screen flex ">
       {/* Left */}
@@ -106,7 +126,7 @@ const Login = () => {
               </Link>
             </div>
 
-            <AuthButton type="submit">Sign In</AuthButton>
+            <AuthButton type="submit" disabled={isSubmitting}>Sign In</AuthButton>
           </form>
 
           <p className="text-center text-[16px] text-[#45556C] mt-4">

@@ -1,7 +1,12 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute"; // Import the Gatekeeper
+
+// Auth Pages
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import ForgotPass from "../pages/ForgotPass";
+
+// Protected Pages
 import Dashboard from "../pages/main/Dashboard";
 import TranslateDoc from "../pages/menuPages/operationMenu/TranslateDoc";
 import TranslateHistory from "../pages/menuPages/operationMenu/TranslateHistory";
@@ -18,7 +23,6 @@ import Help from "../pages/menuPages/supportMenu/Help";
 import ContactSupport from "../pages/menuPages/supportMenu/ContactSupport";
 import SecurityCenter from "../pages/menuPages/AdminMenu/SecurityCenter";
 import AccessControl from "../pages/menuPages/AdminMenu/AccessControl";
-import IdpDoc from "../pages/menuPages/operationMenu/IdpDoc";
 import UserProfile from "../pages/user/UserProfile";
 import SelectTag from "../pages/translation/SelectTag";
 import Translating from "../pages/translation/Translating";
@@ -27,64 +31,43 @@ import CreateTag from "../pages/translation/CreateTag";
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Default */}
+      {/* --- Public Routes --- */}
       <Route path="/" element={<Navigate to="/login" />} />
-
-      {/* Auth Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPass />} />
 
+      {/* --- Protected Routes (Wrapped in ProtectedRoute) --- */}
+      
       {/* Dashboard */}
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
       {/* Operation Menu */}
-      {/* <Route path="/operations/translate" element={<TranslateDoc />} /> */}
-      <Route
-        path="/operations/:toolType/translate-history"
-        element={<TranslateHistory />}
-      />
-      <Route path="/operations/tags-library" element={<TagLibrary />} />
-
-      {/* Resources Menu */}
-      <Route path="/resources/api-keys" element={<ApiKeys />} />
-      <Route path="/resources/api-reference" element={<ApiReferences />} />
-      <Route path="/resources/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/resources/terms" element={<TermsAndService />} />
-
-      {/* Learn Menu */}
-      <Route path="/learn/plateform-overview" element={<PlatformOverview />} />
-      <Route path="/learn/video-tutorial" element={<VideoTutorial />} />
-      <Route path="/learn/user-guides" element={<UserGuides />} />
-      <Route path="/learn/developer-docs" element={<DeveloperDocs />} />
-
-      {/* Support Menu */}
-      <Route path="/support/help" element={<Help />} />
-      <Route path="/support/contact-support" element={<ContactSupport />} />
+      <Route path="/operations/:toolType/translate-history" element={<ProtectedRoute><TranslateHistory /></ProtectedRoute>} />
+      <Route path="/operations/tags-library" element={<ProtectedRoute><TagLibrary /></ProtectedRoute>} />
+      <Route path="/operations/:toolType" element={<ProtectedRoute><TranslateDoc /></ProtectedRoute>} />
+      <Route path="/operations/:toolType/select-tag" element={<ProtectedRoute><SelectTag /></ProtectedRoute>} />
+      <Route path="/operations/:toolType/translating" element={<ProtectedRoute><Translating /></ProtectedRoute>} />
+      <Route path="/operations/:toolType/extracting" element={<ProtectedRoute><Translating /></ProtectedRoute>} />
+      <Route path="/operations/:toolType/create-tag" element={<ProtectedRoute><CreateTag /></ProtectedRoute>} />
 
       {/* Admin Menu */}
-      <Route path="/admin/security-center" element={<SecurityCenter />} />
-      <Route path="/admin/access-control" element={<AccessControl />} />
+      <Route path="/admin/security-center" element={<ProtectedRoute><SecurityCenter /></ProtectedRoute>} />
+      <Route path="/admin/access-control" element={<ProtectedRoute><AccessControl /></ProtectedRoute>} />
 
       {/* User Profile */}
-      <Route path="/user-profile" element={<UserProfile />} />
+      <Route path="/user-profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
 
-      {/* Translation Routes */}
-      {/* <Route path="/operations/translate/select-tag" element={<SelectTag />} /> */}
-      <Route
-        path="/operations/:toolType/translating"
-        element={<Translating />}
-      />
-      <Route path="/operations/:toolType/create-tag" element={<CreateTag />} />
-
-      {/* IDP */}
-      {/* <Route path="/operations/idp" element={<TranslateDoc />} /> */}
-      <Route path="/operations/:toolType" element={<TranslateDoc />} />
-      <Route path="/operations/:toolType/select-tag" element={<SelectTag />} />
-      <Route
-        path="/operations/:toolType/extracting"
-        element={<Translating />}
-      />
+      {/* Resources & Learn (Usually protected if they contain sensitive IP) */}
+      <Route path="/resources/api-keys" element={<ProtectedRoute><ApiKeys /></ProtectedRoute>} />
+      <Route path="/resources/api-reference" element={<ProtectedRoute><ApiReferences /></ProtectedRoute>} />
+      <Route path="/learn/plateform-overview" element={<ProtectedRoute><PlatformOverview /></ProtectedRoute>} />
+      
+      {/* Static/Info Pages (Can stay public or be protected) */}
+      <Route path="/resources/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/resources/terms" element={<TermsAndService />} />
+      <Route path="/support/help" element={<Help />} />
+      <Route path="/support/contact-support" element={<ContactSupport />} />
 
       {/* 404 */}
       <Route path="*" element={<h1>404 - Page not found</h1>} />

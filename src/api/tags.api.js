@@ -1,27 +1,36 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { supabase } from "../supabase/supabaseClient"; //
 
 export const tagsApi = createApi({
   reducerPath: "tagsApi",
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
+    // --- ADD THE JWT INJECTOR ---
+    prepareHeaders: async (headers) => {
+      const { data: { session } } = await supabase.auth.getSession(); //
+      if (session?.access_token) {
+        headers.set("Authorization", `Bearer ${session.access_token}`); //
+      }
+      return headers;
+    },
   }),
   tagTypes: ["Tags"],
   endpoints: (builder) => ({
-    // GET all translation tags
     getTags: builder.query({
+      // Notice: We can eventually remove organizationId from query params 
+      // because the backend will extract it from the JWT metadata.
       query: ({ organizationId, applicationId }) =>
         `/tags?organizationId=${organizationId}&applicationId=${applicationId}`,
       providesTags: ["Tags"],
     }),
 
-    // Toggle favorite (or mark favorite)
     toggleFavoriteTag: builder.mutation({
       query: ({ id, isFavorite }) => ({
         url: `/tags/${id}`,
         method: "PUT",
         body: { isFavorite },
       }),
-      invalidatesTags: ["Tags"], // refetch tags after update
+      invalidatesTags: ["Tags"],
     }),
 
     createTag: builder.mutation({
@@ -33,16 +42,13 @@ export const tagsApi = createApi({
       invalidatesTags: ["Tags"],
     }),
 
-    // file upload for IDP create Tag
     uploadIdpFile: builder.mutation({
       query: (formData) => ({
-        url: "/idp/upload", // 🔴 CHANGE this to your real upload endpoint
+        url: "/idp/upload", 
         method: "POST",
         body: formData,
       }),
     }),
-
-    // end of endpoints
   }),
 });
 

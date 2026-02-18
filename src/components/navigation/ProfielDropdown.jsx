@@ -17,8 +17,8 @@ const ProfileDropdown = ({ onLogout }) => {
 
       {/* Logout */}
       <button
-        // onClick={onLogout}
-        className="w-full flex items-center gap-3 px-5 py-4 text-red-500 hover:bg-red-50 transition"
+        onClick={onLogout} // Add this handler back
+        className="w-full flex items-center gap-3 px-5 py-4 text-red-500 hover:bg-red-50 transition cursor-pointer"
       >
         <LogOut size={22} />
         <span className="text-lg font-semibold">Logout</span>
