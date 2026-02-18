@@ -23,6 +23,8 @@ import { useGetTokensQuery } from "../../api/token.api";
 import NotificationDropdown from "../notification/NotificationDropdown";
 import { useGetNotificationsQuery } from "../../api/notificationApi";
 import ProfileDropdown from "../navigation/ProfielDropdown";
+import { supabase } from "../../supabase/supabaseClient"; //
+import { toast } from "react-toastify"; //
 
 const MainNavbar = () => {
   const { toolType } = useParams();
@@ -47,6 +49,19 @@ const MainNavbar = () => {
   const hasUnread = normalizedNotifications.some((n) => !n.is_read);
 
   const { data, isLoading } = useGetTokensQuery();
+
+  // --- Log Out Logic ---
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut(); //
+      if (error) throw error;
+
+      toast.success("Logged out successfully ✅");
+      navigate("/login"); //
+    } catch (err) {
+      toast.error(err.message || "Logout failed");
+    }
+  };
 
   return (
     <nav className=" border-b w-full h-16 bg-white border-[#CBC5EB] shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_1px_3px_1px_rgba(0,0,0,0.15)]">
@@ -164,7 +179,7 @@ const MainNavbar = () => {
               </button>
             )}
           >
-            <ProfileDropdown />
+            <ProfileDropdown onLogout={handleLogout} />
           </Dropdown>
 
           {/* Right div end */}
