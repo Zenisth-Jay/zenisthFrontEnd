@@ -67,7 +67,9 @@ const UserProfile = () => {
       <main className="flex flex-col gap-6 sm:gap-10 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 md:py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
         <header className="flex items-center justify-between gap-4 animate-fade-in-up">
           <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Profile Information</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+              Profile Information
+            </h1>
             <p className="text-gray-700 text-base sm:text-lg mt-1">
               Your profile details appear across Zenisth tools and activity
               logs.
@@ -171,7 +173,11 @@ const UserProfile = () => {
               <Button variant="outline" type="button" onClick={() => reset()}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={!isDirty || isUpdating}>
+              <Button
+                type="submit"
+                // disabled={!isDirty || isUpdating}
+                disabled={true}
+              >
                 Save Changes
               </Button>
             </div>

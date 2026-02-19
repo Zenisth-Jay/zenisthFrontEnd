@@ -170,6 +170,8 @@ const CreditManage = () => {
     limit,
   });
 
+  console.log(data);
+
   const stats = data?.stats;
   const rows = data?.transactions || [];
 

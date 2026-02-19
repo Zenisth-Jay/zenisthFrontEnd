@@ -64,7 +64,7 @@ const TranslateHistory = () => {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+        {/* <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           <div className="relative flex-1 min-w-0">
             <Search
               size={22}
@@ -88,7 +88,7 @@ const TranslateHistory = () => {
           >
             <SlidersHorizontal size={24} className="text-gray-600" />
           </button>
-        </div>
+        </div> */}
 
         {/* History Grid */}
         <TranslationHistoryGrid search={search} filters={appliedFilters} />

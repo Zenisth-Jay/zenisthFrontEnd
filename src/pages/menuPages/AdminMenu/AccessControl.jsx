@@ -4,6 +4,7 @@ import Button from "../../../components/ui/Button";
 import { useRef, useState } from "react";
 import {
   useGetUsersQuery,
+  useInviteUserMutation,
   useUpdateUserMutation,
 } from "../../../api/access.api";
 
@@ -79,6 +80,10 @@ const UserRow = ({
 };
 
 const AccessControl = () => {
+  const [inviteUser, { isLoading: isInviting }] = useInviteUserMutation();
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("MEMBER"); // default role
+
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
 
@@ -159,8 +164,10 @@ const AccessControl = () => {
             {/* Body */}
             <div className="p-6">
               <input
-                type="text"
-                placeholder="Enter a email address..."
+                type="email"
+                placeholder="Enter an email address..."
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-200"
               />
             </div>
@@ -170,7 +177,27 @@ const AccessControl = () => {
               <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
                 Cancel
               </Button>
-              <Button className=" w-full">Add</Button>
+              <Button
+                className="w-full"
+                disabled={isInviting || !inviteEmail}
+                onClick={async () => {
+                  try {
+                    await inviteUser({
+                      email: inviteEmail,
+                      role: inviteRole,
+                    }).unwrap();
+
+                    setIsInviteOpen(false);
+                    setInviteEmail("");
+                    setInviteRole("MEMBER");
+                  } catch (err) {
+                    console.error("Invite failed", err);
+                    // optionally show toast here
+                  }
+                }}
+              >
+                {isInviting ? "Inviting..." : "Add"}
+              </Button>
             </div>
           </div>
         </div>
