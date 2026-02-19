@@ -25,24 +25,22 @@ const Pagination = ({
 
   return (
     <div
-      className={`flex items-center gap-5 px-6 py-4 border-t bg-white ${className}`}
+      className={`flex flex-wrap items-center justify-center gap-2 sm:gap-5 px-4 sm:px-6 py-4 border-t bg-white ${className}`}
     >
-      {/* Previous */}
       <button
         disabled={page === 1}
         onClick={() => setPage(page - 1)}
-        className="text-lg text-gray-600 disabled:opacity-40"
+        className="text-sm sm:text-lg text-gray-600 disabled:opacity-40 py-2 px-2 rounded-lg hover:bg-gray-100 transition-colors min-h-[2.25rem]"
       >
         ← Previous
       </button>
 
-      {/* Page Numbers */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         {start > 1 && (
           <>
             <button
               onClick={() => setPage(1)}
-              className="w-8 h-8 rounded-md text-sm hover:bg-gray-100"
+              className="w-8 h-8 rounded-md text-sm hover:bg-gray-100 transition-colors"
             >
               1
             </button>
@@ -54,7 +52,7 @@ const Pagination = ({
           <button
             key={p}
             onClick={() => setPage(p)}
-            className={`w-8 h-8 rounded-md text-sm font-medium ${
+            className={`w-8 h-8 rounded-md text-sm font-medium transition-colors ${
               p === page
                 ? "bg-gray-900 text-white"
                 : "text-gray-700 hover:bg-gray-100"
@@ -69,7 +67,7 @@ const Pagination = ({
             <span className="px-1">…</span>
             <button
               onClick={() => setPage(totalPages)}
-              className="w-8 h-8 rounded-md text-sm hover:bg-gray-100"
+              className="w-8 h-8 rounded-md text-sm hover:bg-gray-100 transition-colors"
             >
               {totalPages}
             </button>
@@ -77,11 +75,10 @@ const Pagination = ({
         )}
       </div>
 
-      {/* Next */}
       <button
         disabled={page === totalPages}
         onClick={() => setPage(page + 1)}
-        className="text-sm text-gray-600 disabled:opacity-40"
+        className="text-sm sm:text-lg text-gray-600 disabled:opacity-40 py-2 px-2 rounded-lg hover:bg-gray-100 transition-colors min-h-[2.25rem]"
       >
         Next →
       </button>

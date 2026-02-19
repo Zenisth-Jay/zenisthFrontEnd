@@ -19,18 +19,16 @@ const InputElement = ({
   const actualType = isPassword ? (showPassword ? "text" : "password") : type;
 
   return (
-    <div className={`flex flex-col gap-2 ${className}`}>
-      <label htmlFor={name} className=" text-[#424242] text-[18px] font-medium">
+    <div className={`flex flex-col gap-1.5 sm:gap-2 ${className}`}>
+      <label htmlFor={name} className="text-[#424242] text-base sm:text-[18px] font-medium">
         {label} <span className="text-red-500">*</span>
       </label>
 
       <div className="flex items-center relative">
-        {/* Left Icon */}
-        <div className=" absolute left-3 text-gray-400">
-          {Icon && <Icon size={22} strokeWidth={2} />}
+        <div className="absolute left-3 text-gray-400 pointer-events-none">
+          {Icon && <Icon size={20} strokeWidth={2} className="sm:w-[22px] sm:h-[22px]" />}
         </div>
 
-        {/* Input */}
         <input
           {...register(name, rules)}
           id={name}
@@ -38,7 +36,7 @@ const InputElement = ({
           type={actualType}
           value={value}
           placeholder={placeholder}
-          className=" w-full border border-gray-300 pl-10 pr-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-gray-400 "
+          className="w-full border border-gray-300 pl-9 sm:pl-10 pr-10 py-2.5 sm:py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200 placeholder:text-gray-400"
         />
 
         {/* Right Eye Toggle for Password */}

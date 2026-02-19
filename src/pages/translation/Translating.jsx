@@ -24,22 +24,32 @@ const Translating = () => {
   const [searchParams] = useSearchParams();
 
   const jobId = searchParams.get("jobId");
+  console.log("toolType:", toolType);
+  console.log("jobId from URL:", jobId);
 
   // 🔹 Fetch job status from API
   const {
     data: jobResponse,
     isLoading,
     isError,
-  } = useGetJobStatusQuery(jobId, {
-    skip: !jobId,
-    // pollingInterval: 5000, // 🔁 auto-refresh every 5s while processing
-  });
+  } = useGetJobStatusQuery(
+    { jobId, appType: toolType }, // 👈 pass an object
+    { skip: !jobId },
+  );
+
+  // const {
+  //   data: jobResponse,
+  //   isLoading,
+  //   isError,
+  // } = useGetJobStatusQuery(jobId, {
+  //   skip: !jobId,
+  // });
 
   if (isLoading) {
     return (
       <>
         <MainNavbar />
-        <main className="px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
+        <main className="px-4 sm:px-6 md:px-10 lg:px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
           <div className="text-gray-600 text-lg">Loading job status...</div>
         </main>
       </>
@@ -50,7 +60,7 @@ const Translating = () => {
     return (
       <>
         <MainNavbar />
-        <main className="px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
+        <main className="px-4 sm:px-6 md:px-10 lg:px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
           <div className="text-red-600 text-lg">
             Failed to load {isIdp ? "Extraction" : "translation"} status.
           </div>
@@ -79,7 +89,7 @@ const Translating = () => {
     <>
       <MainNavbar />
 
-      <main className="px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex flex-col">
+      <main className="px-4 sm:px-6 md:px-10 lg:px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex flex-col">
         <Stepper steps={STEPS} activeStep={isCompleted ? 3 : 2} />
 
         <section className=" bg-white w-full h-full mt-5 px-12 py-1 flex flex-col flex-1 justify-between items-center rounded-3xl">

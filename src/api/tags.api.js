@@ -5,9 +5,10 @@ export const tagsApi = createApi({
   reducerPath: "tagsApi",
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
-    // --- ADD THE JWT INJECTOR ---
     prepareHeaders: async (headers) => {
-      const { data: { session } } = await supabase.auth.getSession(); //
+      const {
+        data: { session },
+      } = await supabase.auth.getSession(); //
       if (session?.access_token) {
         headers.set("Authorization", `Bearer ${session.access_token}`); //
       }
@@ -16,14 +17,13 @@ export const tagsApi = createApi({
   }),
   tagTypes: ["Tags"],
   endpoints: (builder) => ({
+    // 1. GET all translation tags (organizationId removed)
     getTags: builder.query({
-      // Notice: We can eventually remove organizationId from query params 
-      // because the backend will extract it from the JWT metadata.
-      query: ({ organizationId, applicationId }) =>
-        `/tags?organizationId=${organizationId}&applicationId=${applicationId}`,
+      query: ({ applicationId }) => `/tags?applicationId=${applicationId}`, //
       providesTags: ["Tags"],
     }),
 
+    // 2. Toggle favorite
     toggleFavoriteTag: builder.mutation({
       query: ({ id, isFavorite }) => ({
         url: `/tags/${id}`,
@@ -33,18 +33,20 @@ export const tagsApi = createApi({
       invalidatesTags: ["Tags"],
     }),
 
+    // 3. Create Tag (organizationId removed)
     createTag: builder.mutation({
-      query: ({ organizationId, applicationId, tab, body }) => ({
-        url: `/tags?organizationId=${organizationId}&applicationId=${applicationId}&tab=${tab}`,
+      query: ({ applicationId, tab, body }) => ({
+        url: `/tags?applicationId=${applicationId}&tab=${tab}`, //
         method: "POST",
         body,
       }),
       invalidatesTags: ["Tags"],
     }),
 
+    // 4. File upload for IDP
     uploadIdpFile: builder.mutation({
       query: (formData) => ({
-        url: "/idp/upload", 
+        url: "/idp/upload",
         method: "POST",
         body: formData,
       }),

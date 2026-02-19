@@ -152,7 +152,7 @@ const SelectTag = () => {
     <div>
       <MainNavbar />
 
-      <section className=" px-16 py-5 flex flex-col gap-4">
+      <section className="px-4 sm:px-6 md:px-10 lg:px-16 py-5 flex flex-col gap-4">
         {/* Stpes */}
         <Stepper steps={STEPS} activeStep={1} />
 
@@ -223,7 +223,7 @@ const SelectTag = () => {
                   <p className="text-red-500">Failed to load batch summary</p>
                 )}
 
-                {isBatchInvalid && (
+                {/* {isBatchInvalid && (
                   <>
                     <p className="text-indigo-800 text-xl font-semibold">
                       There is some error in uploading Documents.
@@ -232,7 +232,7 @@ const SelectTag = () => {
                       Please Upload Again.
                     </p>
                   </>
-                )}
+                )} */}
 
                 {!isBatchLoading &&
                   !isBatchError &&

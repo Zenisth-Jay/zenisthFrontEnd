@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const Dropdown = ({ trigger, children }) => {
+const Dropdown = ({ trigger, children, inPanel = false }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -19,10 +19,14 @@ const Dropdown = ({ trigger, children }) => {
     <div ref={ref} className="relative">
       <div onClick={() => setOpen((p) => !p)}>{trigger(open)}</div>
 
-      {/* {open && children} */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-54 bg-white rounded-xl shadow-lg z-50">
-          {/* w-72 */}
+        <div
+          className={
+            inPanel
+              ? "absolute right-0 top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg z-50"
+              : "absolute right-0 top-full mt-2 w-54 bg-white rounded-xl shadow-lg z-50"
+          }
+        >
           {children}
         </div>
       )}

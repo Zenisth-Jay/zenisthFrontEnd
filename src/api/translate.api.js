@@ -7,7 +7,9 @@ export const translateApi = createApi({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     // --- ADD THE JWT INJECTOR ---
     prepareHeaders: async (headers) => {
-      const { data: { session } } = await supabase.auth.getSession(); //
+      const {
+        data: { session },
+      } = await supabase.auth.getSession(); //
       if (session?.access_token) {
         headers.set("Authorization", `Bearer ${session.access_token}`); //
       }
@@ -21,6 +23,7 @@ export const translateApi = createApi({
         method: "POST",
         body: {
           tag_id: tagId,
+          cost: 45,
         },
       }),
     }),

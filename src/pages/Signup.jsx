@@ -99,22 +99,22 @@ const Signup = () => {
   }
 
   return (
-    <div className=" min-h-screen flex items-center bg-[#fafafa] ">
-      <div className="w-full lg:w-1/2 bg-[#fafafa] flex justify-center items-center p-8 ">
-        <div className="w-full max-w-md flex flex-col">
+    <div className="min-h-screen flex flex-col lg:flex-row items-center bg-[#fafafa]">
+      <div className="w-full lg:w-1/2 bg-[#fafafa] flex justify-center items-center p-4 sm:p-6 md:p-8 min-h-[50vh] lg:min-h-screen">
+        <div className="w-full max-w-md flex flex-col animate-fade-in-up">
           <Logo />
 
-          <h1 className=" mt-4 text-3xl font-normal text-[#212121] ">
+          <h1 className="mt-4 text-2xl sm:text-3xl font-normal text-[#212121]">
             {token ? "Join Workspace 🚀" : "Get Started 🚀"}
           </h1>
-          <p className="text-[#9E9E9E] text-[18px] font-normal mb-4">
+          <p className="text-[#9E9E9E] text-base sm:text-[18px] font-normal mb-4">
             {token 
               ? `You've been invited to join ${invitationData?.org_name || "the organization"}.` 
               : "Create your account to unlock all features."}
           </p>
 
-          <form onSubmit={handleSubmit(onSignUp, onError)} className=" flex flex-col">
-            <div className="flex flex-col gap-4 mb-5">
+          <form onSubmit={handleSubmit(onSignUp, onError)} className="flex flex-col">
+            <div className="flex flex-col gap-3 sm:gap-4 mb-5">
               <InputElement
                 label="Full name"
                 name="fullName"
@@ -166,9 +166,9 @@ const Signup = () => {
             </AuthButton>
           </form>
 
-          <p className="text-center text-[16px] text-[#45556C] mt-4">
+          <p className="text-center text-sm sm:text-[16px] text-[#45556C] mt-4">
             Already have an account?{" "}
-            <Link to="/login" className="text-indigo-500 font-medium hover:underline hover:text-indigo-700">
+            <Link to="/login" className="text-indigo-500 font-medium hover:underline hover:text-indigo-700 transition-colors">
               Sign in
             </Link>
           </p>

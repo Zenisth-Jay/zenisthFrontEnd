@@ -196,25 +196,24 @@ const CreditManage = () => {
       <MainNavbar />
 
       {!isExpanded ? (
-        <main className="flex flex-col gap-10 px-16 py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
-          {/* Header Section */}
-          <header className="flex items-center justify-between">
+        <main className="flex flex-col gap-6 sm:gap-8 md:gap-10 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 md:py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
             <div>
-              <h1 className=" text-4xl font-bold">Credit Management</h1>
-              <p className=" text-gray-700 text-lg">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Credit Management</h1>
+              <p className="text-gray-700 text-base sm:text-lg mt-1">
                 Manage your Credit and Credit Usage.
               </p>
             </div>
             <Button
               leftIcon={<Plus />}
               onClick={() => setShowAddCreditsModal(true)}
+              className="w-full sm:w-auto shrink-0"
             >
               Add Credits
             </Button>
           </header>
 
-          {/* Analysis Card Section */}
-          <section className="flex gap-6">
+          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 animate-fade-in-up">
             <AnalysisCard
               icon={<Coins size={27} strokeWidth={2.5} />}
               title="Remaining Credits"
@@ -244,14 +243,13 @@ const CreditManage = () => {
             />
           </section>
 
-          {/* Credit lists  */}
-          <section className=" bg-white w-full rounded-2xl shadow-md border border-gray-300">
+          <section className="bg-white w-full rounded-xl sm:rounded-2xl shadow-md border border-gray-300 overflow-hidden animate-fade-in-up">
             <DataTable columns={columns} rows={tableRows} />
 
-            <div className="border-t border-gray-400 px-6 py-4 text-center">
+            <div className="border-t border-gray-400 px-4 sm:px-6 py-4 text-center">
               <button
                 onClick={() => setIsExpanded(true)}
-                className="text-indigo-500 font-medium hover:underline cursor-pointer"
+                className="text-indigo-500 font-medium hover:underline cursor-pointer transition-colors"
               >
                 View All
               </button>
@@ -259,14 +257,13 @@ const CreditManage = () => {
           </section>
         </main>
       ) : (
-        // 🔹 EXPANDED VIEW (FULL PAGE TABLE)
-        <main className="px-16 py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
-          <div className="flex items-center justify-start mb-10">
-            <h1 className="text-3xl font-bold">All Credit Usage</h1>
+        <main className="px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
+          <div className="flex items-center justify-start mb-6 md:mb-10">
+            <h1 className="text-2xl sm:text-3xl font-bold">All Credit Usage</h1>
           </div>
 
-          <div className="bg-white w-full rounded-2xl border border-gray-300">
-            {isLoading && <div className="p-6">Loading...</div>}
+          <div className="bg-white w-full rounded-xl sm:rounded-2xl border border-gray-300 overflow-hidden">
+            {isLoading && <div className="p-6 animate-fade-in">Loading...</div>}
             {isError && (
               <div className="p-6 text-red-500">Failed to load data</div>
             )}
@@ -274,15 +271,13 @@ const CreditManage = () => {
               <DataTable columns={columns} rows={tableRows} />
             )}
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t">
               <button
                 onClick={() => setIsExpanded(false)}
-                className="text-indigo-500 font-medium hover:underline mr-16 cursor-pointer p-5"
+                className="text-indigo-500 font-medium hover:underline cursor-pointer transition-colors"
               >
                 View Less
               </button>
-
-              {/* Pagination */}
               <Pagination totalPages={totalPages} />
             </div>
           </div>
@@ -290,12 +285,12 @@ const CreditManage = () => {
       )}
 
       {showAddCreditsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl w-105 p-8 relative">
-            {/* Close button */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md sm:max-w-lg md:w-105 p-6 sm:p-8 relative animate-scale-in max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowAddCreditsModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              aria-label="Close"
             >
               ✕
             </button>

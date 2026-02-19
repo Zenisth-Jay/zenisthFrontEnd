@@ -4,7 +4,7 @@ const NotificationDropdown = ({ notifications = [] }) => {
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
-    <div className="w-96 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
+    <div className="w-80 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <h3 className="font-semibold text-gray-800">Notifications</h3>

@@ -37,7 +37,7 @@ const Login = () => {
       }
 
       // 3. Success Workflow
-      toast.success("Login successful! Welcome back ✅");
+      // toast.success("Login successful! Welcome back ✅");
 
       // Navigate to dashboard after the session is established
       setTimeout(() => {
@@ -57,17 +57,16 @@ const Login = () => {
   };
 
   return (
-    <div className=" min-h-screen flex ">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left */}
-      <div className="w-full lg:w-1/2 bg-[#fafafa] flex justify-center items-center p-8 ">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-1/2 bg-[#fafafa] flex justify-center items-center p-4 sm:p-6 md:p-8 min-h-[50vh] lg:min-h-screen">
+        <div className="w-full max-w-md animate-fade-in-up">
           <Logo />
 
-          {/* Welcome Text */}
-          <h1 className="text-3xl font-normal text-[#212121] ">
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#212121] mt-4">
             Welcome Back <span className="inline-block animate-wave">👋</span>
           </h1>
-          <p className="text-[#9E9E9E] text-[18px] font-normal mb-4">
+          <p className="text-[#9E9E9E] text-base sm:text-[18px] font-normal mb-4">
             Sign in to continue managing your projects with ease.
           </p>
 
@@ -94,9 +93,9 @@ const Login = () => {
 
           <form
             onSubmit={handleSubmit(onSignIn, onError)}
-            className=" flex flex-col"
+            className="flex flex-col"
           >
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               <InputElement
                 label="Email"
                 name="email"
@@ -116,10 +115,10 @@ const Login = () => {
               />
             </div>
 
-            <div className="flex justify-end px-5 py-2.5">
+            <div className="flex justify-end px-1 sm:px-5 py-2 sm:py-2.5">
               <Link
                 to="/forgot-password"
-                className=" text-indigo-500 text-[16px] hover:underline hover:text-indigo-700"
+                className="text-indigo-500 text-sm sm:text-[16px] hover:underline hover:text-indigo-700 transition-colors"
               >
                 Forgot Password ?
               </Link>
@@ -130,7 +129,7 @@ const Login = () => {
             </AuthButton>
           </form>
 
-          <p className="text-center text-[16px] text-[#45556C] mt-4">
+          <p className="text-center text-sm sm:text-[16px] text-[#45556C] mt-4">
             Don’t have an account?{" "}
             <Link
               to="/signup"

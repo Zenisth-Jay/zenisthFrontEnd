@@ -29,24 +29,15 @@ const MainFileUpload = ({
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onClick={handleClick}
-      className="
-        border-2 border-dashed rounded-2xl border-indigo-500 bg-white h-105 p-6
-        overflow-y-auto scroll-smooth flex justify-center items-center
-        cursor-pointer
-      "
+      className="border-2 border-dashed rounded-xl sm:rounded-2xl border-indigo-500 bg-white min-h-[280px] sm:min-h-[320px] md:h-105 p-4 sm:p-6 overflow-y-auto scroll-smooth flex justify-center items-center cursor-pointer transition-colors duration-200 hover:border-indigo-600 hover:bg-indigo-50/30"
     >
-      <div className="flex flex-col items-center justify-center gap-10">
-        <div
-          className="
-            w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center
-            filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.30)]
-          "
-        >
-          <Upload size={26} strokeWidth={3} className="text-indigo-600" />
+      <div className="flex flex-col items-center justify-center gap-6 sm:gap-8 md:gap-10">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-indigo-50 flex items-center justify-center drop-shadow-[0_1px_2px_rgba(0,0,0,0.30)]">
+          <Upload size={24} strokeWidth={3} className="text-indigo-600 sm:w-6 sm:h-6" />
         </div>
 
-        <div className="flex flex-col items-center gap-4">
-          <p className="text-2xl font-bold text-gray-800 text-center">
+        <div className="flex flex-col items-center gap-3 sm:gap-4 text-center">
+          <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 px-2">
             {title}
           </p>
 
@@ -61,9 +52,9 @@ const MainFileUpload = ({
             Select Files
           </Button>
 
-          <p className="text-gray-700 font-semibold text-xl">{supportedText}</p>
+          <p className="text-gray-700 font-semibold text-base sm:text-lg md:text-xl">{supportedText}</p>
 
-          <p className="text-gray-600 font-normal text-lg">{helperText}</p>
+          <p className="text-gray-600 font-normal text-sm sm:text-base md:text-lg">{helperText}</p>
         </div>
       </div>
     </div>

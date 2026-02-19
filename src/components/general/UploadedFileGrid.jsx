@@ -20,19 +20,17 @@ const UploadedFilesGrid = ({
     <div className="flex flex-col gap-6 w-full">
       {/* Header */}
       {showHeader && (
-        <div className="flex items-center justify-between py-3">
-          <Button leftIcon={<Plus size={18} />} onClick={handleAddMore}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3">
+          <Button leftIcon={<Plus size={18} />} onClick={handleAddMore} className="w-full sm:w-auto">
             Upload more documents
           </Button>
-
-          <span className="text-gray-800 font-medium text-lg">
+          <span className="text-gray-800 font-medium text-base sm:text-lg">
             {files.length} Documents
           </span>
         </div>
       )}
 
-      {/* Grid */}
-      <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
         {files.map((item) => (
           <Document
             key={item.id}
@@ -44,7 +42,7 @@ const UploadedFilesGrid = ({
       </div>
 
       {/* Footer helper */}
-      <p className="m-3 w-full text-center text-xl text-gray-800 font-medium">
+      <p className="m-3 w-full text-center text-base sm:text-lg md:text-xl text-gray-800 font-medium">
         {emptyText}
       </p>
 

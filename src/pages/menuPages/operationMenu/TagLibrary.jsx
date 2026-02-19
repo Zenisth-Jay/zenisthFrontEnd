@@ -75,7 +75,7 @@ const TagLibrary = () => {
   return (
     <>
       <MainNavbar />
-      <main className=" bg-gray-50 min-h-[calc(100vh-64px)] px-16 py-10 flex flex-col gap-10">
+      <main className="bg-gray-50 min-h-[calc(100vh-64px)] px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 md:py-10 flex flex-col gap-6 sm:gap-10">
         <header className="flex flex-col gap-5">
           {/* Heading Section */}
           <div className=" w-full flex items-center justify-between">

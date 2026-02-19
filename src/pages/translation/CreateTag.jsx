@@ -337,7 +337,7 @@ const CreateTag = () => {
         />
 
         {/* Main Container */}
-        <div className="w-full bg-gray-50 px-16 py-10 flex flex-col gap-6">
+        <div className="w-full bg-gray-50 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 md:py-10 flex flex-col gap-6">
           {/* Create a new atg label ROW */}
           <div className="flex flex-col">
             <h1 className=" text-[40px] font-bold text-gray-900">

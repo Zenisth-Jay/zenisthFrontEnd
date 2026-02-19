@@ -9,7 +9,9 @@ export const batchSummaryApi = createApi({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     // --- ADD THIS SECTION ---
     prepareHeaders: async (headers) => {
-      const { data: { session } } = await supabase.auth.getSession(); //
+      const {
+        data: { session },
+      } = await supabase.auth.getSession(); //
       if (session?.access_token) {
         headers.set("Authorization", `Bearer ${session.access_token}`); //
       }
@@ -25,7 +27,9 @@ export const batchSummaryApi = createApi({
         await sleep(2000);
 
         // API call no longer needs user_id in the URL
-        const result = await baseQuery(`/credits/quote?application=${application}`);
+        const result = await baseQuery(
+          `/credits/quote?application=${application}`,
+        );
 
         return result;
       },

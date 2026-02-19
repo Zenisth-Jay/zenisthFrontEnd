@@ -94,7 +94,7 @@ const AccessControl = () => {
   return (
     <>
       <MainNavbar />
-      <main className="flex flex-col gap-10 px-16 py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
+      <main className="flex flex-col gap-6 sm:gap-10 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 md:py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
         {/* Header Section */}
         <header className="flex items-center justify-between">
           <div>

@@ -7,7 +7,9 @@ export const historyBatchApi = createApi({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     // --- ADD THE JWT INJECTOR ---
     prepareHeaders: async (headers) => {
-      const { data: { session } } = await supabase.auth.getSession(); //
+      const {
+        data: { session },
+      } = await supabase.auth.getSession(); //
       if (session?.access_token) {
         headers.set("Authorization", `Bearer ${session.access_token}`); //
       }
@@ -28,6 +30,12 @@ export const historyBatchApi = createApi({
       query: ({ jobId, page = 1, limit = 10, appType = "translate" }) =>
         `/${appType}/${jobId}?page=${page}&limit=${limit}`,
     }),
+
+    // Status of a job
+    // getJobStatus: builder.query({
+    //   query: ({ jobId, appType = "translate" }) =>
+    //     `/${appType}?job_id=${jobId}`,
+    // }),
 
     // Status of a job
     getJobStatus: builder.query({
