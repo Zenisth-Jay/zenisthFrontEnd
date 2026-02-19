@@ -72,26 +72,6 @@ export default function VideoTutorial() {
               ))}
             </div>
           </section>
-
-          <section className="mt-8 rounded-2xl border border-indigo-200 bg-indigo-50 p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-indigo-900">
-                  Want to be notified?
-                </h2>
-                <p className="mt-1 text-sm text-indigo-700">
-                  We will announce new tutorials as soon as they are published.
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled
-                className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white opacity-50"
-              >
-                Notify me
-              </button>
-            </div>
-          </section>
         </main>
       </div>
     </>

@@ -18,7 +18,7 @@ export const translateApi = createApi({
   }),
   endpoints: (builder) => ({
     startJob: builder.mutation({
-      query: ({ tagId, application }) => ({
+      query: ({ tagId, application, cost }) => ({
         url: application === "IDP" ? "/idp" : "/translate",
         method: "POST",
         body: {

@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const creditManageApi = createApi({
   reducerPath: "creditManageApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_SUPABASE_API,
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: (headers) => {
       const token = import.meta.env.VITE_BEARER_AUTHENTICATION_URL;
 
@@ -18,7 +18,7 @@ export const creditManageApi = createApi({
   endpoints: (builder) => ({
     getCreditManagement: builder.query({
       query: ({ page = 1, limit = 7 }) =>
-        `/credit_management?page=${page}&limit=${limit}`,
+        `/credits/history?page=${page}&limit=${limit}`,
       providesTags: ["CreditManagement"],
     }),
   }),

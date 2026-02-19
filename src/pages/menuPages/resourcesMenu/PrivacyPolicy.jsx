@@ -76,7 +76,7 @@ const sections = [
   },
 ];
 
-export default function PrivacyPolicyPage() {
+export default function PrivacyPolicy() {
   return (
     <>
       <MainNavbar />
@@ -120,7 +120,7 @@ export default function PrivacyPolicyPage() {
             </h2>
             <p className="mt-2 text-sm text-indigo-700">
               If you have questions about this policy or your data, email us at
-              <span className="font-semibold"> privacy@zenisthai.com</span>.
+              <span className="font-semibold"> support@zesnith.ai</span>.
             </p>
           </section>
         </main>

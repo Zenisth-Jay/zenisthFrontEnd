@@ -36,6 +36,7 @@ const Translating = () => {
     { jobId, appType: toolType }, // 👈 pass an object
     { skip: !jobId },
   );
+  console.log(jobResponse);
 
   // const {
   //   data: jobResponse,

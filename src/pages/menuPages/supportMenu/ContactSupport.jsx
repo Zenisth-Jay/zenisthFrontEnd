@@ -117,19 +117,22 @@ export default function ContactSupport() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-indigo-900">
-                  Enterprise assistance
+                  Need help?
                 </h2>
                 <p className="mt-1 text-sm text-indigo-700">
-                  Need a dedicated success manager? Talk to our enterprise team.
+                  For any support or questions, mail us at{" "}
+                  <span className="font-semibold text-indigo-900">
+                    support@zesnith.ai
+                  </span>
                 </p>
               </div>
-              <button
-                type="button"
-                disabled
-                className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white opacity-50"
-              >
-                Talk to sales
-              </button>
+
+              <div className="text-sm font-medium text-indigo-800">
+                Mail us here:{" "}
+                <span className="font-semibold text-indigo-900">
+                  support@zesnith.ai
+                </span>
+              </div>
             </div>
           </section>
         </main>

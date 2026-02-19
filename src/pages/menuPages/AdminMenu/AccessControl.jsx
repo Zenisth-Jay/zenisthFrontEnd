@@ -1,7 +1,11 @@
-import { Edit, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Edit, MoreVertical, Plus, Trash2, ChevronDown } from "lucide-react";
 import MainNavbar from "../../../components/dashboard/MainNavbar";
 import Button from "../../../components/ui/Button";
 import { useRef, useState } from "react";
+import {
+  useGetUsersQuery,
+  useUpdateUserMutation,
+} from "../../../api/access.api";
 
 // Component
 const UserRow = ({
@@ -11,77 +15,64 @@ const UserRow = ({
   role,
   openMenuId,
   setOpenMenuId,
-  onEdit,
-  onDelete,
+  currentUserId,
+  currentUserRole,
+  onChangeRole,
 }) => {
   const isOpen = openMenuId === id;
-  return (
-    <div>
-      <div className=" w-full flex items-center justify-between">
-        {/* Left Div */}
-        <div className="flex items-center gap-4">
-          {/* Avtar */}
-          <div
-            className={`w-12 h-12 rounded-full overflow-hidden border-2 border-indigo-200
-                 bg-gray-100 `}
-          >
-            <img
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=19"
-              alt="User Avatar"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="flex flex-col">
-            <h4 className=" text-lg font-semibold text-gray-900">{name}</h4>
-            <p className=" text-[16px] font-medium text-gray-500">{email}</p>
-          </div>
-        </div>
 
-        {/* Right Div */}
-        <div className="flex gap-8 items-center cursor-pointer">
-          <span className=" px-3 py-2 rounded-[50px] text-white font-bold bg-indigo-500 border border-indigo-50">
+  const canEditRole = currentUserRole === "OWNER" && currentUserId !== id;
+
+  return (
+    <div className="w-full flex items-center justify-between">
+      {/* Left */}
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-indigo-200 bg-gray-100">
+          <img
+            src="https://api.dicebear.com/7.x/avataaars/svg?seed=19"
+            alt="User Avatar"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="flex flex-col">
+          <h4 className="text-lg font-semibold text-gray-900">{name}</h4>
+          <p className="text-[16px] font-medium text-gray-500">{email}</p>
+        </div>
+      </div>
+
+      {/* Right */}
+      <div className="relative">
+        {canEditRole ? (
+          <button
+            onClick={() => setOpenMenuId(isOpen ? null : id)}
+            className="flex items-center gap-2 px-3 py-2 rounded-full text-white font-bold bg-indigo-500 hover:bg-indigo-600"
+          >
+            {role}
+            <ChevronDown size={16} />
+          </button>
+        ) : (
+          <span className="px-3 py-2 rounded-full text-white font-bold bg-indigo-500">
             {role}
           </span>
+        )}
 
-          <div className="relative">
-            <button
-              onClick={() => setOpenMenuId(isOpen ? null : id)}
-              className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
-            >
-              <MoreVertical />
-            </button>
-
-            {isOpen && (
-              <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20">
-                <button
-                  onClick={() => {
-                    setOpenMenuId(null);
-                    onEdit?.();
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-indigo-600 hover:bg-gray-50"
-                >
-                  <Edit size={18} />
-                  <span className="font-medium">Edit</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setOpenMenuId(null);
-                    onDelete?.();
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-gray-50"
-                >
-                  <Trash2 size={18} />
-                  <span className="font-medium">Delete User</span>
-                </button>
-              </div>
-            )}
+        {/* Dropdown */}
+        {canEditRole && isOpen && (
+          <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20">
+            {["ADMIN", "MEMBER"].map((r) => (
+              <button
+                key={r}
+                onClick={() => {
+                  setOpenMenuId(null);
+                  if (r !== role) onChangeRole(r);
+                }}
+                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium"
+              >
+                {r}
+              </button>
+            ))}
           </div>
-
-          {/* <div className="flex gap-2 items-center text-indigo-200">
-            <MoreVertical />
-          </div> */}
-        </div>
+        )}
       </div>
     </div>
   );
@@ -90,6 +81,18 @@ const UserRow = ({
 const AccessControl = () => {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingChange, setPendingChange] = useState(null);
+  // { userId, newRole, name }
+  const currentUserId = "07d3a5d7-2708-4c04-8408-3575a87314fc"; // TODO: get from auth
+  const currentUserRole = "OWNER"; // TODO: get from profile / session
+
+  const { data, isLoading, isError } = useGetUsersQuery();
+
+  console.log(data);
 
   return (
     <>
@@ -109,29 +112,31 @@ const AccessControl = () => {
         <section className="p-10 flex flex-col gap-8">
           <h3 className=" text-[28px] font-bold">Team Members</h3>
 
+          {isLoading && <p>Loading users...</p>}
+          {isError && <p>Failed to load users</p>}
+
           {/* Members Div */}
-          <div className="flex flex-col gap-6">
+          {data?.map((user) => (
             <UserRow
-              id="1"
-              name="Jaydeep Darji"
-              email="jay@gmail.com"
-              role="Admin"
+              key={user.userId}
+              id={user.userId}
+              name={user.name}
+              email={user.email}
+              role={user.role}
               openMenuId={openMenuId}
               setOpenMenuId={setOpenMenuId}
-              onEdit={() => alert("Edit Jaydeep")}
-              onDelete={() => alert("Delete Jaydeep")}
+              currentUserId={currentUserId}
+              currentUserRole={currentUserRole}
+              onChangeRole={(newRole) => {
+                setPendingChange({
+                  userId: user.userId,
+                  newRole,
+                  name: user.name,
+                });
+                setConfirmOpen(true);
+              }}
             />
-            <UserRow
-              id="2"
-              name="Anil Patel"
-              email="anil@gmail.com"
-              role="User"
-              openMenuId={openMenuId}
-              setOpenMenuId={setOpenMenuId}
-              onEdit={() => alert("Edit Anil")}
-              onDelete={() => alert("Delete Anil")}
-            />
-          </div>
+          ))}
         </section>
       </main>
 
@@ -166,6 +171,53 @@ const AccessControl = () => {
                 Cancel
               </Button>
               <Button className=" w-full">Add</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmOpen && pendingChange && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-96 max-w-[95%] overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Confirm Role Change
+              </h2>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 text-gray-700">
+              Are you sure you want to change{" "}
+              <span className="font-semibold">{pendingChange.name}</span>'s role
+              to <span className="font-semibold">{pendingChange.newRole}</span>?
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-4 px-6 py-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setConfirmOpen(false);
+                  setPendingChange(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="w-full"
+                onClick={async () => {
+                  await updateUser({
+                    userId: pendingChange.userId,
+                    role: pendingChange.newRole,
+                  });
+                  setConfirmOpen(false);
+                  setPendingChange(null);
+                  disabled = { isUpdating };
+                }}
+              >
+                {isUpdating ? "Updating..." : "Yes, Change Role"}
+              </Button>
             </div>
           </div>
         </div>

@@ -4,6 +4,17 @@ export const userProfileApi = createApi({
   reducerPath: "userProfileApi",
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
+    prepareHeaders: (headers) => {
+      const token = import.meta.env.VITE_BEARER_AUTHENTICATION_URL;
+
+      console.log(token);
+
+      if (token) {
+        headers.set("authorization", `Bearer ${token}`);
+      }
+
+      return headers;
+    },
   }),
   endpoints: (builder) => ({
     getUserProfile: builder.query({

@@ -4,7 +4,7 @@ const DropdownMenu = ({ menu }) => {
   // MEGA MENU (Learn, Resources)
   if (menu.type === "mega") {
     return (
-      <div className="absolute top-full left-0 mt-4 w-160 bg-white border border-indigo-200 rounded-xl shadow-lg p-6 grid grid-cols-2 gap-6 z-50">
+      <div className="absolute top-full left-0 mt-4 w-140 bg-white border border-indigo-200 rounded-xl shadow-lg p-6 grid grid-cols-2 gap-6 z-50">
         {menu.sections.map((section) => (
           <div key={section.title}>
             <p className="text-xs font-semibold text-gray-500 mb-3 uppercase">
@@ -37,7 +37,7 @@ const DropdownMenu = ({ menu }) => {
 
   // SIMPLE MENU (Operations, Support)
   return (
-    <div className="absolute top-full left-0 mt-4 w-80 bg-white border border-indigo-200 rounded-xl shadow-lg p-4 z-50">
+    <div className="absolute top-full left-0 mt-4 w-70 bg-white border border-indigo-200 rounded-xl shadow-lg p-4 z-50">
       <p className="text-xs font-semibold text-gray-500 mb-3 uppercase">
         {menu.title}
       </p>

@@ -84,7 +84,9 @@ const TranslationRow = ({ row }) => {
           <div
             className="flex items-center gap-2 cursor-pointer"
             onClick={() =>
-              navigate(`/operations/translate/translating?jobId=${row.id}`)
+              navigate(
+                `/operations/${toolType}/${isIdp ? "extracting" : "translating"}?jobId=${row.id}`,
+              )
             }
           >
             <LibrarySquare className="text-gray-800" />

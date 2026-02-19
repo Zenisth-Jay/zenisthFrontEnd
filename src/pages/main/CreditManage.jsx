@@ -199,7 +199,9 @@ const CreditManage = () => {
         <main className="flex flex-col gap-6 sm:gap-8 md:gap-10 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 md:py-10 w-full min-h-[calc(100vh-64px)] bg-gray-50">
           <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Credit Management</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+                Credit Management
+              </h1>
               <p className="text-gray-700 text-base sm:text-lg mt-1">
                 Manage your Credit and Credit Usage.
               </p>

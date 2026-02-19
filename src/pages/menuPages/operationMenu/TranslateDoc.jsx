@@ -18,6 +18,10 @@ import MainFileUpload from "../../../components/general/MainFileUpload";
 import UploadedFilesGrid from "../../../components/general/UploadedFileGrid";
 
 const TranslateDoc = () => {
+  // const batchEpoch = Date.now();
+  // console.log("Batch Epoch:", batchEpoch);
+  // console.log("Epoch:", batchEpoch);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -56,6 +60,8 @@ const TranslateDoc = () => {
     // 1️⃣ Open overlay
     dispatch(openOverlay());
 
+    const batchId = Date.now();
+
     // 2️⃣ Add ALL files to redux first
     files.forEach((fileObj) => {
       dispatch(
@@ -64,18 +70,19 @@ const TranslateDoc = () => {
           name: fileObj.file.name,
           progress: 0,
           status: "uploading",
+          batchId,
         }),
       );
     });
 
     // 3️⃣ Then start uploading them one by one
     for (const fileObj of files) {
-      await startUpload(fileObj);
+      await startUpload(fileObj, batchId);
     }
   };
 
   // *** Function to Start Uploading
-  const startUpload = async (fileObj) => {
+  const startUpload = async (fileObj, batchId) => {
     const id = fileObj.id;
 
     try {
@@ -84,7 +91,8 @@ const TranslateDoc = () => {
         fileName: fileObj.file.name,
         fileSize: fileObj.file.size,
         application: isIdp ? "IDP" : "TRANSLATE",
-        userId: "550e8400-e29b-41d4-a716-446655440000",
+        // userId: "550e8400-e29b-41d4-a716-446655440000",
+        batchId: batchId,
       });
 
       const { uploadUrl } = res.data;

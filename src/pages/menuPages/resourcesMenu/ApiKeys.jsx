@@ -57,7 +57,7 @@ const faqs = [
   },
 ];
 
-export default function ApiKeysPage() {
+export default function ApiKeys() {
   return (
     <>
       <MainNavbar />
@@ -248,7 +248,7 @@ export default function ApiKeysPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-indigo-200 bg-indigo-50 p-6">
+          {/* <section className="rounded-2xl border border-indigo-200 bg-indigo-50 p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-indigo-900">
@@ -267,7 +267,7 @@ export default function ApiKeysPage() {
                 Request access
               </button>
             </div>
-          </section>
+          </section> */}
         </main>
       </div>
     </>

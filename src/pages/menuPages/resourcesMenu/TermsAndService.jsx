@@ -71,7 +71,7 @@ const sections = [
   },
 ];
 
-export default function TermsOfServicePage() {
+export default function TermsAndService() {
   return (
     <>
       <MainNavbar />
@@ -114,7 +114,7 @@ export default function TermsOfServicePage() {
             </h2>
             <p className="mt-2 text-sm text-indigo-700">
               Questions about these terms? Email us at
-              <span className="font-semibold"> legal@zenisthai.com</span>.
+              <span className="font-semibold"> support@zesnith.ai</span>.
             </p>
           </section>
         </main>
