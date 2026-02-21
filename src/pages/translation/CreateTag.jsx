@@ -202,11 +202,14 @@ const CreateTag = () => {
 
         setIsUploading(true);
 
+        const batchId = Date.now();
+
         // 1️⃣ Ask backend for presigned URL
         const res = await createDocumentAPI({
           fileName: file.name,
           fileSize: file.size,
           application: "TAG_CREATION",
+          batchId,
         });
 
         const { uploadUrl, key } = res.data;

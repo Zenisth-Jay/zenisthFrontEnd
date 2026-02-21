@@ -1,6 +1,6 @@
-import { Languages, Check, X } from "lucide-react";
+import { Languages, Check, X, FileSearchCorner } from "lucide-react";
 
-const TranslatingAnimation = ({ status = "PROCESSIONG" }) => {
+const TranslatingAnimation = ({ status = "PROCESSIONG", idp }) => {
   if (status === "COMPLETED") {
     return (
       <div className="relative flex items-center justify-center w-44 h-44">
@@ -42,7 +42,11 @@ const TranslatingAnimation = ({ status = "PROCESSIONG" }) => {
 
       {/* Center circle */}
       <div className="relative w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center shadow-lg">
-        <Languages className="text-white" size={32} />
+        {idp ? (
+          <FileSearchCorner className="text-white" size={32} />
+        ) : (
+          <Languages className="text-white" size={32} />
+        )}
       </div>
     </div>
   );

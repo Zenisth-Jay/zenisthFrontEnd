@@ -23,7 +23,7 @@ export const translateApi = createApi({
         method: "POST",
         body: {
           tag_id: tagId,
-          cost: 45,
+          cost: cost,
         },
       }),
     }),

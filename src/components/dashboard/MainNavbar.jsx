@@ -27,6 +27,9 @@ const MainNavbar = () => {
   const isIdp = toolType == "idp";
   const navigate = useNavigate();
 
+  // For enable and disable to operation dropdown
+  const hasToolType = Boolean(toolType);
+
   const { data: notifications = [], isLoading: notificationsLoading } =
     useGetNotificationsQuery();
 
@@ -96,6 +99,7 @@ const MainNavbar = () => {
             label="Operations"
             menu={isIdp ? operationsMenuIDP : operationsMenu}
             pathPrefix="/operations"
+            disabled={!hasToolType}
           />
 
           {/* Resources */}

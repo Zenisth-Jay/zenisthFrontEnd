@@ -95,13 +95,39 @@ const columns = [
     headerClassName: "justify-center",
     cellClassName: "justify-center text-[16px]",
   },
+  // {
+  //   key: "credits",
+  //   header: "Credits",
+  //   width: "1fr",
+  //   headerClassName: "justify-center",
+  //   cellClassName: "justify-center text-lg",
+  // },
   {
     key: "credits",
     header: "Credits",
     width: "1fr",
     headerClassName: "justify-center",
     cellClassName: "justify-center text-lg",
+    render: (v) => {
+      const value = Number(v);
+      const isPositive = value > 0;
+
+      return (
+        <span
+          className={`
+          font-bold tracking-wide
+          transition-all duration-300 ease-out
+          ${isPositive ? "text-green-600" : "text-red-600"}
+          animate-fade-in-up
+          hover:scale-110
+        `}
+        >
+          {v}
+        </span>
+      );
+    },
   },
+
   {
     key: "review",
     header: "Review",
@@ -111,48 +137,6 @@ const columns = [
     render: () => "-",
   },
 ];
-
-const allRows = Array.from({ length: 20 }).map((_, i) => {
-  const type = i % 4; // rotate between 4 operation types
-
-  const operation =
-    type === 0
-      ? "Translation"
-      : type === 1
-        ? "IDP"
-        : type === 2
-          ? "Doc Upload"
-          : "Add Credit";
-
-  const name = type === 2 ? "Legal_contract_FR.pdf" : "Marketing_Value.doc";
-
-  const status = type === 1 ? "Failed" : "Completed";
-
-  const label = type === 0 ? "Finance" : type === 1 ? "Marketing" : "";
-
-  const units =
-    type === 0
-      ? "9760 chars"
-      : type === 1
-        ? "32 pages"
-        : type === 2
-          ? "6 Docs"
-          : "500 Credits";
-
-  const credits =
-    type === 3 ? "+500" : type === 1 ? "-29" : type === 0 ? "-49" : "-2";
-
-  return {
-    id: i + 1,
-    operation,
-    name,
-    uploadedAt: "Uploaded 08/12/25 at 18:19",
-    status,
-    label,
-    units,
-    credits,
-  };
-});
 
 const CreditManage = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -170,7 +154,7 @@ const CreditManage = () => {
     limit,
   });
 
-  console.log(data);
+  // console.log(data);
 
   const stats = data?.stats;
   const rows = data?.transactions || [];
@@ -186,7 +170,7 @@ const CreditManage = () => {
         : t.status === "FAILED"
           ? "Failed"
           : "Processing",
-    label: t.label === "-" ? "" : t.label,
+    label: t.tag_name === "-" ? "" : t.tag_name,
     units: t.units,
     credits: t.credits > 0 ? `+${t.credits}` : String(t.credits),
   }));

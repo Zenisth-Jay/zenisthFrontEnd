@@ -16,7 +16,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token"); // Extract token from URL
-  
+
   const [invitationData, setInvitationData] = useState(null);
   const [isValidating, setIsValidating] = useState(!!token);
 
@@ -32,20 +32,25 @@ const Signup = () => {
     if (token) {
       const validateToken = async () => {
         try {
-          const { data, error } = await supabase.rpc("validate_invitation_token", {
-            p_token: token,
-          });
+          const { data, error } = await supabase.rpc(
+            "validate_invitation_token",
+            {
+              p_token: token,
+            },
+          );
 
           if (error || !data[0]?.is_valid) {
-            toast.error(data[0]?.error_message || "Invalid or expired invitation.");
+            toast.error(
+              data[0]?.error_message || "Invalid or expired invitation.",
+            );
             // Optional: Redirect away if token is invalid
-            // navigate("/signup"); 
+            // navigate("/signup");
             return;
           }
 
           const info = data[0];
           setInvitationData(info);
-          
+
           // Pre-fill and lock the email field
           setValue("email", info.invited_email);
         } catch (err) {
@@ -60,15 +65,18 @@ const Signup = () => {
 
   const onSignUp = async (data) => {
     try {
-      const { data: response, error } = await supabase.functions.invoke('sign-up-orchestrator', {
-        body: { 
-          email: data.email, 
-          password: data.password, 
-          fullName: data.fullName, 
-          organizationName: token ? null : data.OrganizationName, // Only send if not an invite
-          token: token || null // Send token if it exists
+      const { data: response, error } = await supabase.functions.invoke(
+        "sign-up-orchestrator",
+        {
+          body: {
+            email: data.email,
+            password: data.password,
+            fullName: data.fullName,
+            organizationName: token ? null : data.OrganizationName, // Only send if not an invite
+            token: token || null, // Send token if it exists
+          },
         },
-      });
+      );
 
       if (error) {
         if (error instanceof FunctionsHttpError) {
@@ -78,12 +86,13 @@ const Signup = () => {
         throw new Error(error.message || "An unexpected error occurred.");
       }
 
-      toast.success(token ? "Joined successfully! ✅" : "Account created successfully! ✅");
+      toast.success(
+        token ? "Joined successfully! ✅" : "Account created successfully! ✅",
+      );
 
       setTimeout(() => {
         navigate("/login");
       }, 1500);
-
     } catch (err) {
       toast.error(err.message);
     }
@@ -95,26 +104,33 @@ const Signup = () => {
   };
 
   if (isValidating) {
-    return <div className="min-h-screen flex items-center justify-center">Validating Invitation...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Validating Invitation...
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row items-center bg-[#fafafa]">
-      <div className="w-full lg:w-1/2 bg-[#fafafa] flex justify-center items-center p-4 sm:p-6 md:p-8 min-h-[50vh] lg:min-h-screen">
-        <div className="w-full max-w-md flex flex-col animate-fade-in-up">
+    <div className=" min-h-screen flex items-center bg-[#fafafa] ">
+      <div className="w-full lg:w-1/2 bg-[#fafafa] flex justify-center items-center p-8 ">
+        <div className="w-full max-w-md flex flex-col">
           <Logo />
 
-          <h1 className="mt-4 text-2xl sm:text-3xl font-normal text-[#212121]">
+          <h1 className=" mt-4 text-3xl font-normal text-[#212121] ">
             {token ? "Join Workspace 🚀" : "Get Started 🚀"}
           </h1>
-          <p className="text-[#9E9E9E] text-base sm:text-[18px] font-normal mb-4">
-            {token 
-              ? `You've been invited to join ${invitationData?.org_name || "the organization"}.` 
+          <p className="text-[#9E9E9E] text-[18px] font-normal mb-4">
+            {token
+              ? `You've been invited to join ${invitationData?.org_name || "the organization"}.`
               : "Create your account to unlock all features."}
           </p>
 
-          <form onSubmit={handleSubmit(onSignUp, onError)} className="flex flex-col">
-            <div className="flex flex-col gap-3 sm:gap-4 mb-5">
+          <form
+            onSubmit={handleSubmit(onSignUp, onError)}
+            className=" flex flex-col"
+          >
+            <div className="flex flex-col gap-4 mb-5">
               <InputElement
                 label="Full name"
                 name="fullName"
@@ -162,13 +178,20 @@ const Signup = () => {
             </div>
 
             <AuthButton type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Processing..." : token ? "Join Organization" : "Sign Up"}
+              {isSubmitting
+                ? "Processing..."
+                : token
+                  ? "Join Organization"
+                  : "Sign Up"}
             </AuthButton>
           </form>
 
-          <p className="text-center text-sm sm:text-[16px] text-[#45556C] mt-4">
+          <p className="text-center text-[16px] text-[#45556C] mt-4">
             Already have an account?{" "}
-            <Link to="/login" className="text-indigo-500 font-medium hover:underline hover:text-indigo-700 transition-colors">
+            <Link
+              to="/login"
+              className="text-indigo-500 font-medium hover:underline hover:text-indigo-700"
+            >
               Sign in
             </Link>
           </p>

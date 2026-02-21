@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import {
   ArrowRight,
   MoreVertical,
@@ -5,7 +6,10 @@ import {
   User,
   FileMinus,
   Coins,
+  Eye,
+  Edit,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const TranslationTag = ({
   tag,
@@ -24,6 +28,21 @@ const TranslationTag = ({
     type,
     description,
   } = tag;
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   return (
     <div
@@ -59,7 +78,53 @@ const TranslationTag = ({
             />
           </button>
 
-          <MoreVertical size={22} className="text-gray-600" />
+          {/* <MoreVertical size={22} className="text-gray-600" /> */}
+          <div className="relative" ref={menuRef}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation(); // prevent card click
+                setMenuOpen((o) => !o);
+              }}
+              className="p-1 rounded-full hover:bg-gray-100"
+            >
+              <MoreVertical size={22} className="text-gray-600" />
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    // TODO: handle view
+                    navigate(
+                      `/operations/${idp ? "idp" : "translate"}/tag/view/${tag.id}`,
+                    );
+                  }}
+                >
+                  <Eye size={16} className="text-gray-600" />
+                  View
+                </button>
+
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    // TODO: handle edit
+                    navigate(
+                      `/operations/${idp ? "idp" : "translate"}/tag/edit/${tag.id}`,
+                    );
+                  }}
+                >
+                  <Edit size={16} className="text-gray-600" />
+                  Edit
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

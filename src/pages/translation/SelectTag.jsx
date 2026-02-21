@@ -337,18 +337,18 @@ const SelectTag = () => {
                           disabled={!selectedTag || isStarting}
                           onClick={async () => {
                             try {
-                              console.log(selectedTag.id);
+                              // console.log(selectedTag.id);
 
                               const res = await startJob({
                                 tagId: selectedTag.id,
                                 application: isIdp ? "IDP" : "TRANSLATE",
-                                cost: batchSummary?.total_credits ?? "....",
+                                cost: batchSummary?.total_credits ?? "",
                               }).unwrap();
 
-                              console.log(
-                                `${isIdp ? "Extraction" : "Translation"} started ✅`,
-                                res,
-                              );
+                              // console.log(
+                              //   `${isIdp ? "Extraction" : "Translation"} started ✅`,
+                              //   res,
+                              // );
 
                               const { jobId } = res;
 

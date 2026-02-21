@@ -225,12 +225,10 @@ const TranslationRow = ({ row }) => {
                 </CircleContainer>
 
                 <p className="text-gray-700 font-semibold text-lg">
-                  {child.tokens}
+                  {/* {child.tokens} */}-
                 </p>
 
-                <button className="flex items-center justify-center">
-                  <Eye />
-                </button>
+                <button className="flex items-center justify-center">--</button>
               </div>
             ))}
 

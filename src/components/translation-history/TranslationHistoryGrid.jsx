@@ -27,6 +27,8 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
     appType,
   });
 
+  // console.log(historyResponse);
+
   // 🔹 Map API response to UI rows
   const allRows = useMemo(() => {
     if (!historyResponse?.jobs) return [];
@@ -48,11 +50,11 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
           : job.job_status === "COMPLETED"
             ? "completed"
             : "processing",
-      sourceLanguage: isIdp ? null : job.source_language.toUpperCase(),
-      targetLanguage: isIdp ? null : job.target_language.toUpperCase(),
+      sourceLanguage: isIdp ? null : job.source_lang?.toUpperCase() || "",
+      targetLanguage: isIdp ? null : job.target_lang?.toUpperCase() || "",
       outputFormat: isIdp ? job.output_format : null,
       domain: job.tag_industry,
-      credits: job.total_tokens,
+      credits: job.cost,
     }));
   }, [historyResponse]);
 
@@ -148,7 +150,7 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
           {isIdp ? "Output Format" : "Language"}
         </div>
         <div className="text-center">Tag</div>
-        <div className="text-center">Tokens</div>
+        <div className="text-center">Credits</div>
         <div className="text-center">Actions</div>
       </div>
       {/* TABLE ROWS */}

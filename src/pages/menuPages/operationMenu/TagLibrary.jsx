@@ -9,35 +9,70 @@ import {
   useToggleFavoriteTagMutation,
 } from "../../../api/tags.api";
 import TranslationTag from "../../../components/tags/TranslationTag";
-import { useNavigate } from "react-router-dom";
-
-const TAG_TABS = [
-  {
-    label: "My Tags",
-    id: "my",
-    icon: Star,
-    iconClassName: "text-[#FBC02D]",
-    iconFill: true,
-  },
-  {
-    label: "Company Tags",
-    id: "company",
-    icon: Briefcase,
-    iconClassName: "text-gray-800",
-    iconFill: false,
-  },
-  {
-    label: "Default Tags",
-    id: "default",
-    icon: Star,
-    iconClassName: "text-gray-800",
-    iconFill: false,
-  },
-];
+import { useNavigate, useParams } from "react-router-dom";
 
 const TagLibrary = () => {
   const navigate = useNavigate();
-  const { data: tags = [], isLoading, isError } = useGetTagsQuery();
+
+  // IDP Check
+  const { toolType } = useParams();
+  const isIdp = toolType == "idp";
+
+  // Tag Tabs
+  const TAG_TABS = isIdp
+    ? [
+        {
+          label: "My Tags",
+          id: "my",
+          icon: Star,
+          iconClassName: "text-[#FBC02D]",
+          iconFill: true,
+        },
+        {
+          label: "Company Tags",
+          id: "company",
+          icon: Briefcase,
+          iconClassName: "text-gray-800",
+          iconFill: false,
+        },
+      ]
+    : [
+        {
+          label: "My Tags",
+          id: "my",
+          icon: Star,
+          iconClassName: "text-[#FBC02D]",
+          iconFill: true,
+        },
+        {
+          label: "Company Tags",
+          id: "company",
+          icon: Briefcase,
+          iconClassName: "text-gray-800",
+          iconFill: false,
+        },
+        {
+          label: "Default Tags",
+          id: "default",
+          icon: Star,
+          iconClassName: "text-gray-800",
+          iconFill: false,
+        },
+      ];
+
+  // const organizationId = "7b2f5a9c-3c3e-4e9c-8d4b-1c7f9b123456"; // later from auth/store
+  const applicationId = isIdp ? "IDP" : "TRANSLATION";
+  const organizationId = "temporary It's fetching from auth";
+
+  // FETCH TAGS DATA FROM API
+  const {
+    data: tags = [],
+    isLoading,
+    isError,
+  } = useGetTagsQuery({ organizationId, applicationId });
+  // const { data: tags = [], isLoading, isError } = useGetTagsQuery();
+
+  console.log(tags);
   const [toggleFavoriteTag] = useToggleFavoriteTagMutation();
 
   const [search, setSearch] = useState("");
@@ -87,7 +122,11 @@ const TagLibrary = () => {
             </div>
             <Button
               leftIcon={<Plus />}
-              onClick={() => navigate("/operations/translate/create-tag")}
+              onClick={() =>
+                navigate(
+                  `/operations/${isIdp ? "idp" : "translate"}/create-tag`,
+                )
+              }
             >
               Create new Tag
             </Button>
@@ -108,7 +147,7 @@ const TagLibrary = () => {
           {isError && <p>Failed to load tags</p>}
 
           {!isLoading && filteredTags.length === 0 && (
-            <p className="text-gray-600">No tags found for "{search}"</p>
+            <p className="text-gray-600">No tags found</p>
           )}
 
           {filteredTags.map((tag) => (
@@ -119,6 +158,7 @@ const TagLibrary = () => {
               onToggleFavorite={(t) =>
                 toggleFavoriteTag({ id: t.id, isFavorite: !t.isFavorite })
               }
+              idp={true}
             />
           ))}
         </div>

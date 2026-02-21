@@ -12,6 +12,7 @@ const InputElement = ({
   icon: Icon,
   rules = {},
   className = "",
+  showRequired = true,
 }) => {
   const isPassword = type === "password";
   const [showPassword, setShowPassword] = useState(false);
@@ -20,13 +21,19 @@ const InputElement = ({
 
   return (
     <div className={`flex flex-col gap-1.5 sm:gap-2 ${className}`}>
-      <label htmlFor={name} className="text-[#424242] text-base sm:text-[18px] font-medium">
-        {label} <span className="text-red-500">*</span>
+      <label
+        htmlFor={name}
+        className="text-[#424242] text-base sm:text-[18px] font-medium"
+      >
+        {label}
+        {showRequired && <span className="text-red-500"> *</span>}
       </label>
 
       <div className="flex items-center relative">
         <div className="absolute left-3 text-gray-400 pointer-events-none">
-          {Icon && <Icon size={20} strokeWidth={2} className="sm:w-[22px] sm:h-[22px]" />}
+          {Icon && (
+            <Icon size={20} strokeWidth={2} className="sm:w-5.5 sm:h-5.5" />
+          )}
         </div>
 
         <input

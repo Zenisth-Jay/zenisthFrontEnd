@@ -24,8 +24,8 @@ const Translating = () => {
   const [searchParams] = useSearchParams();
 
   const jobId = searchParams.get("jobId");
-  console.log("toolType:", toolType);
-  console.log("jobId from URL:", jobId);
+  // console.log("toolType:", toolType);
+  // console.log("jobId from URL:", jobId);
 
   // 🔹 Fetch job status from API
   const {
@@ -36,7 +36,7 @@ const Translating = () => {
     { jobId, appType: toolType }, // 👈 pass an object
     { skip: !jobId },
   );
-  console.log(jobResponse);
+  // console.log(jobResponse);
 
   // const {
   //   data: jobResponse,
@@ -96,7 +96,7 @@ const Translating = () => {
         <section className=" bg-white w-full h-full mt-5 px-12 py-1 flex flex-col flex-1 justify-between items-center rounded-3xl">
           {/* <Languages size={35} /> */}
 
-          <TranslatingAnimation status={status} />
+          <TranslatingAnimation status={status} idp={isIdp} />
 
           <div className="flex flex-col gap-2 items-center">
             <h2 className=" text-5xl font-bold text-black">
@@ -160,6 +160,9 @@ const Translating = () => {
               leftIcon={<FileText />}
               className="w-[31%] shadow-sm"
               variant={isCompleted ? "outline" : "primary"}
+              onClick={() => {
+                navigate(`/operations/${isIdp ? "idp" : "translate"}`);
+              }}
             >
               Upload Another Document
             </Button>

@@ -28,6 +28,7 @@ import SelectTag from "../pages/translation/SelectTag";
 import Translating from "../pages/translation/Translating";
 import CreateTag from "../pages/translation/CreateTag";
 import CreditManage from "../pages/main/CreditManage";
+import ViewTag from "../pages/translation/ViewTag";
 
 const AppRoutes = () => {
   return (
@@ -57,7 +58,10 @@ const AppRoutes = () => {
         path="/operations/:toolType/history"
         element={<TranslateHistory />}
       />
-      <Route path="/operations/tags-library" element={<TagLibrary />} />
+      <Route
+        path="/operations/:toolType/tags-library"
+        element={<TagLibrary />}
+      />
 
       {/* Resources Menu */}
       <Route path="/resources/api-keys" element={<ApiKeys />} />
@@ -83,6 +87,13 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* TAG Edit and VIew */}
+      <Route
+        path="operations/:toolType/tag/:tagAction/:tagId"
+        element={<ViewTag />}
+      />
+
       <Route
         path="/operations/tags-library"
         element={

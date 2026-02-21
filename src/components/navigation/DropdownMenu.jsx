@@ -46,15 +46,21 @@ const DropdownMenu = ({ menu }) => {
         <Link
           key={item.label}
           to={item.path}
-          className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:translate-x-1"
+          className="flex gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:translate-x-1 h-15"
         >
-          <div className="w-9 h-9 flex items-center justify-center rounded-lg border">
+          {/* Icon */}
+          <div className="w-9 h-9 shrink-0 flex items-center justify-center rounded-lg border">
             <item.icon size={18} className="text-indigo-600" />
           </div>
 
-          <div>
-            <p className="text-sm font-medium text-gray-900">{item.label}</p>
-            <p className="text-xs text-gray-500">{item.description}</p>
+          {/* Text */}
+          <div className="min-w-0 flex flex-col justify-center h-full">
+            <p className="text-sm font-medium text-gray-900 leading-tight">
+              {item.label}
+            </p>
+            <p className="text-xs text-gray-500 leading-tight line-clamp-2">
+              {item.description}
+            </p>
           </div>
         </Link>
       ))}

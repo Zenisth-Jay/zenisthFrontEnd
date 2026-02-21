@@ -17,11 +17,15 @@ import {
   useUpdateUserNameMutation,
 } from "../../api/userProfile.api";
 import { useEffect } from "react";
+import { handleLogout } from "../../api/handleLogout";
+import { useNavigate } from "react-router-dom";
 
 const UserProfile = () => {
+  const navigate = useNavigate();
+
   const { data: profile, isLoading, isError } = useGetUserProfileQuery();
-  const [updateUserName, { isLoading: isUpdating }] =
-    useUpdateUserNameMutation();
+  // const [updateUserName, { isLoading: isUpdating }] =
+  //   useUpdateUserNameMutation();
 
   const {
     register,
@@ -114,7 +118,8 @@ const UserProfile = () => {
               placeholder="Enter your full name...."
               register={register}
               icon={User}
-              rules={{ required: "Full name is required" }}
+              // rules={{ required: "Full name is required" }}
+              disabled={true}
             />
 
             <InputElement
@@ -162,7 +167,7 @@ const UserProfile = () => {
 
           {/* Buttons Div */}
           <div className="flex justify-between">
-            <Button variant="logout">
+            <Button variant="logout" onClick={() => handleLogout(navigate)}>
               <div className="flex gap-3 items-center text-lg font-bold">
                 <Download />
                 Log Out

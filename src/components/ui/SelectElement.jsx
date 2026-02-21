@@ -7,17 +7,21 @@ const SelectElement = ({
   rules = {},
   options,
   placeholder,
+  disabled = false, // 👈 NEW
+  showRequired = true,
 }) => {
   return (
     <div className="flex flex-col gap-2 w-full">
       <label className="text-[#424242] text-[18px] font-medium">
-        {label} <span className="text-red-500">*</span>
+        {label}
+        {showRequired && <span className="text-red-500"> *</span>}
       </label>
 
       <div className="relative">
         <select
           {...register(name, rules)}
           className="w-full border border-gray-300 px-4 py-3 pr-12 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand bg-white appearance-none"
+          disabled={disabled}
         >
           <option value="">{placeholder}</option>
           {options.map((opt) => (

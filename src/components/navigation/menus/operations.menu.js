@@ -4,7 +4,7 @@ export const operationsMenu = {
   title: "Translation Action",
   items: [
     {
-      label: "Translate Document",
+      label: "Upload Document",
       description: "Start a new translation job",
       icon: FileText,
       path: "/operations/translate",
@@ -19,7 +19,7 @@ export const operationsMenu = {
       label: "Tag Library",
       description: "Manage translation tags",
       icon: Tag,
-      path: "/operations/tags-library",
+      path: "/operations/translate/tags-library",
     },
   ],
 };
@@ -43,7 +43,7 @@ export const operationsMenuIDP = {
       label: "Tag Library",
       description: "Manage translation tags",
       icon: Tag,
-      path: "/operations/tags-library",
+      path: "/operations/idp/tags-library",
     },
   ],
 };
