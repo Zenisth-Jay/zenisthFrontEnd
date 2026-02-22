@@ -46,9 +46,10 @@ const CreateTag = () => {
   const sourceLanguage = watch("sourceLanguage");
 
   const [glossaryMode, setGlossaryMode] = useState("upload"); // "upload" | "manual"
-  const [glossaryRows, setGlossaryRows] = useState([
-    { id: crypto.randomUUID(), term: "", keepAs: "" },
-  ]);
+  // const [glossaryRows, setGlossaryRows] = useState([
+  //   { id: crypto.randomUUID(), term: "", keepAs: "" },
+  // ]);
+  const [glossaryRows, setGlossaryRows] = useState([]);
 
   const fileInputRef = useRef(null);
   const [glossaryFiles, setGlossaryFiles] = useState([]);
@@ -455,7 +456,12 @@ const CreateTag = () => {
                 </h2>
                 <button
                   type="button"
-                  onClick={() => setGlossaryMode("manual")}
+                  onClick={() => {
+                    setGlossaryMode("manual");
+                    if (glossaryRows.length === 0) {
+                      addRow(); // ensure at least one row appears
+                    }
+                  }}
                   className="px-4 py-2 rounded-lg text-indigo-500 font-medium hover:text-indigo-900 cursor-pointer"
                 >
                   + Add Term
@@ -463,7 +469,7 @@ const CreateTag = () => {
               </div>
             )}
             {/* Sub header */}
-            {!isIdp && (
+            {!isIdp && glossaryRows.length === 0 && (
               <div className="flex items-center justify-between">
                 <p className="text-gray-700 text-lg">
                   No glossary terms added yet. Click ‘Add Term’ to get started.
@@ -481,15 +487,17 @@ const CreateTag = () => {
               </div>
             )}
 
-            <div className="flex flex-col">
-              <h3 className=" text-2xl font-semibold text-[#171717]">
-                Upload Sample Document
-              </h3>
-              <p className=" text-lg font-normal text-[#525252]">
-                AI will analyze your document and suggest a schema
-                automatically. This helps build the perfect structure faster.
-              </p>
-            </div>
+            {glossaryMode === "upload" && glossaryRows.length === 0 && (
+              <div className="flex flex-col">
+                <h3 className=" text-2xl font-semibold text-[#171717]">
+                  Upload Sample Document
+                </h3>
+                <p className=" text-lg font-normal text-[#525252]">
+                  AI will analyze your document and suggest a schema
+                  automatically. This helps build the perfect structure faster.
+                </p>
+              </div>
+            )}
 
             {/* If no files yet → show uploader */}
             {/* UPLOAD MODE */}
@@ -578,7 +586,10 @@ const CreateTag = () => {
                 {/* Switch back to upload */}
                 <button
                   type="button"
-                  onClick={() => setGlossaryMode("upload")}
+                  onClick={() => {
+                    setGlossaryMode("upload");
+                    setGlossaryRows([]); // ✅ clear manual rows
+                  }}
                   className="text-sm text-gray-500 underline mt-2 w-fit"
                 >
                   Or upload a CSV instead

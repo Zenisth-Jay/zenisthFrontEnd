@@ -134,7 +134,7 @@ const TranslationTag = ({
         <div className="flex items-center gap-2">
           <div className=" h-8.5 flex items-center gap-2 border rounded-[50px] px-4 py-2 bg-gray-50 border-gray-400">
             {idp ? (
-              <>CSV</>
+              <>{tag.outputFormat}</>
             ) : (
               <>
                 <span className="text-sm font-medium text-[#262938]">

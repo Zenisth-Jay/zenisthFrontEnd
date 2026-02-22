@@ -158,7 +158,7 @@ const TagLibrary = () => {
               onToggleFavorite={(t) =>
                 toggleFavoriteTag({ id: t.id, isFavorite: !t.isFavorite })
               }
-              idp={true}
+              idp={isIdp}
             />
           ))}
         </div>

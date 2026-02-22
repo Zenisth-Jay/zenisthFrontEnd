@@ -27,6 +27,15 @@ export const tagsApi = createApi({
       query: (tagId) => `/tags/${tagId}`,
     }),
 
+    updateTag: builder.mutation({
+      query: ({ id, body }) => ({
+        url: `/tags/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: "Tag", id }],
+    }),
+
     // 2. Toggle favorite
     toggleFavoriteTag: builder.mutation({
       query: ({ id, isFavorite }) => ({
@@ -63,4 +72,5 @@ export const {
   useGetTagByIdQuery,
   useToggleFavoriteTagMutation,
   useCreateTagMutation,
+  useUpdateTagMutation,
 } = tagsApi;

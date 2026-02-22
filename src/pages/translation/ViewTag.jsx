@@ -10,11 +10,12 @@ import {
   Landmark,
   Edit,
   Save,
+  Trash2,
 } from "lucide-react";
 import SelectElement from "../../components/ui/SelectElement";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Button from "../../components/ui/Button";
-import { useGetTagByIdQuery } from "../../api/tags.api";
+import { useGetTagByIdQuery, useUpdateTagMutation } from "../../api/tags.api";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
@@ -46,10 +47,14 @@ const buildTagVM = (apiTag) => {
     outputFormat: apiTag.outputFormat || "CSV",
     originalFormat: apiTag.originalFormat || "CSV",
 
-    fieldCount: apiTag.fieldCount || 0,
+    // fieldCount: apiTag.fieldCount || 0,
 
-    // This is what backend gives you (CSV header string for now)
     rawSchema: apiTag.rawSchemaContent || "",
+
+    // ✅ TRANSLATION fields
+    sourceLanguage: apiTag.sourceLanguage || "",
+    targetLanguage: apiTag.targetLanguage || "",
+    glossaryContent: apiTag.glossaryContent || {},
 
     isFavorite: apiTag.isFavorite || false,
     isActive: apiTag.isActive ?? true,
@@ -90,6 +95,46 @@ const prettyXml = (xml) => {
   }
 };
 
+const isValidJson = (text) => {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isValidXml = (text) => {
+  try {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, "application/xml");
+    const parserError = xml.getElementsByTagName("parsererror");
+    return parserError.length === 0;
+  } catch {
+    return false;
+  }
+};
+
+const isValidCsv = (text) => {
+  // Very basic CSV validation: at least one row and consistent columns
+  try {
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length === 0) return false;
+
+    const colCount = lines[0].split(",").length;
+    if (colCount < 1) return false;
+
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].split(",").length !== colCount) {
+        return false;
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const ViewTag = () => {
   const navigate = useNavigate();
 
@@ -111,20 +156,91 @@ const ViewTag = () => {
     refetchOnReconnect: false,
   });
 
+  console.log(tagData);
+
+  const [updateTag, { isLoading: isUpdating }] = useUpdateTagMutation();
+
   const [previewFormat, setPreviewFormat] = useState("JSON");
   const applicationId = isIdp ? "IDP" : "TRANSLATION";
   const organizationId = "temporary It's fetching from auth";
 
+  const [glossaryMode, setGlossaryMode] = useState("manual"); // or "upload" if you want
+  const [glossaryRows, setGlossaryRows] = useState([]);
+
   const [schemaText, setSchemaText] = useState(""); // rawSchemaContent from API
   const [apiOutputFormat, setApiOutputFormat] = useState("CSV"); // from API
 
-  const { register, handleSubmit, watch, setValue } = useForm();
+  const { register, handleSubmit, watch, setValue, reset } = useForm({
+    defaultValues: {
+      tagName: "",
+      description: "",
+      tagIndustry: "",
+      tagCategory: "",
+      outputFormat: "",
+      sourceLanguage: "",
+      targetLanguage: "",
+    },
+  });
+  const sourceLanguage = watch("sourceLanguage");
 
   const fileInputRef = useRef(null);
 
   const tagVM = useMemo(() => buildTagVM(tagData), [tagData]);
 
   const originalRef = useRef(null);
+  const lastSyncedTagIdRef = useRef(null);
+
+  // Only sync schema from API when we load a different tag (tagId change), not on every tagVM update (e.g. refetch)
+  // so typing in the textarea doesn't get overwritten and doesn't trigger extra API rounds
+  const syncSchemaFromTagVM = useCallback(() => {
+    if (!tagVM) return;
+    // setValue("tagName", tagVM.name);
+    // setValue("description", tagVM.description);
+    // setValue(isIdp ? "tagIndustry" : "tagCategory", tagVM.industry);
+    // setValue("outputFormat", tagVM.outputFormat);
+    // // ✅ Translation fields
+    // setValue("sourceLanguage", tagVM.sourceLanguage || "");
+    // setValue("targetLanguage", tagVM.targetLanguage || "");
+
+    reset({
+      tagName: tagVM.name || "",
+      description: tagVM.description || "",
+      tagIndustry: isIdp ? tagVM.industry || "" : "",
+      tagCategory: !isIdp ? tagVM.industry || "" : "",
+      outputFormat: tagVM.outputFormat || "",
+      sourceLanguage: tagVM.sourceLanguage || "",
+      targetLanguage: tagVM.targetLanguage || "",
+    });
+
+    // ✅ Glossary from API -> rows
+    setGlossaryRows(glossaryObjectToRows(tagVM.glossaryContent));
+
+    setSchemaText(tagVM.rawSchema);
+    setApiOutputFormat(tagVM.outputFormat);
+    setPreviewFormat(tagVM.outputFormat);
+    originalRef.current = {
+      name: tagVM.name,
+      description: tagVM.description,
+      industry: tagVM.industry,
+      outputFormat: tagVM.outputFormat,
+      rawSchemaContent: tagVM.rawSchema,
+
+      // ✅ Translation originals
+      source_lang: tagVM.sourceLanguage || "",
+      target_lang: tagVM.targetLanguage || "",
+      glossary_content: tagVM.glossaryContent || {},
+      // field_count: tagVM.fieldCount || 0,
+    };
+    lastSyncedTagIdRef.current = stableTagId;
+  }, [tagVM, setValue, isIdp, stableTagId]);
+
+  useEffect(() => {
+    if (!tagVM) return;
+    // Only run sync when we're loading this tag for the first time (or switched to another tag)
+    if (lastSyncedTagIdRef.current !== stableTagId) {
+      syncSchemaFromTagVM();
+    }
+  }, [tagVM, stableTagId, syncSchemaFromTagVM]);
 
   const addRow = () => {
     setGlossaryRows((prev) => [
@@ -155,9 +271,53 @@ const ViewTag = () => {
       : []),
   ];
 
+  const rowsToGlossaryObject = (rows) => {
+    const obj = {};
+    rows.forEach(({ term, keepAs }) => {
+      if (term && keepAs) {
+        obj[term] = keepAs;
+      }
+    });
+    return obj;
+  };
+
+  const glossaryObjectToRows = (glossaryObj) => {
+    return Object.entries(glossaryObj || {}).map(([term, keepAs]) => ({
+      id: crypto.randomUUID(),
+      term,
+      keepAs,
+    }));
+  };
+
   const onSubmit = async (formData) => {
     try {
       const original = originalRef.current;
+
+      // ✅ Validate schema for IDP before saving
+      if (isIdp) {
+        const text = schemaText?.trim();
+
+        if (!text) {
+          toast.error("Schema cannot be empty");
+          return;
+        }
+
+        if (apiOutputFormat === "JSON" && !isValidJson(text)) {
+          toast.error("Invalid JSON schema. Please fix it before saving.");
+          return;
+        }
+
+        if (apiOutputFormat === "XML" && !isValidXml(text)) {
+          toast.error("Invalid XML schema. Please fix it before saving.");
+          return;
+        }
+
+        if (apiOutputFormat === "CSV" && !isValidCsv(text)) {
+          toast.error("Invalid CSV format. Please fix it before saving.");
+          return;
+        }
+      }
+
       if (!original) {
         toast.error("Original data not loaded yet");
         return;
@@ -165,70 +325,85 @@ const ViewTag = () => {
 
       const normalize = (v) => (typeof v === "string" ? v.trim() : v);
 
+      const glossaryObj = rowsToGlossaryObject(glossaryRows);
+      // const fieldCount = glossaryRows.filter((r) => r.term && r.keepAs).length;
+
       const current = {
         name: formData.tagName,
         description: formData.description,
         industry: isIdp ? formData.tagIndustry : formData.tagCategory,
-        outputFormat: isIdp ? formData.outputFormat : undefined,
-        rawSchemaContent: schemaText,
+
+        // IDP
+        output_format: isIdp ? formData.outputFormat : undefined,
+        raw_schema_content: isIdp ? schemaText : undefined,
+
+        // TRANSLATION
+        source_lang: !isIdp ? formData.sourceLanguage : undefined,
+        target_lang: !isIdp ? formData.targetLanguage : undefined,
+        glossary_content: !isIdp ? glossaryObj : undefined,
+        // field_count: !isIdp ? fieldCount : undefined,
       };
 
-      // ✅ Build diff-only payload
+      // Build diff-only payload
       const patchBody = {};
       Object.keys(current).forEach((key) => {
         if (current[key] === undefined) return;
 
-        const currVal = normalize(current[key]);
-        const origVal = normalize(original[key]);
+        const currVal =
+          key === "glossary_content"
+            ? JSON.stringify(current[key] || {})
+            : normalize(current[key]);
+
+        const origVal =
+          key === "output_format"
+            ? normalize(original.outputFormat)
+            : key === "raw_schema_content"
+              ? normalize(original.rawSchemaContent)
+              : key === "source_lang"
+                ? normalize(original.source_lang)
+                : key === "target_lang"
+                  ? normalize(original.target_lang)
+                  : key === "glossary_content"
+                    ? JSON.stringify(original.glossary_content || {})
+                    : normalize(original[key]);
 
         if (currVal !== origVal) {
           patchBody[key] = current[key];
         }
       });
 
-      // 🚫 If nothing changed, don't call API
+      // ✅ If glossary changed, also send field_count
+      // if (!isIdp && patchBody.glossary_content !== undefined) {
+      //   patchBody.field_count = fieldCount;
+      // }
+
+      // If nothing changed, don't call API
       if (Object.keys(patchBody).length === 0) {
         toast.info("No changes to save");
         return;
       }
 
-      console.log("PATCH BODY (only changed):", patchBody);
+      console.log("patchBody", patchBody);
 
-      // ✅ Call your update API here
-      // await updateTag({ id: tagId, body: patchBody }).unwrap();
+      // ✅ Call API
+      await updateTag({ id: tagId, body: patchBody }).unwrap();
 
       toast.success("Tag updated successfully!");
-      // navigate(`/operations/${toolType}/tag/view/${tagId}`);
+      navigate(`/operations/${toolType}/tag/view/${tagId}`);
     } catch (err) {
       console.error(err);
       toast.error(err?.data?.message || "Failed to update tag");
     }
   };
 
-  useEffect(() => {
-    if (!tagVM) return;
+  const prettySchema = useMemo(() => {
+    if (!schemaText) return "";
 
-    setValue("tagName", tagVM.name);
-    setValue("description", tagVM.description);
-    setValue(isIdp ? "tagIndustry" : "tagCategory", tagVM.industry);
-    setValue("outputFormat", tagVM.outputFormat);
+    if (apiOutputFormat === "JSON") return prettyJson(schemaText);
+    if (apiOutputFormat === "XML") return prettyXml(schemaText);
 
-    // Set editor text EXACTLY as API gives
-    setSchemaText(tagVM.rawSchema);
-    setApiOutputFormat(tagVM.outputFormat);
-    setPreviewFormat(tagVM.outputFormat);
-
-    // ✅ Store original snapshot for diff (raw, untouched)
-    originalRef.current = {
-      name: tagVM.name,
-      description: tagVM.description,
-      industry: tagVM.industry,
-      outputFormat: tagVM.outputFormat,
-      rawSchemaContent: tagVM.rawSchema, // <-- raw from API
-    };
-  }, [tagVM, setValue, isIdp]);
-
-  console.log(tagData);
+    return schemaText; // CSV or unknown → show as-is
+  }, [schemaText, apiOutputFormat]);
 
   if (isLoading) {
     return (
@@ -294,9 +469,9 @@ const ViewTag = () => {
               <Button
                 type="submit"
                 leftIcon={<Save size={18} />}
-                // disabled={isUpdating}
+                disabled={isUpdating}
               >
-                {/* {isUpdating ? "Saving..." : "Save Changes"} */}
+                {isUpdating ? "Saving..." : "Save Changes"}
               </Button>
             )}
           </div>
@@ -417,7 +592,7 @@ const ViewTag = () => {
                   {isEditMode && (
                     <button
                       type="button"
-                      onClick={() => setGlossaryMode("manual")}
+                      onClick={addRow}
                       className="px-4 py-2 rounded-lg text-indigo-500 font-medium hover:text-indigo-900 cursor-pointer"
                     >
                       + Add Term
@@ -429,7 +604,15 @@ const ViewTag = () => {
               {/* MANUAL MODE */}
               {!isIdp && (
                 <>
-                  {glossaryMode === "manual" && (
+                  {/* VIEW MODE: show message if empty */}
+                  {isViewMode && glossaryRows.length === 0 && (
+                    <div className="text-gray-500 italic">
+                      No glossary terms added for this tag.
+                    </div>
+                  )}
+
+                  {/* MANUAL MODE (view or edit) */}
+                  {glossaryMode === "manual" && glossaryRows.length > 0 && (
                     <div className="flex flex-col gap-4">
                       {/* Table Header */}
                       <div className="grid grid-cols-2 gap-6">
@@ -450,7 +633,7 @@ const ViewTag = () => {
                         {glossaryRows.map((row) => (
                           <div
                             key={row.id}
-                            className="grid grid-cols-2 gap-6 items-center"
+                            className="grid grid-cols-[1fr_1fr_auto] gap-4 items-center"
                           >
                             <input
                               type="text"
@@ -471,11 +654,26 @@ const ViewTag = () => {
                               }
                               className="w-full border border-gray-300 px-3 py-2 rounded-lg bg-gray-50 disabled:bg-gray-100"
                             />
+
+                            {isEditMode && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setGlossaryRows((prev) =>
+                                    prev.filter((r) => r.id !== row.id),
+                                  )
+                                }
+                                className="p-2 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition"
+                                title="Delete row"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
 
-                      {/* Add Row */}
+                      {/* Add Row (only edit) */}
                       {isEditMode && (
                         <button
                           type="button"
@@ -498,9 +696,6 @@ const ViewTag = () => {
 
                   {/* Preview Panel */}
                   <div className="relative">
-                    {/* <pre className="w-full h-105 overflow-auto rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800">
-                      {schemaText || "No schema available"}
-                    </pre> */}
                     {isEditMode ? (
                       <textarea
                         value={schemaText}
