@@ -27,8 +27,6 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
     appType,
   });
 
-  // console.log(historyResponse);
-
   // 🔹 Map API response to UI rows
   const allRows = useMemo(() => {
     if (!historyResponse?.jobs) return [];
@@ -121,13 +119,22 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
 
   // const totalPages = Math.ceil(filteredRows.length / pageSize);
 
-  const startIndex = (page - 1) * pageSize;
-  const currentRows = filteredRows.slice(startIndex, startIndex + pageSize);
+  // const startIndex = (page - 1) * pageSize;
+  // const currentRows = filteredRows.slice(startIndex, startIndex + pageSize);
+  const currentRows = filteredRows;
+
+  // if (isHistoryLoading) {
+  //   return (
+  //     <div className="bg-white border border-gray-300 shadow-md p-6 text-gray-600">
+  //       Loading history...
+  //     </div>
+  //   );
+  // }
 
   if (isHistoryLoading) {
     return (
-      <div className="bg-white border border-gray-300 shadow-md p-6 text-gray-600">
-        Loading history...
+      <div className="bg-white border border-gray-300 shadow-md p-10 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
       </div>
     );
   }

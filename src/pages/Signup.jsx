@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { KeyRound, Mail, User, UserRoundCog } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import { supabase } from "../supabase/supabaseClient";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 
@@ -39,12 +39,14 @@ const Signup = () => {
             },
           );
 
-          if (error || !data[0]?.is_valid) {
-            toast.error(
-              data[0]?.error_message || "Invalid or expired invitation.",
-            );
-            // Optional: Redirect away if token is invalid
-            // navigate("/signup");
+          if (error || !data?.[0]?.is_valid) {
+            const serverMsg =
+              data?.[0]?.error_message ||
+              error?.message ||
+              "Invalid or expired invitation.";
+
+            toast.error(serverMsg);
+            setIsValidating(false);
             return;
           }
 
@@ -54,7 +56,8 @@ const Signup = () => {
           // Pre-fill and lock the email field
           setValue("email", info.invited_email);
         } catch (err) {
-          toast.error("Failed to validate invitation.");
+          console.error("Token validation error:", err);
+          toast.error(err.message || "Failed to validate invitation.");
         } finally {
           setIsValidating(false);
         }
@@ -62,6 +65,41 @@ const Signup = () => {
       validateToken();
     }
   }, [token, setValue]);
+
+  // const onSignUp = async (data) => {
+  //   try {
+  //     const { data: response, error } = await supabase.functions.invoke(
+  //       "sign-up-orchestrator",
+  //       {
+  //         body: {
+  //           email: data.email,
+  //           password: data.password,
+  //           fullName: data.fullName,
+  //           organizationName: token ? null : data.OrganizationName, // Only send if not an invite
+  //           token: token || null, // Send token if it exists
+  //         },
+  //       },
+  //     );
+
+  //     if (error) {
+  //       if (error instanceof FunctionsHttpError) {
+  //         const errorDetails = await error.context.json();
+  //         throw new Error(errorDetails.error || "Signup failed.");
+  //       }
+  //       throw new Error(error.message || "An unexpected error occurred.");
+  //     }
+
+  //     toast.success(
+  //       token ? "Joined successfully! ✅" : "Account created successfully! ✅",
+  //     );
+
+  //     setTimeout(() => {
+  //       navigate("/login");
+  //     }, 1500);
+  //   } catch (err) {
+  //     toast.error(err.message);
+  //   }
+  // };
 
   const onSignUp = async (data) => {
     try {
@@ -72,20 +110,39 @@ const Signup = () => {
             email: data.email,
             password: data.password,
             fullName: data.fullName,
-            organizationName: token ? null : data.OrganizationName, // Only send if not an invite
-            token: token || null, // Send token if it exists
+            organizationName: token ? null : data.OrganizationName,
+            token: token || null,
           },
         },
       );
 
+      // ❌ Non-2xx from Edge Function
       if (error) {
         if (error instanceof FunctionsHttpError) {
-          const errorDetails = await error.context.json();
-          throw new Error(errorDetails.error || "Signup failed.");
+          try {
+            const errorDetails = await error.context.json();
+
+            // Your backend sends: { "error": "A user with this email address has already been registered" }
+            const serverMessage =
+              errorDetails?.error ||
+              errorDetails?.message ||
+              "Server error occurred.";
+
+            throw new Error(serverMessage);
+          } catch {
+            throw new Error(error.message || "Server error occurred.");
+          }
         }
-        throw new Error(error.message || "An unexpected error occurred.");
+
+        throw new Error(error.message || "Server error occurred.");
       }
 
+      // ❌ 200 but error payload
+      if (response?.error) {
+        throw new Error(response.error);
+      }
+
+      // ✅ Success
       toast.success(
         token ? "Joined successfully! ✅" : "Account created successfully! ✅",
       );
@@ -94,7 +151,17 @@ const Signup = () => {
         navigate("/login");
       }, 1500);
     } catch (err) {
-      toast.error(err.message);
+      console.error("Signup error:", err);
+
+      let message = err.message || "Something went wrong.";
+
+      // Supabase generic error for non-2xx Edge Function
+      if (message.includes("Edge Function returned a non-2xx status code")) {
+        // 👇 Replace with your desired user-facing message
+        message = "A user with this email address has already been registered";
+      }
+
+      toast.error(message);
     }
   };
 
@@ -162,6 +229,7 @@ const Signup = () => {
                 register={register}
                 icon={Mail}
                 required
+                disabled={!!token}
                 readOnly={!!token} // Prevent changing email if invited
                 className={token ? "bg-gray-100 cursor-not-allowed" : ""}
               />

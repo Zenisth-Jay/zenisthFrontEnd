@@ -18,14 +18,7 @@ import { useCreateTagMutation } from "../../api/tags.api";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import { createDocumentAPI, uploadToS3 } from "../../api/documents.api";
-
-const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "hi", label: "Hindi" },
-  { code: "fr", label: "French" },
-  { code: "es", label: "Spanish" },
-  { code: "de", label: "German" },
-];
+import { LANGUAGES } from "../../data/translateLanguage";
 
 const OUTPUT_FORMAT = [
   { code: "CSV", label: "CSV" },
@@ -240,7 +233,8 @@ const CreateTag = () => {
         }).unwrap();
 
         toast.success("IDP Tag created successfully!");
-        navigate("/operations/idp/select-tag");
+        // navigate("/operations/idp/select-tag");
+        navigate(-1);
         return;
       }
 

@@ -175,7 +175,14 @@ const UserProfile = () => {
             </Button>
 
             <div className="flex gap-6">
-              <Button variant="outline" type="button" onClick={() => reset()}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => {
+                  reset();
+                  navigate(-1);
+                }}
+              >
                 Cancel
               </Button>
               <Button

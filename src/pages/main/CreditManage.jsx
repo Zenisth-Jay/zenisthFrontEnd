@@ -25,6 +25,9 @@ const CircleContainer = ({ children, variant = "neutral", className = "" }) => {
         inline-flex items-center justify-center w-[95%] 
         px-4 py-3 rounded-[48px] border
         font-semibold whitespace-nowrap
+        transition-all duration-300 ease-out
+        hover:scale-105 hover:shadow-sm
+        animate-fade-in
         ${VARIANTS[variant] || VARIANTS.neutral}
         ${className}
       `}
@@ -49,10 +52,12 @@ const columns = [
     headerClassName: "justify-center",
     cellClassName: "justify-center",
     render: (_, row) => (
-      <div className="flex items-center gap-3">
-        <FileText className="text-indigo-500" size={22} />
-        <div className="flex flex-col">
-          <span className="font-medium text-gray-900 truncate">{row.name}</span>
+      <div className="flex items-center gap-3 min-w-0">
+        <FileText className="text-indigo-500 shrink-0" size={22} />
+        <div className="flex flex-col min-w-0">
+          <span className="font-medium text-gray-900 truncate max-w-45">
+            {row.name}
+          </span>
           <span className="text-xs text-gray-500">{row.uploadedAt}</span>
         </div>
       </div>
@@ -139,14 +144,34 @@ const columns = [
 ];
 
 const CreditManage = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  // const [isExpanded, setIsExpanded] = useState(false);
+
+  // const [showAddCreditsModal, setShowAddCreditsModal] = useState(false);
+
+  // const limit = isExpanded ? 7 : 3;
+
+  // // For Pagination
+  // // const [searchParams] = useSearchParams();
+  // // const page = Number(searchParams.get("page") || 1);
+
+  // const [searchParams, setSearchParams] = useSearchParams();
+
+  // const view = searchParams.get("view") || "less"; // "less" | "all"
+  // const isExpanded = view === "all";
+
+  // const page = Number(searchParams.get("page") || 1);
+
   const [showAddCreditsModal, setShowAddCreditsModal] = useState(false);
 
-  const limit = isExpanded ? 7 : 3;
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // For Pagination
-  const [searchParams] = useSearchParams();
+  const view = searchParams.get("view") || "less"; // "less" | "all"
+  const isExpanded = view === "all";
+
   const page = Number(searchParams.get("page") || 1);
+
+  // ✅ Now isExpanded exists, so this is safe
+  const limit = isExpanded ? 7 : 3;
 
   // CREDIT ROWS API FETCH
   const { data, isLoading, isError } = useGetCreditManagementQuery({
@@ -170,12 +195,13 @@ const CreditManage = () => {
         : t.status === "FAILED"
           ? "Failed"
           : "Processing",
-    label: t.tag_name === "-" ? "" : t.tag_name,
+    label: t.tag_name === "-" ? "-" : t.tag_name,
     units: t.units,
     credits: t.credits > 0 ? `+${t.credits}` : String(t.credits),
   }));
 
-  const totalPages = data?.total_pages ?? 1;
+  // const totalPages = data?.total_pages ?? 1;
+  const totalPages = data?.pagination?.total_pages ?? 1;
 
   return (
     <div>
@@ -231,12 +257,49 @@ const CreditManage = () => {
             />
           </section>
 
-          <section className="bg-white w-full rounded-xl sm:rounded-2xl shadow-md border border-gray-300 overflow-hidden animate-fade-in-up">
-            <DataTable columns={columns} rows={tableRows} />
+          {/* <section className="bg-white w-full rounded-xl sm:rounded-2xl shadow-md border border-gray-300 overflow-hidden animate-fade-in-up">
+            <div className="animate-fade-in-up">
+              <DataTable columns={columns} rows={tableRows} />
+            </div>
 
             <div className="border-t border-gray-400 px-4 sm:px-6 py-4 text-center">
               <button
-                onClick={() => setIsExpanded(true)}
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams);
+                  params.set("view", "all");
+                  params.set("page", "1"); // reset page when switching mode
+                  setSearchParams(params);
+                }}
+                className="text-indigo-500 font-medium hover:underline cursor-pointer transition-colors"
+              >
+                View All
+              </button>
+            </div>
+          </section> */}
+
+          <section className="bg-white w-full rounded-xl sm:rounded-2xl shadow-md border border-gray-300 overflow-hidden animate-fade-in-up">
+            {isLoading ? (
+              <div className="p-6 space-y-4 animate-pulse">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-10 bg-gray-200 rounded-lg" />
+                ))}
+              </div>
+            ) : isError ? (
+              <div className="p-6 text-red-500">Failed to load data</div>
+            ) : (
+              <div className="animate-fade-in-up">
+                <DataTable columns={columns} rows={tableRows} />
+              </div>
+            )}
+
+            <div className="border-t border-gray-400 px-4 sm:px-6 py-4 text-center">
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams);
+                  params.set("view", "all");
+                  params.set("page", "1");
+                  setSearchParams(params);
+                }}
                 className="text-indigo-500 font-medium hover:underline cursor-pointer transition-colors"
               >
                 View All
@@ -251,7 +314,13 @@ const CreditManage = () => {
           </div>
 
           <div className="bg-white w-full rounded-xl sm:rounded-2xl border border-gray-300 overflow-hidden">
-            {isLoading && <div className="p-6 animate-fade-in">Loading...</div>}
+            {isLoading && (
+              <div className="p-6 space-y-4 animate-pulse">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-10 bg-gray-200 rounded-lg" />
+                ))}
+              </div>
+            )}
             {isError && (
               <div className="p-6 text-red-500">Failed to load data</div>
             )}
@@ -261,7 +330,12 @@ const CreditManage = () => {
 
             <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t">
               <button
-                onClick={() => setIsExpanded(false)}
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams);
+                  params.set("view", "less");
+                  params.set("page", "1"); // reset page
+                  setSearchParams(params);
+                }}
                 className="text-indigo-500 font-medium hover:underline cursor-pointer transition-colors"
               >
                 View Less

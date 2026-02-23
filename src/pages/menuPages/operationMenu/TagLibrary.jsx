@@ -7,9 +7,11 @@ import Tabs from "../../../components/general/Tabs";
 import {
   useGetTagsQuery,
   useToggleFavoriteTagMutation,
+  useUpdateTagMutation,
 } from "../../../api/tags.api";
 import TranslationTag from "../../../components/tags/TranslationTag";
 import { useNavigate, useParams } from "react-router-dom";
+import Spinner from "../../../components/ui/Spinner";
 
 const TagLibrary = () => {
   const navigate = useNavigate();
@@ -72,8 +74,7 @@ const TagLibrary = () => {
   } = useGetTagsQuery({ organizationId, applicationId });
   // const { data: tags = [], isLoading, isError } = useGetTagsQuery();
 
-  console.log(tags);
-  const [toggleFavoriteTag] = useToggleFavoriteTagMutation();
+  const [updateTag] = useUpdateTagMutation();
 
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("company");
@@ -143,21 +144,54 @@ const TagLibrary = () => {
         <Tabs tabs={TAG_TABS} activeTab={activeTab} onChange={setActiveTab} />
 
         <div className="w-full flex flex-wrap gap-6">
-          {isLoading && <p>Loading tags...</p>}
-          {isError && <p>Failed to load tags</p>}
+          {/* {isLoading && <p>Loading tags...</p>}
+          {isError && <p>Failed to load tags</p>} */}
+          {isLoading && (
+            <div className="w-full flex justify-center py-12">
+              <Spinner size={48} />
+            </div>
+          )}
+
+          {isError && (
+            <div className="w-full text-center text-red-600 py-6">
+              Failed to load tags
+            </div>
+          )}
 
           {!isLoading && filteredTags.length === 0 && (
             <p className="text-gray-600">No tags found</p>
           )}
+
+          {/* {filteredTags.map((tag) => (
+            <TranslationTag
+              key={tag.id}
+              tag={tag}
+              width={"w-82"}
+              onToggleFavorite={(t) =>
+                toggleFavoriteTag({ id: t.id, is_favorite: !t.isFavorite })
+              }
+              idp={isIdp}
+            />
+          ))} */}
 
           {filteredTags.map((tag) => (
             <TranslationTag
               key={tag.id}
               tag={tag}
               width={"w-82"}
-              onToggleFavorite={(t) =>
-                toggleFavoriteTag({ id: t.id, isFavorite: !t.isFavorite })
-              }
+              onToggleFavorite={async (t) => {
+                try {
+                  await updateTag({
+                    id: t.id,
+                    body: {
+                      is_favorite: !t.isFavorite, // ✅ backend expects this
+                    },
+                  }).unwrap();
+                } catch (err) {
+                  console.error("Failed to toggle favorite", err);
+                  toast.error("Failed to update favorite. Please try again.");
+                }
+              }}
               idp={isIdp}
             />
           ))}

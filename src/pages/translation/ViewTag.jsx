@@ -19,14 +19,16 @@ import { useGetTagByIdQuery, useUpdateTagMutation } from "../../api/tags.api";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
+import { LANGUAGES } from "../../data/translateLanguage";
+import Spinner from "../../components/ui/Spinner";
 
-const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "hi", label: "Hindi" },
-  { code: "fr", label: "French" },
-  { code: "es", label: "Spanish" },
-  { code: "de", label: "German" },
-];
+// const LANGUAGES = [
+//   { code: "en", label: "English" },
+//   { code: "hi", label: "Hindi" },
+//   { code: "fr", label: "French" },
+//   { code: "es", label: "Spanish" },
+//   { code: "de", label: "German" },
+// ];
 
 const OUTPUT_FORMAT = [
   { code: "CSV", label: "CSV" },
@@ -155,8 +157,6 @@ const ViewTag = () => {
     refetchOnFocus: false,
     refetchOnReconnect: false,
   });
-
-  console.log(tagData);
 
   const [updateTag, { isLoading: isUpdating }] = useUpdateTagMutation();
 
@@ -383,8 +383,6 @@ const ViewTag = () => {
         return;
       }
 
-      console.log("patchBody", patchBody);
-
       // ✅ Call API
       await updateTag({ id: tagId, body: patchBody }).unwrap();
 
@@ -409,7 +407,12 @@ const ViewTag = () => {
     return (
       <>
         <MainNavbar />
-        <div className="p-10 text-gray-600">Loading tag...</div>
+        <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-gray-500">
+            <Spinner size={56} />
+            <span>Loading tag...</span>
+          </div>
+        </div>
       </>
     );
   }

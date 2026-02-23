@@ -27,6 +27,7 @@ export const tagsApi = createApi({
       query: (tagId) => `/tags/${tagId}`,
     }),
 
+    // Update Tag
     updateTag: builder.mutation({
       query: ({ id, body }) => ({
         url: `/tags/${id}`,

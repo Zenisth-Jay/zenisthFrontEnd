@@ -25,12 +25,12 @@ const Pagination = ({
 
   return (
     <div
-      className={`flex flex-wrap items-center justify-center gap-2 sm:gap-5 px-4 sm:px-6 py-4 border-t bg-white ${className}`}
+      className={`flex flex-wrap items-center justify-center gap-2 sm:gap-5 px-4 sm:px-6 py-4  bg-white ${className}`}
     >
       <button
         disabled={page === 1}
         onClick={() => setPage(page - 1)}
-        className="text-sm sm:text-lg text-gray-600 disabled:opacity-40 py-2 px-2 rounded-lg hover:bg-gray-100 transition-colors min-h-[2.25rem]"
+        className="text-sm sm:text-lg text-gray-600 disabled:opacity-40 py-2 px-2 rounded-lg hover:bg-gray-100 transition-colors min-h-9"
       >
         ← Previous
       </button>
@@ -78,7 +78,7 @@ const Pagination = ({
       <button
         disabled={page === totalPages}
         onClick={() => setPage(page + 1)}
-        className="text-sm sm:text-lg text-gray-600 disabled:opacity-40 py-2 px-2 rounded-lg hover:bg-gray-100 transition-colors min-h-[2.25rem]"
+        className="text-sm sm:text-lg text-gray-600 disabled:opacity-40 py-2 px-2 rounded-lg hover:bg-gray-100 transition-colors min-h-9"
       >
         Next →
       </button>

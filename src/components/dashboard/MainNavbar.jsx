@@ -124,7 +124,11 @@ const MainNavbar = () => {
         <div className="flex items-center gap-2 min-[1300px]:gap-4 shrink-0">
           {/* Credits – same at all widths */}
           <div
-            className="px-5 py-2 flex items-center gap-2 border border-[#CFD1DC] rounded-full bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+            // className="px-5 py-2 flex items-center gap-2 border border-[#CFD1DC] rounded-full bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+            className="px-5 py-2 flex items-center gap-2 border border-[#CFD1DC] rounded-full 
+             bg-gray-50 from-green-50 to-emerald-50 cursor-pointer 
+             hover:from-green-100 hover:to-emerald-100 
+             transition-all duration-300 hover:scale-101 hover:shadow-sm active:scale-99"
             onClick={(e) => {
               e.preventDefault();
               navigate("/credit-manage");
@@ -139,11 +143,16 @@ const MainNavbar = () => {
           {/* Notification bell */}
           <Dropdown
             trigger={() => (
-              <button className="relative w-9 h-9 min-[1300px]:w-11 min-[1300px]:h-11 border border-[#CFD1DC] flex items-center justify-center rounded-full bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors duration-200">
+              <button
+                // className="relative w-9 h-9 min-[1300px]:w-11 min-[1300px]:h-11 border border-[#CFD1DC] flex items-center justify-center rounded-full bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                className="relative w-9 h-9 min-[1300px]:w-11 min-[1300px]:h-11 border border-[#CFD1DC] 
+           flex items-center justify-center rounded-full bg-gray-50 cursor-pointer 
+           transition-all duration-200 hover:bg-gray-100 hover:scale-105 active:scale-95 hover:shadow-sm"
+              >
                 <Bell size={20} strokeWidth={2.2} className="text-[#545A7A]" />
 
                 {!isLoading && hasUnread && (
-                  <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                  <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full " />
                 )}
               </button>
             )}

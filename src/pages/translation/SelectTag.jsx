@@ -10,6 +10,7 @@ import TranslationTag from "../../components/tags/TranslationTag";
 import {
   useGetTagsQuery,
   useToggleFavoriteTagMutation,
+  useUpdateTagMutation,
 } from "../../api/tags.api";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -17,6 +18,8 @@ import { useDispatch } from "react-redux";
 import { clearUploads } from "../../redux/features/uploadSlice";
 import { useStartJobMutation } from "../../api/translate.api";
 import { useGetBatchSummaryQuery } from "../../api/batchSummary.api";
+import { toast } from "react-toastify";
+import Spinner from "../../components/ui/Spinner";
 
 const SelectTag = () => {
   // fetch tool
@@ -91,7 +94,8 @@ const SelectTag = () => {
   } = useGetTagsQuery({ organizationId, applicationId });
 
   // FETCH FUNCTION TO FAVIOURITE TAG
-  const [toggleFavoriteTag] = useToggleFavoriteTagMutation();
+  // const [toggleFavoriteTag] = useToggleFavoriteTagMutation();
+  const [updateTag] = useUpdateTagMutation();
 
   // STATES
   const [search, setSearch] = useState("");
@@ -197,7 +201,7 @@ const SelectTag = () => {
               <p className="text-gray-600">No tags found for "{search}"</p>
             )}
 
-            {filteredTags.map((tag) => (
+            {/* {filteredTags.map((tag) => (
               <TranslationTag
                 key={tag.id}
                 tag={tag}
@@ -209,6 +213,30 @@ const SelectTag = () => {
                 }
                 idp={isIdp}
               />
+            ))} */}
+
+            {filteredTags.map((tag) => (
+              <TranslationTag
+                key={tag.id}
+                tag={tag}
+                width={"w-95"}
+                isSelected={selectedTag?.id === tag.id}
+                onSelect={(t) => setSelectedTag(t)}
+                onToggleFavorite={async (t) => {
+                  try {
+                    await updateTag({
+                      id: t.id,
+                      body: {
+                        is_favorite: !t.isFavorite, // ✅ backend expects this
+                      },
+                    }).unwrap();
+                  } catch (err) {
+                    console.error("Failed to toggle favorite", err);
+                    toast.error("Failed to update favorite. Please try again.");
+                  }
+                }}
+                idp={isIdp}
+              />
             ))}
           </div>
           {/* Right batch summary container */}
@@ -218,7 +246,15 @@ const SelectTag = () => {
             </h2>
             {hasCompletedBatch ? (
               <>
-                {isBatchLoading && <p>Calculating credits...</p>}
+                {/* {isBatchLoading && <p>Calculating credits...</p>} */}
+                {isBatchLoading && (
+                  <div className="w-full flex items-center justify-center py-6">
+                    <div className="flex items-center gap-3 text-gray-500">
+                      <Spinner size={28} />
+                      <span>Calculating credits...</span>
+                    </div>
+                  </div>
+                )}
                 {isBatchError && (
                   <p className="text-red-500">Failed to load batch summary</p>
                 )}
@@ -364,10 +400,26 @@ const SelectTag = () => {
                                 `Failed to start ${isIdp ? "Extraction" : "Translation"} ❌`,
                                 err,
                               );
-                              alert(
-                                `Failed to start ${isIdp ? "Extraction" : "Translation"}. Please try again.`,
-                                err,
-                              );
+
+                              // ✅ Handle insufficient credits (402)
+                              if (
+                                err?.status === 402 ||
+                                err?.data?.error === "Insufficient Credits"
+                              ) {
+                                const required = err?.data?.required;
+                                const available = err?.data?.available;
+
+                                toast.error(
+                                  required && available
+                                    ? `Insufficient credits. Required: ${required}, Available: ${available}. Please add more credits.`
+                                    : "Your credits are low. Please add more credits to continue.",
+                                );
+                              } else {
+                                toast.error(
+                                  err?.data?.message ||
+                                    `Failed to start ${isIdp ? "Extraction" : "Translation"}. Please try again.`,
+                                );
+                              }
                             }
                           }}
                         >

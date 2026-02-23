@@ -7,8 +7,12 @@ import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useGetJobStatusQuery } from "../../api/HistoryBatch.api";
 import { useNavigate } from "react-router-dom";
+import { LANGUAGE_MAP } from "../../components/functions/getLanguageLabel";
+import Spinner from "../../components/ui/Spinner";
 
 const Translating = () => {
+  const getLanguageLabel = (code) => LANGUAGE_MAP[code] || code;
+
   const navigate = useNavigate();
 
   const { toolType } = useParams();
@@ -46,12 +50,28 @@ const Translating = () => {
   //   skip: !jobId,
   // });
 
+  // if (isLoading) {
+  //   return (
+  //     <>
+  //       <MainNavbar />
+  //       <main className="px-4 sm:px-6 md:px-10 lg:px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
+  //         <div className="text-gray-600 text-lg">Loading job status...</div>
+  //       </main>
+  //     </>
+  //   );
+  // }
+
   if (isLoading) {
     return (
       <>
         <MainNavbar />
         <main className="px-4 sm:px-6 md:px-10 lg:px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
-          <div className="text-gray-600 text-lg">Loading job status...</div>
+          <div className="flex flex-col items-center gap-4">
+            <Spinner size={56} />
+            <div className="text-gray-600 text-lg font-medium">
+              Checking job status...
+            </div>
+          </div>
         </main>
       </>
     );
@@ -71,8 +91,8 @@ const Translating = () => {
   }
 
   let status = jobResponse.job_status;
-  const sourceLanguage = jobResponse.source_language?.toUpperCase();
-  const targetLanguage = jobResponse.target_language?.toUpperCase();
+  const sourceLanguage = jobResponse.source_language;
+  const targetLanguage = jobResponse.target_language;
   const downloadLink = jobResponse.download_link;
 
   if (status == "QUEUED" || status == "PARTIAL_FAILURE") {
@@ -121,7 +141,8 @@ const Translating = () => {
           {!isIdp && (
             <div className="flex items-center gap-6">
               <span className=" text-indigo-500 text-lg font-bold">
-                {sourceLanguage}
+                {/* {sourceLanguage} */}
+                {getLanguageLabel(sourceLanguage)}
               </span>
               <div className="w-10 h-10 rounded-full border border-gray-300 bg-white flex items-center justify-center ">
                 <Languages
@@ -131,7 +152,8 @@ const Translating = () => {
                 />
               </div>
               <span className=" text-indigo-500 text-lg font-bold">
-                {targetLanguage}
+                {/* {targetLanguage} */}
+                {getLanguageLabel(targetLanguage)}
               </span>
             </div>
           )}

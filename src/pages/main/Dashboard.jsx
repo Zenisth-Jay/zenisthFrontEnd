@@ -5,6 +5,39 @@ import { useMemo, useState } from "react";
 import ToolGrid from "../../components/dashboard/ToolGrid";
 import { useGetCardsQuery } from "../../api/cards.api";
 
+function ToolCardSkeleton() {
+  return (
+    <div className="rounded-3xl overflow-hidden shadow-md animate-pulse">
+      {/* Gradient background placeholder */}
+      <div className="h-full w-full p-6 sm:p-8 bg-linear-to-r from-gray-200 via-gray-100 to-gray-200">
+        {/* Top row: icon + badge */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="w-12 h-12 rounded-full bg-gray-300" />
+          <div className="h-8 w-32 rounded-full bg-gray-300" />
+        </div>
+
+        {/* Title */}
+        <div className="h-7 w-2/3 bg-gray-300 rounded mb-4" />
+
+        {/* Description lines */}
+        <div className="space-y-2 mb-8">
+          <div className="h-4 w-full bg-gray-300 rounded" />
+          <div className="h-4 w-5/6 bg-gray-300 rounded" />
+        </div>
+
+        {/* Bottom row: status + features */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="h-5 w-24 bg-gray-300 rounded" />
+          <div className="h-5 w-20 bg-gray-300 rounded" />
+        </div>
+
+        {/* Launch button */}
+        <div className="h-12 w-full bg-gray-300 rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
@@ -64,15 +97,32 @@ const Dashboard = () => {
         </section>
 
         {/* Tool Tabs */}
-        <section className="animate-fade-in-up" style={{ animationDelay: "0.05s" }}>
+        <section
+          className="animate-fade-in-up"
+          style={{ animationDelay: "0.05s" }}
+        >
           <ToolTabs activeTab={activeTab} onChange={setActiveTab} />
         </section>
 
         {/* Tool cards */}
         <section>
-          {isLoading ? (
+          {/* {isLoading ? (
             <div className="text-center py-16 md:py-20 text-gray-400 text-lg md:text-xl animate-fade-in">
               Loading tools...
+            </div>
+          ) : filteredTools.length > 0 ? (
+            <ToolGrid tools={filteredTools} />
+          ) : (
+            <div className="text-center py-16 md:py-20 text-gray-500 text-xl md:text-2xl animate-fade-in">
+              No tools found
+            </div>
+          )} */}
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-6">
+              {[...Array(2)].map((_, i) => (
+                <ToolCardSkeleton key={i} />
+              ))}
             </div>
           ) : filteredTools.length > 0 ? (
             <ToolGrid tools={filteredTools} />

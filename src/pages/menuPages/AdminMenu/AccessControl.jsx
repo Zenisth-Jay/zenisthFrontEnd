@@ -7,6 +7,7 @@ import {
   useInviteUserMutation,
   useUpdateUserMutation,
 } from "../../../api/access.api";
+import { useGetUserProfileQuery } from "../../../api/userProfile.api";
 
 // Component
 const UserRow = ({
@@ -22,7 +23,11 @@ const UserRow = ({
 }) => {
   const isOpen = openMenuId === id;
 
-  const canEditRole = currentUserRole === "OWNER" && currentUserId !== id;
+  const normalizedRole = currentUserRole?.trim().toUpperCase();
+
+  const canEditRole =
+    (normalizedRole === "OWNER" || normalizedRole === "ADMIN") &&
+    currentUserId !== id;
 
   return (
     <div className="w-full flex items-center justify-between">
@@ -80,24 +85,48 @@ const UserRow = ({
 };
 
 const AccessControl = () => {
-  const [inviteUser, { isLoading: isInviting }] = useInviteUserMutation();
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("MEMBER"); // default role
-
-  const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState(null);
-
-  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
-
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingChange, setPendingChange] = useState(null);
-  // { userId, newRole, name }
-  const currentUserId = "07d3a5d7-2708-4c04-8408-3575a87314fc"; // TODO: get from auth
-  const currentUserRole = "OWNER"; // TODO: get from profile / session
+  const {
+    data: profile,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+  } = useGetUserProfileQuery();
 
   const { data, isLoading, isError } = useGetUsersQuery();
 
-  console.log(data);
+  const [inviteUser, { isLoading: isInviting }] = useInviteUserMutation();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("MEMBER");
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingChange, setPendingChange] = useState(null);
+  const [inviteLink, setInviteLink] = useState("");
+
+  if (isProfileLoading) {
+    return (
+      <>
+        <MainNavbar />
+        <main className="p-10">Loading...</main>
+      </>
+    );
+  }
+
+  if (isProfileError || !profile) {
+    return (
+      <>
+        <MainNavbar />
+        <main className="p-10 text-red-600">Failed to load profile</main>
+      </>
+    );
+  }
+
+  const currentUserId = profile.userId;
+  const currentUserRole = profile.role?.trim().toUpperCase(); // 👈 normalize
+
+  const canManageUsers =
+    currentUserRole === "ADMIN" || currentUserRole === "OWNER";
 
   return (
     <>
@@ -109,9 +138,12 @@ const AccessControl = () => {
             <h1 className=" text-4xl font-bold">Access Control</h1>
             <p className=" text-gray-700 text-lg">Manage your team and roles</p>
           </div>
-          <Button leftIcon={<Plus />} onClick={() => setIsInviteOpen(true)}>
-            Invite Member
-          </Button>
+
+          {canManageUsers && (
+            <Button leftIcon={<Plus />} onClick={() => setIsInviteOpen(true)}>
+              Invite Member
+            </Button>
+          )}
         </header>
 
         <section className="p-10 flex flex-col gap-8">
@@ -133,6 +165,7 @@ const AccessControl = () => {
               currentUserId={currentUserId}
               currentUserRole={currentUserRole}
               onChangeRole={(newRole) => {
+                if (!canManageUsers) return;
                 setPendingChange({
                   userId: user.userId,
                   newRole,
@@ -162,7 +195,7 @@ const AccessControl = () => {
             </div>
 
             {/* Body */}
-            <div className="p-6">
+            {/* <div className="p-6">
               <input
                 type="email"
                 placeholder="Enter an email address..."
@@ -170,29 +203,73 @@ const AccessControl = () => {
                 onChange={(e) => setInviteEmail(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-200"
               />
+            </div> */}
+
+            {/* Body */}
+            <div className="p-6">
+              {!inviteLink ? (
+                <input
+                  type="email"
+                  placeholder="Enter an email address..."
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
+              ) : (
+                <div className="mt-4 p-3 bg-gray-50 border rounded-lg flex items-center gap-3">
+                  <input
+                    type="text"
+                    readOnly
+                    value={inviteLink}
+                    className="flex-1 bg-transparent outline-none text-sm text-gray-700"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(inviteLink);
+                      // optional: toast.success("Link copied!");
+                    }}
+                  >
+                    Copy
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Footer */}
             <div className="flex justify-between gap-4 px-6 py-4 border-t">
-              <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsInviteOpen(false);
+                  setInviteLink("");
+                  setInviteEmail("");
+                }}
+              >
                 Cancel
               </Button>
               <Button
                 className="w-full"
                 disabled={isInviting || !inviteEmail}
                 onClick={async () => {
+                  if (!canManageUsers) return;
+
                   try {
-                    await inviteUser({
+                    const result = await inviteUser({
                       email: inviteEmail,
                       role: inviteRole,
                     }).unwrap();
 
-                    setIsInviteOpen(false);
+                    // 👇 Adjust this key based on your API response
+                    const link = result.signupLink;
+
+                    setInviteLink(link || "");
+
+                    // keep modal open so admin can copy the link
                     setInviteEmail("");
                     setInviteRole("MEMBER");
                   } catch (err) {
                     console.error("Invite failed", err);
-                    // optionally show toast here
                   }
                 }}
               >
@@ -234,13 +311,14 @@ const AccessControl = () => {
               <Button
                 className="w-full"
                 onClick={async () => {
+                  if (!canManageUsers) return;
+
                   await updateUser({
                     userId: pendingChange.userId,
                     role: pendingChange.newRole,
                   });
                   setConfirmOpen(false);
                   setPendingChange(null);
-                  disabled = { isUpdating };
                 }}
               >
                 {isUpdating ? "Updating..." : "Yes, Change Role"}
