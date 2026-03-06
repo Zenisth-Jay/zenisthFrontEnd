@@ -1,45 +1,45 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { supabase } from "../supabase/supabaseClient"; //
+import { baseQueryWithAuth } from "./baseQueryWithAuth";
 
+// URLs
+const HISTORY_BATCH_URLS = {
+  translate: import.meta.env.VITE_GET_TRANSLATE_HISTORY_BATCH_URL,
+  idp: import.meta.env.VITE_GET_IDP_HISTORY_BATCH_URL,
+};
+
+const HISTORY_FILES_URLS = {
+  translate: import.meta.env.VITE_GET_TRANSLATE_HISTORY_FILES_URL,
+  idp: import.meta.env.VITE_GET_IDP_HISTORY_FILES_URL,
+};
+
+// MAIN Endpoints
 export const historyBatchApi = createApi({
   reducerPath: "historyBatchApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL,
-    // --- ADD THE JWT INJECTOR ---
-    prepareHeaders: async (headers) => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession(); //
-      if (session?.access_token) {
-        headers.set("Authorization", `Bearer ${session.access_token}`); //
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuth,
   tagTypes: ["HistoryBatches"],
+
   endpoints: (builder) => ({
-    // GET translation history batches (paginated)
+    // GET HISTORY BATCHES (paginated)
     getHistoryBatches: builder.query({
-      query: ({ page = 1, limit = 10, appType = "translate" }) =>
-        `/${appType}/?page=${page}&limit=${limit}`,
+      query: ({ page = 1, limit = 10, appType = "translate" }) => ({
+        url: `${HISTORY_BATCH_URLS[appType]}/${appType}/?page=${page}&limit=${limit}`,
+      }),
       providesTags: ["HistoryBatches"],
     }),
 
-    // GET files for a batch (paginated)
+    // GET HISTORY FILES OF A BATCH (paginated)
     getBatchFiles: builder.query({
-      query: ({ jobId, page = 1, limit = 10, appType = "translate" }) =>
-        `/${appType}/${jobId}?page=${page}&limit=${limit}`,
+      query: ({ jobId, page = 1, limit = 10, appType = "translate" }) => ({
+        url: `${HISTORY_FILES_URLS[appType]}/${appType}/${jobId}?page=${page}&limit=${limit}`,
+      }),
     }),
 
-    // Status of a job
-    // getJobStatus: builder.query({
-    //   query: ({ jobId, appType = "translate" }) =>
-    //     `/${appType}?job_id=${jobId}`,
-    // }),
-
-    // Status of a job
+    //  STATUS OF A JOB - FOR STATUS PAGE
     getJobStatus: builder.query({
-      query: ({ jobId, appType = "translate" }) => `/${appType}/${jobId}`,
+      query: ({ jobId, appType = "translate" }) => ({
+        url: `${HISTORY_FILES_URLS[appType]}/${appType}/${jobId}`,
+      }),
     }),
   }),
 });

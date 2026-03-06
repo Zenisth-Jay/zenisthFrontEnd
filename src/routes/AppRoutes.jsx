@@ -29,6 +29,7 @@ import Translating from "../pages/translation/Translating";
 import CreateTag from "../pages/translation/CreateTag";
 import CreditManage from "../pages/main/CreditManage";
 import ViewTag from "../pages/translation/ViewTag";
+import DocumentHistory from "../pages/menuPages/operationMenu/DocumentHistory";
 
 const AppRoutes = () => {
   return (
@@ -61,6 +62,11 @@ const AppRoutes = () => {
       <Route
         path="/operations/:toolType/tags-library"
         element={<TagLibrary />}
+      />
+
+      <Route
+        path="/operations/document-history"
+        element={<DocumentHistory />}
       />
 
       {/* Resources Menu */}

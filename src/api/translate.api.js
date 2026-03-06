@@ -1,25 +1,21 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { supabase } from "../supabase/supabaseClient"; //
+import { baseQueryWithAuth } from "./baseQueryWithAuth";
+
+const JOB_DISPATCHER_URL = {
+  TRANSLATE: import.meta.env.VITE_TRANSLATE_JOB_DISPATCHER,
+  IDP: import.meta.env.VITE_IDP_JOB_DISPATCHER,
+};
 
 export const translateApi = createApi({
   reducerPath: "translateApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL,
-    // --- ADD THE JWT INJECTOR ---
-    prepareHeaders: async (headers) => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession(); //
-      if (session?.access_token) {
-        headers.set("Authorization", `Bearer ${session.access_token}`); //
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuth,
+
   endpoints: (builder) => ({
+    // START TRANSLATE OR IDP JOB
     startJob: builder.mutation({
       query: ({ tagId, application, cost }) => ({
-        url: application === "IDP" ? "/idp" : "/translate",
+        url: `${JOB_DISPATCHER_URL[application]}${application == "IDP" ? "/idp" : "/translate"}`,
         method: "POST",
         body: {
           tag_id: tagId,

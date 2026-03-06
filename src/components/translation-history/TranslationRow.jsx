@@ -52,7 +52,7 @@ const TranslationRow = ({ row }) => {
     isLoading: isFilesLoading,
     isError: isFilesError,
   } = useGetBatchFilesQuery(
-    { jobId: row.id, page: childPage, limit: childPageSize },
+    { jobId: row.id, page: childPage, limit: childPageSize, appType: toolType },
     { skip: !open }, // 👈 only fetch when open
   );
 

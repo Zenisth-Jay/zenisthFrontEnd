@@ -271,7 +271,7 @@ const CreditManage = () => {
                   setSearchParams(params);
                 }}
                 className="text-indigo-500 font-medium hover:underline cursor-pointer transition-colors"
-              >
+              > 
                 View All
               </button>
             </div>

@@ -127,46 +127,6 @@ const CreateTag = () => {
     };
   };
 
-  // const onSubmit = async (data) => {
-  //   try {
-  //     const glossaryOutput = await buildGlossaryOutput();
-
-  //     const ORGANIZATION_ID = "7b2f5a9c-3c3e-4e9c-8d4b-1c7f9b123456";
-  //     const APPLICATION_ID = "TRANSLATION"; // for query param
-  //     const TAB = "DEFAULT";
-
-  //     const body = {
-  //       name: data.tagName, // from form
-  //       tag_type: "TRANSLATION",
-  //       orgId: ORGANIZATION_ID,
-  //       sourceLanguage: data.sourceLanguage,
-  //       targetLanguage: data.targetLanguage,
-  //       applicationId: "app_translation_007", // as per your backend
-  //       glossaryContent: glossaryOutput.records, // 👈 object {a:1,b:2}
-  //       industry: data.tagCategory, // mapping Tag Category -> industry
-  //       description: data.description,
-  //       field_count: glossaryOutput.length, // 👈 number of glossary entries
-  //     };
-
-  //     console.log("CREATE TAG BODY 👉", body);
-
-  //     await createTag({
-  //       organizationId: ORGANIZATION_ID,
-  //       applicationId: APPLICATION_ID,
-  //       tab: TAB,
-  //       body,
-  //     }).unwrap();
-
-  //     toast.success("Tag created successfully!");
-
-  //     // redirect
-  //     navigate("/operations/translate/select-tag");
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error(err?.data?.message || "Failed to create tag");
-  //   }
-  // };
-
   const getOriginalFormat = (file) => {
     const name = file.name.toLowerCase();
 
@@ -174,7 +134,11 @@ const CreateTag = () => {
     if (name.endsWith(".json")) return "JSON";
     if (name.endsWith(".xml")) return "XML";
 
-    return "UNKNOWN";
+    if (name.endsWith(".jpg")) return "JPG";
+    if (name.endsWith(".jpeg")) return "JPEG";
+    if (name.endsWith(".png")) return "PNG";
+
+    return null;
   };
 
   const onSubmit = async (data) => {
@@ -223,7 +187,7 @@ const CreateTag = () => {
           s3Key: key, // ✅ correct
         };
 
-        console.log("IDP CREATE TAG BODY 👉", body);
+        // console.log("IDP CREATE TAG BODY 👉", body);
 
         await createTag({
           organizationId: ORGANIZATION_ID,
@@ -264,7 +228,7 @@ const CreateTag = () => {
       }).unwrap();
 
       toast.success("Tag created successfully!");
-      navigate("/operations/translate/select-tag");
+      navigate(-1);
     } catch (err) {
       console.error(err);
       toast.error(err?.data?.message || "Failed to create tag");
@@ -292,13 +256,20 @@ const CreateTag = () => {
 
     // Type check
     const ALLOWED_TYPES = isIdp
-      ? ["text/csv", "application/json", "application/xml", "text/xml"]
+      ? [
+          "text/csv",
+          "application/json",
+          "application/xml",
+          "text/xml",
+          "image/jpeg",
+          "image/png",
+        ]
       : ["text/csv"];
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       toast.error(
         isIdp
-          ? "Only CSV, JSON, and XML files are allowed"
+          ? "Only CSV, JSON, XML, jpg, jpeg and png files are allowed"
           : "Only CSV files are allowed",
       );
       return;
@@ -326,7 +297,7 @@ const CreateTag = () => {
         <input
           ref={fileInputRef}
           type="file"
-          accept={isIdp ? ".csv,.json,.xml" : ".csv"}
+          accept={isIdp ? ".csv,.json,.xml,.jpg,.jpeg,.png" : ".csv"}
           hidden
           onChange={(e) => {
             handleGlossaryFiles(e.target.files);
@@ -504,7 +475,7 @@ const CreateTag = () => {
                     title={`Drag and drop your ${isIdp ? "documents" : "glossaries"} here, or click to browse`}
                     supportedText={
                       isIdp
-                        ? "Supported formats: CSV, JSON, XML"
+                        ? "Supported formats: JPG, JPEG, PNG, CSV, JSON, XML"
                         : "Supported formats: CSV"
                     }
                     helperText="Max file size: 2 GB, Max glossaries: 250"

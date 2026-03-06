@@ -34,6 +34,13 @@ const TranslationTag = ({
 
   const navigate = useNavigate();
 
+  const tooltipMessage =
+    tag.status == "PROCESSING"
+      ? "Schema is generating. Please wait a few seconds..."
+      : tag.status == "FAILED"
+        ? "Schema generation failed. Please create another tag."
+        : "";
+
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -46,86 +53,110 @@ const TranslationTag = ({
 
   return (
     <div
-      className={`${width} h-50 p-4 bg-white rounded-xl flex flex-col justify-between cursor-pointer hover:shadow-md transition
+      className={` group relative ${width} h-50 p-4 bg-white rounded-xl flex flex-col justify-between  hover:shadow-md transition
         ${
           isSelected
             ? "border-2 border-indigo-600 shadow-md"
             : "border border-indigo-200 hover:shadow-md"
         }
+        ${idp && tag.status == "COMPLETED" && " cursor-pointer"}
+        ${idp && tag.status == "PROCESSING" && "opacity-90 cursor-not-allowed hover:shadow-none"}
+        ${idp && tag.status == "FAILED" && "opacity-90 border-red-400 bg-red-200 cursor-not-allowed"}
       `}
-      onClick={() => onSelect?.(tag)}
+      onClick={() => tag.status == "COMPLETED" && onSelect?.(tag)}
     >
+      {(tag.status == "PROCESSING" || tag.status == "FAILED") && (
+        <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg">
+          {tooltipMessage}
+        </div>
+      )}
+
       {/* Row 1: Title + Actions */}
       <div className="flex justify-between">
-        <div className=" text-black text-lg font-medium truncate">
-          {tag.name}
+        <div className="flex flex-wrap justify-between w-full text-black text-lg font-medium truncate">
+          <div className="w-[60%] truncate">{tag.name}</div>
+
+          {tag.status == "PROCESSING" && (
+            <span className=" flex justify-center items-center text-xs px-3 py-2 bg-yellow-100 text-yellow-700 rounded-full">
+              Processing
+            </span>
+          )}
+
+          {tag.status == "FAILED" && (
+            <span className=" flex items-center justify-center text-xs px-3 py-1.5 bg-red-100 text-red-700 rounded-full">
+              Failed
+            </span>
+          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite?.(tag);
-            }}
-          >
-            <Star
-              size={20}
-              strokeWidth={1.5}
-              className={`${isFavorite ? "text-[#FBC02D]" : "text-[#262938]"} transform transition-all duration-200 ease-out 
-             hover:scale-105 active:scale-95`}
-              fill={isFavorite ? "#FBC02D" : "none"}
-            />
-          </button>
-
-          {/* <MoreVertical size={22} className="text-gray-600" /> */}
-          <div className="relative" ref={menuRef}>
+        {tag.status == "COMPLETED" && (
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={(e) => {
-                e.stopPropagation(); // prevent card click
-                setMenuOpen((o) => !o);
+                e.stopPropagation();
+                onToggleFavorite?.(tag);
               }}
-              className="p-1 rounded-full hover:bg-gray-100"
+              disabled={tag.status != "COMPLETED"}
             >
-              <MoreVertical size={22} className="text-gray-600" />
+              <Star
+                size={20}
+                strokeWidth={1.5}
+                className={`${isFavorite ? "text-[#FBC02D]" : "text-[#262938]"} transform transition-all duration-200 ease-out 
+             hover:scale-105 active:scale-95`}
+                fill={isFavorite ? "#FBC02D" : "none"}
+              />
             </button>
 
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuOpen(false);
-                    // TODO: handle view
-                    navigate(
-                      `/operations/${idp ? "idp" : "translate"}/tag/view/${tag.id}`,
-                    );
-                  }}
-                >
-                  <Eye size={16} className="text-gray-600" />
-                  View
-                </button>
+            {/* <MoreVertical size={22} className="text-gray-600" /> */}
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation(); // prevent card click
+                  setMenuOpen((o) => !o);
+                }}
+                className="p-1 rounded-full hover:bg-gray-100"
+              >
+                <MoreVertical size={22} className="text-gray-600" />
+              </button>
 
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuOpen(false);
-                    // TODO: handle edit
-                    navigate(
-                      `/operations/${idp ? "idp" : "translate"}/tag/edit/${tag.id}`,
-                    );
-                  }}
-                >
-                  <Edit size={16} className="text-gray-600" />
-                  Edit
-                </button>
-              </div>
-            )}
+              {menuOpen && (
+                <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                  <button
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpen(false);
+                      // TODO: handle view
+                      navigate(
+                        `/operations/${idp ? "idp" : "translate"}/tag/view/${tag.id}`,
+                      );
+                    }}
+                  >
+                    <Eye size={16} className="text-gray-600" />
+                    View
+                  </button>
+
+                  <button
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpen(false);
+                      // TODO: handle edit
+                      navigate(
+                        `/operations/${idp ? "idp" : "translate"}/tag/edit/${tag.id}`,
+                      );
+                    }}
+                  >
+                    <Edit size={16} className="text-gray-600" />
+                    Edit
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Row 2: Languages + Type */}

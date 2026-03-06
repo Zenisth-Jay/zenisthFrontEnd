@@ -1,33 +1,22 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { supabase } from "../supabase/supabaseClient";
+import { baseQueryWithAuth } from "./baseQueryWithAuth";
 
 export const accessApi = createApi({
   reducerPath: "accessApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL, // AWS API for /users
-    prepareHeaders: async (headers) => {
-      // For AWS API (and also fine for Supabase)
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.access_token) {
-        headers.set("Authorization", `Bearer ${session.access_token}`);
-      }
-
-      headers.set("Content-Type", "application/json");
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuth,
   tagTypes: ["Users"],
+
   endpoints: (builder) => ({
-    // 1. GET all users (AWS)
+    // 1. GET ALL USER FOR ONE ORGANIZATION IN ACCESS CONTROL PAGE
     getUsers: builder.query({
-      query: () => `/users`,
+      query: () => ({
+        url: `${import.meta.env.VITE_GET_USERS_URL}/users`,
+      }),
       providesTags: ["Users"],
     }),
 
-    // 2. Invite user (Supabase Edge Function)
+    // 2. INVITE USER - ACCESS CONTROL PAGE - USING SUPABSE EDGE FUNCTION
     inviteUser: builder.mutation({
       query: ({ email, role }) => ({
         // IMPORTANT: full URL to edge function
@@ -46,10 +35,10 @@ export const accessApi = createApi({
       invalidatesTags: ["Users"],
     }),
 
-    // 3. Update user role (AWS)
+    // 3. UPDATE USER ROLE - ACCESS CONTROL PAGE
     updateUser: builder.mutation({
       query: ({ userId, role }) => ({
-        url: `/users`,
+        url: `${import.meta.env.VITE_UPDATE_USER_URL}/users`,
         method: "PUT",
         body: {
           user_id: userId, // backend expects this

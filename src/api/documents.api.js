@@ -2,7 +2,10 @@ import api from "./axios"; // Use our custom instance with the interceptor
 import axios from "axios";
 
 export const createDocumentAPI = (payload) => {
-  return api.post("/documents", payload); // Now includes the Authorization header
+  return api.post(
+    `${import.meta.env.VITE_INITIAL_DOCUMENT_UPLOAD}/documents`,
+    payload,
+  );
 };
 
 export const uploadToS3 = async (uploadUrl, file, onProgress) => {

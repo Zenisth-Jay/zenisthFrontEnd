@@ -1,56 +1,52 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { supabase } from "../supabase/supabaseClient"; //
+import { baseQueryWithAuth } from "./baseQueryWithAuth";
 
 export const tagsApi = createApi({
   reducerPath: "tagsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL,
-    prepareHeaders: async (headers) => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession(); //
-      if (session?.access_token) {
-        headers.set("Authorization", `Bearer ${session.access_token}`); //
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuth,
   tagTypes: ["Tags"],
+
   endpoints: (builder) => ({
-    // 1. GET all translation tags (organizationId removed)
+    // 1. GET ALL TAGS
     getTags: builder.query({
-      query: ({ applicationId }) => `/tags?applicationId=${applicationId}`, //
+      query: ({ applicationId }) => ({
+        url: `${import.meta.env.VITE_GET_TAGS_URL}/tags?applicationId=${applicationId}`,
+      }),
       providesTags: ["Tags"],
     }),
 
+    // GET SPECIFIC TAG BY TAG-ID
     getTagById: builder.query({
-      query: (tagId) => `/tags/${tagId}`,
+      query: (tagId) => ({
+        url: `${import.meta.env.VITE_GET_SPECIFIC_TAG_URL}/tags/${tagId}`,
+      }),
     }),
 
-    // Update Tag
+    // UPDATE SPECIFIC TAG
     updateTag: builder.mutation({
       query: ({ id, body }) => ({
-        url: `/tags/${id}`,
+        url: `${import.meta.env.VITE_UPDATE_SPECIFIC_TAG}/tags/${id}`,
         method: "PUT",
         body,
       }),
       invalidatesTags: (result, error, { id }) => [{ type: "Tag", id }],
     }),
 
-    // 2. Toggle favorite
+    // TOGGLE FAVOURITE - STAR
     toggleFavoriteTag: builder.mutation({
       query: ({ id, isFavorite }) => ({
-        url: `/tags/${id}`,
+        url: `${import.meta.env.VITE_UPDATE_SPECIFIC_TAG}/tags/${id}`,
         method: "PUT",
         body: { isFavorite },
       }),
       invalidatesTags: ["Tags"],
     }),
 
-    // 3. Create Tag (organizationId removed)
+    // CREATE TAG
     createTag: builder.mutation({
       query: ({ applicationId, tab, body }) => ({
-        url: `/tags?applicationId=${applicationId}&tab=${tab}`, //
+        url: `${import.meta.env.VITE_CREATE_TAG_URL}/tags?applicationId=${applicationId}&tab=${tab}`, //
         method: "POST",
         body,
       }),
@@ -60,7 +56,7 @@ export const tagsApi = createApi({
     // 4. File upload for IDP
     uploadIdpFile: builder.mutation({
       query: (formData) => ({
-        url: "/idp/upload",
+        url: `${import.meta.env.VITE_INITIAL_DOCUMENT_UPLOAD}/idp/upload`,
         method: "POST",
         body: formData,
       }),

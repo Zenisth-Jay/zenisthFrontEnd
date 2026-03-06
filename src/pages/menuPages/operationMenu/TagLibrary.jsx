@@ -72,6 +72,8 @@ const TagLibrary = () => {
     isLoading,
     isError,
   } = useGetTagsQuery({ organizationId, applicationId });
+
+  console.log("Fetched Tags:", tags);
   // const { data: tags = [], isLoading, isError } = useGetTagsQuery();
 
   const [updateTag] = useUpdateTagMutation();
