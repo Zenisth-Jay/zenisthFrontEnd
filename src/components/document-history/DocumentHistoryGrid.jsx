@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChevronDown, Folder, MoreVertical, Trash2 } from "lucide-react";
 import ConfigurableTable from "../ui/ConfigurableTable";
 import { Pill } from "../ui/ConfigurableTable";
 import { VARIANTS } from "../../data/variants";
 import Pagination from "../ui/Pagination";
 import DocumentHistoryExpandable from "./DocumentHistoryExpandable";
+import { useGetDocumentHistoryBatchesQuery } from "../../api/documentHistory.api";
 
 const FOLDER_MENU_OPTIONS = [
   // { id: "select", label: "Select Document" },
@@ -17,6 +18,7 @@ const FOLDER_MENU_OPTIONS = [
 function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -28,10 +30,23 @@ function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const toolType =
+    row.operation === "Translation" ? "translate" : "idp";
+
   const handleMenuAction = (optionId) => {
     setMenuOpen(false);
-    // TODO: wire to real handlers (Select Document, View Document, Continue operation, Add More Document)
-    console.log("Folder action:", optionId, row);
+
+    if (optionId === "view" || optionId === "add") {
+      const batchId = row.id;
+      navigate(`/operations/${toolType}/preview?batch_id=${batchId}`);
+      return;
+    }
+
+    if (optionId === "continue") {
+      const batchId = row.id;
+      navigate(`/operations/${toolType}/select-tag?batch_id=${batchId}`);
+      return;
+    }
   };
 
   return (
@@ -85,129 +100,62 @@ function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
   );
 }
 
-const FAKE_ROWS = [
-  {
-    id: "batch-1",
-    name: "Batch_08_12_2025_1819",
-    uploadedAt: "Uploaded 08/12/25 at 18:19",
-    documentsCount: 47,
-    operation: "Translation",
-    status: "Completed",
-    statusVariant: "completed",
-    credits: 2500,
-    size: "5 MB",
-    uploadedBy: "Arjun Patel",
-  },
-  {
-    id: "doc-1",
-    name: "Marketing_Value.doc",
-    uploadedAt: "Uploaded 07/12/25 at 14:30",
-    documentsCount: 1,
-    operation: "Translation",
-    status: "Completed",
-    statusVariant: "completed",
-    credits: 2000,
-    size: "4 MB",
-    uploadedBy: "Tarun Patel",
-  },
-  {
-    id: "doc-2",
-    name: "Sales_Report_Q3.xlsx",
-    uploadedAt: "Uploaded 06/12/25 at 09:15",
-    documentsCount: 1,
-    operation: "Extraction",
-    status: "Failed",
-    statusVariant: "failed",
-    credits: 100,
-    size: "200 KB",
-    uploadedBy: "Alice Johnson",
-  },
-  {
-    id: "batch-2",
-    name: "Batch_05_12_2025_1022",
-    uploadedAt: "Uploaded 05/12/25 at 10:22",
-    documentsCount: 12,
-    operation: "Translation",
-    status: "Completed",
-    statusVariant: "completed",
-    credits: 800,
-    size: "10 MB",
-    uploadedBy: "Arjun Patel",
-  },
-  {
-    id: "doc-3",
-    name: "Contract_Draft.pdf",
-    uploadedAt: "Uploaded 04/12/25 at 16:45",
-    documentsCount: 1,
-    operation: "Translation",
-    status: "Completed",
-    statusVariant: "completed",
-    credits: 150,
-    size: "210 KB",
-    uploadedBy: "Tarun Patel",
-  },
-  {
-    id: "batch-3",
-    name: "Batch_05_12_2025_1022",
-    uploadedAt: "Uploaded 05/12/25 at 10:22",
-    documentsCount: 12,
-    operation: "Translation",
-    status: "Completed",
-    statusVariant: "completed",
-    credits: 800,
-    size: "10 MB",
-    uploadedBy: "Arjun Patel",
-  },
-  {
-    id: "doc-5",
-    name: "Contract_Draft.pdf",
-    uploadedAt: "Uploaded 04/12/25 at 16:45",
-    documentsCount: 1,
-    operation: "Translation",
-    status: "Completed",
-    statusVariant: "completed",
-    credits: 150,
-    size: "210 KB",
-    uploadedBy: "Tarun Patel",
-  },
-  {
-    id: "batch-4",
-    name: "Batch_05_12_2025_1022",
-    uploadedAt: "Uploaded 05/12/25 at 10:22",
-    documentsCount: 12,
-    operation: "Translation",
-    status: "Completed",
-    statusVariant: "completed",
-    credits: 800,
-    size: "10 MB",
-    uploadedBy: "Arjun Patel",
-  },
-  {
-    id: "doc-8",
-    name: "Contract_Draft.pdf",
-    uploadedAt: "Uploaded 04/12/25 at 16:45",
-    documentsCount: 1,
-    operation: "Translation",
-    status: "Completed",
-    statusVariant: "completed",
-    credits: 150,
-    size: "210 KB",
-    uploadedBy: "Tarun Patel",
-  },
-];
-
-const PAGE_SIZE = 5;
-
 // ########################################   Main Function   ######################
 const DocumentHistoryGrid = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get("page") || 1);
 
-  const totalPages = Math.ceil(FAKE_ROWS.length / PAGE_SIZE);
-  const currentRows = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return FAKE_ROWS.slice(start, start + PAGE_SIZE);
-  }, [page]);
+  const PAGE_SIZE = 5;
+
+  const {
+    data: batchData,
+    isLoading: batchLoading,
+    isError: BatchError,
+  } = useGetDocumentHistoryBatchesQuery({
+    page,
+    limit: PAGE_SIZE,
+  });
+
+  console.log(batchData);
+
+  const totalPages = batchData?.pagination?.total_pages || 1;
+
+  // const totalPages = Math.ceil(FAKE_ROWS.length / PAGE_SIZE);
+  // const currentRows = useMemo(() => {
+  //   const start = (page - 1) * PAGE_SIZE;
+  //   return FAKE_ROWS.slice(start, start + PAGE_SIZE);
+  // }, [page]);
+
+  const rows = useMemo(() => {
+    if (!batchData?.data) return [];
+
+    return batchData.data.map((batch) => ({
+      id: batch.batch_id,
+      name: batch.batch_name,
+
+      uploadedAt: `Uploaded ${new Date(batch.created_at).toLocaleDateString()} at ${new Date(
+        batch.created_at,
+      ).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`,
+
+      documentsCount: batch.document_count,
+      operation: batch.operation,
+
+      status: batch.status,
+      statusVariant:
+        batch.status === "Completed"
+          ? "completed"
+          : batch.status === "Failed"
+            ? "failed"
+            : "neutral",
+
+      credits: batch.total_credits,
+      size: `${batch.total_size_mb} MB`,
+      uploadedBy: batch.uploaded_by,
+    }));
+  }, [batchData]);
 
   const columns = useMemo(
     () => [
@@ -287,13 +235,6 @@ const DocumentHistoryGrid = () => {
           <span className=" text-lg font-normal  text-gray-600">{val}</span>
         ),
       },
-      // {
-      //   key: "actions",
-      //   header: "Actions",
-      //   width: "1fr",
-      //   align: "center",
-      //   type: "actions",
-      // },
       {
         key: "actions",
         header: "Actions",
@@ -315,7 +256,9 @@ const DocumentHistoryGrid = () => {
   return (
     <ConfigurableTable
       columns={columns}
-      rows={currentRows}
+      rows={rows}
+      loading={batchLoading}
+      error={BatchError}
       expandableRender={(row) => <DocumentHistoryExpandable row={row} />}
       pagination={<Pagination totalPages={totalPages} />}
       emptyMessage="No documents found."

@@ -34,7 +34,7 @@ const UploadedFilesGrid = ({
         {files.map((item) => (
           <Document
             key={item.id}
-            file={item.file}
+            file={item.file ?? item}
             onDelete={() => onRemoveFile?.(item)}
             onPreview={() => onPreviewFile?.(item)}
           />

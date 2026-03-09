@@ -10,6 +10,7 @@ import { historyBatchApi } from "../api/HistoryBatch.api";
 import { creditManageApi } from "../api/creditManage.api";
 import { userProfileApi } from "../api/userProfile.api";
 import { accessApi } from "../api/access.api";
+import { documentHistoryApi } from "../api/documentHistory.api";
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     [creditManageApi.reducerPath]: creditManageApi.reducer,
     [userProfileApi.reducerPath]: userProfileApi.reducer,
     [accessApi.reducerPath]: accessApi.reducer,
+    [documentHistoryApi.reducerPath]: documentHistoryApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -37,5 +39,6 @@ export const store = configureStore({
       creditManageApi.middleware,
       userProfileApi.middleware,
       accessApi.middleware,
+      documentHistoryApi.middleware,
     ),
 });

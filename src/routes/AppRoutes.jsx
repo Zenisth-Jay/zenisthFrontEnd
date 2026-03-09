@@ -30,6 +30,7 @@ import CreateTag from "../pages/translation/CreateTag";
 import CreditManage from "../pages/main/CreditManage";
 import ViewTag from "../pages/translation/ViewTag";
 import DocumentHistory from "../pages/menuPages/operationMenu/DocumentHistory";
+import DocumentPreview from "../pages/menuPages/operationMenu/DocumentPreview";
 
 const AppRoutes = () => {
   return (
@@ -116,6 +117,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/operations/:toolType/preview"
+        element={
+          <ProtectedRoute>
+            <DocumentPreview />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/operations/:toolType/select-tag"
         element={

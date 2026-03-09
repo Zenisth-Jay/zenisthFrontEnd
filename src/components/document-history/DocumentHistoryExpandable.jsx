@@ -1,53 +1,8 @@
 import { useState, useMemo } from "react";
 import { FileText, Trash2 } from "lucide-react";
 import ExpandableTableSection from "../ui/ExpandableTableSection";
+import { useGetDocumentHistoryFilesQuery } from "../../api/documentHistory.api";
 
-const CHILD_PAGE_SIZE = 5;
-
-function rowAsChildDocument(parentRow) {
-  return {
-    id: `${parentRow.id}-child-0`,
-    name: parentRow.name,
-    uploadedAt: parentRow.uploadedAt,
-    operation: parentRow.operation,
-    status: parentRow.status,
-    statusVariant: parentRow.statusVariant,
-    credits: parentRow.credits,
-    size: parentRow.size,
-    uploadedBy: parentRow.uploadedBy,
-  };
-}
-
-function getFakeChildDocuments(parentRow, page) {
-  const count = parentRow.documentsCount ?? 12;
-  const start = (page - 1) * CHILD_PAGE_SIZE;
-  const names = [
-    "Report_2025.pdf",
-    "Summary.docx",
-    "Data_Export.xlsx",
-    "Notes.txt",
-    "Draft_v2.pdf",
-  ];
-  return Array.from(
-    { length: Math.min(CHILD_PAGE_SIZE, Math.max(0, count - start)) },
-    (_, i) => {
-      const idx = start + i;
-      return {
-        id: `${parentRow.id}-child-${idx}`,
-        name: names[i % names.length] || `Document_${idx}.pdf`,
-        uploadedAt: `Uploaded ${new Date(Date.now() - (idx + 1) * 3600000).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })} at ${String(10 + (idx % 12)).padStart(2, "0")}:${String((idx * 7) % 60).padStart(2, "0")}`,
-        operation: parentRow.operation,
-        status: idx % 4 === 0 ? "Failed" : "Successful",
-        statusVariant: idx % 4 === 0 ? "failed" : "successful",
-        credits: [50, 100, 200, 150][idx % 4],
-        size: ["200 KB", "1.2 MB", "800 KB", "210 KB"][idx % 4],
-        uploadedBy: parentRow.uploadedBy,
-      };
-    },
-  );
-}
-
-// Same column shape as main table (width per column — grid is built from this)
 const EXPANDABLE_COLUMNS = [
   {
     key: "name",
@@ -131,19 +86,57 @@ const EXPANDABLE_COLUMNS = [
   },
 ];
 
+const CHILD_PAGE_SIZE = 5;
+
 export default function DocumentHistoryExpandable({ row }) {
   const [childPage, setChildPage] = useState(1);
-  const documentsCount = row.documentsCount ?? 0;
-  const isSingleFile = documentsCount <= 1;
+
+  const {
+    data: filesData,
+    isLoading: filesLoading,
+    isError: filesError,
+  } = useGetDocumentHistoryFilesQuery({
+    batch_id: row.id,
+    page: childPage,
+    limit: CHILD_PAGE_SIZE,
+  });
+
+  console.log(filesData);
 
   const childRows = useMemo(() => {
-    if (isSingleFile) return [rowAsChildDocument(row)];
-    return getFakeChildDocuments(row, childPage);
-  }, [row, childPage, isSingleFile]);
+    if (!filesData?.data) return [];
 
-  const childTotalPages = isSingleFile
-    ? 1
-    : Math.ceil(documentsCount / CHILD_PAGE_SIZE);
+    return filesData.data.map((file) => ({
+      id: file.id,
+      name: file.filename,
+
+      uploadedAt: `Uploaded ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString(
+        [],
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+        },
+      )}`,
+
+      operation: file.operation,
+
+      status: file.status,
+      statusVariant:
+        file.status === "UPLOADED" || file.status === "COMPLETED"
+          ? "successful"
+          : file.status === "FAILED"
+            ? "failed"
+            : "neutral",
+
+      credits: file.credits,
+
+      size: `${file.size ?? 0}`,
+
+      uploadedBy: row.uploadedBy,
+    }));
+  }, [filesData, row]);
+
+  const childTotalPages = filesData?.pagination?.total_pages || 1;
 
   const childStart = Math.max(1, childPage - 2);
   const childEnd = Math.min(childTotalPages, childPage + 2);
@@ -211,6 +204,26 @@ export default function DocumentHistoryExpandable({ row }) {
         </button>
       </>
     ) : null;
+
+  if (filesLoading) {
+    return (
+      <ExpandableTableSection
+        rows={[]}
+        columns={EXPANDABLE_COLUMNS}
+        emptyMessage="Loading files..."
+      />
+    );
+  }
+
+  if (filesError) {
+    return (
+      <ExpandableTableSection
+        rows={[]}
+        columns={EXPANDABLE_COLUMNS}
+        emptyMessage="Failed to load files."
+      />
+    );
+  }
 
   return (
     <ExpandableTableSection

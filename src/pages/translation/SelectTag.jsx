@@ -12,7 +12,7 @@ import {
   useToggleFavoriteTagMutation,
   useUpdateTagMutation,
 } from "../../api/tags.api";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { clearUploads } from "../../redux/features/uploadSlice";
@@ -25,6 +25,9 @@ const SelectTag = () => {
   // fetch tool
   const { toolType } = useParams();
   const isIdp = toolType == "idp";
+
+  const [searchParams] = useSearchParams();
+  const batch_id = searchParams.get("batch_id");
 
   // Stpes For the stepper : 1,2,3,4
   const STEPS = [
@@ -113,7 +116,7 @@ const SelectTag = () => {
     isLoading: isBatchLoading,
     isError: isBatchError,
   } = useGetBatchSummaryQuery(
-    { application, userId },
+    { application, userId, batch_id },
     { skip: !hasCompletedBatch }, // only fetch after uploads complete
   );
 
@@ -379,6 +382,7 @@ const SelectTag = () => {
                                 tagId: selectedTag.id,
                                 application: isIdp ? "IDP" : "TRANSLATE",
                                 cost: batchSummary?.total_credits ?? "",
+                                batch_id: batch_id,
                               }).unwrap();
 
                               // console.log(

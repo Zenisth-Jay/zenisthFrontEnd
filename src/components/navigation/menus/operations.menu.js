@@ -1,4 +1,4 @@
-import { FileText, Clock, Tag } from "lucide-react";
+import { FileText, Clock, Tag, Files } from "lucide-react";
 
 export const operationsMenu = {
   title: "Translation Action",
@@ -20,6 +20,12 @@ export const operationsMenu = {
       description: "Manage translation tags",
       icon: Tag,
       path: "/operations/translate/tags-library",
+    },
+    {
+      label: "Document History",
+      description: "Manage Your Documents",
+      icon: Files,
+      path: "/operations/document-history",
     },
   ],
 };
@@ -44,6 +50,12 @@ export const operationsMenuIDP = {
       description: "Manage translation tags",
       icon: Tag,
       path: "/operations/idp/tags-library",
+    },
+    {
+      label: "Document History",
+      description: "Manage Your Documents",
+      icon: Files,
+      path: "/operations/document-history",
     },
   ],
 };

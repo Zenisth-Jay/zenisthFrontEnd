@@ -79,6 +79,15 @@ const uploadSlice = createSlice({
       // ✅ clear persisted batch
       localStorage.removeItem("uploadBatch");
     },
+
+    // When only existing (API) files: mark batch as complete so next page can do calculation
+    markBatchComplete(state) {
+      state.hasCompletedBatch = true;
+      localStorage.setItem(
+        "uploadBatch",
+        JSON.stringify({ hasCompletedBatch: true }),
+      );
+    },
   },
 });
 
@@ -90,6 +99,7 @@ export const {
   markSuccess,
   markError,
   clearUploads,
+  markBatchComplete,
 } = uploadSlice.actions;
 
 export default uploadSlice.reducer;
