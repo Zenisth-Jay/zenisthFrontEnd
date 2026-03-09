@@ -1,9 +1,13 @@
 import { useState, useMemo } from "react";
 import { FileText, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
 import ExpandableTableSection from "../ui/ExpandableTableSection";
-import { useGetDocumentHistoryFilesQuery } from "../../api/documentHistory.api";
+import {
+  useGetDocumentHistoryFilesQuery,
+  useDeleteDocumentMutation,
+} from "../../api/documentHistory.api";
 
-const EXPANDABLE_COLUMNS = [
+const getBaseColumns = (onDelete, isDeleting = false) => [
   {
     key: "name",
     width: "2fr",
@@ -72,12 +76,12 @@ const EXPANDABLE_COLUMNS = [
     render: (_, fileRow) => (
       <button
         type="button"
+        disabled={isDeleting}
         onClick={(e) => {
           e.stopPropagation();
-          // TODO: wire to delete file handler
-          console.log("Delete file:", fileRow.id, fileRow.name);
+          onDelete?.(fileRow);
         }}
-        className="p-1.5 rounded-md hover:bg-red-50 text-red-500 hover:text-red-600 transition-colors"
+        className="p-1.5 rounded-md hover:bg-red-50 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50 disabled:pointer-events-none"
         aria-label="Delete file"
       >
         <Trash2 size={20} className="text-red-500" />
@@ -91,6 +95,9 @@ const CHILD_PAGE_SIZE = 5;
 export default function DocumentHistoryExpandable({ row }) {
   const [childPage, setChildPage] = useState(1);
 
+  const [deleteDocument, { isLoading: isDeleting }] =
+    useDeleteDocumentMutation();
+
   const {
     data: filesData,
     isLoading: filesLoading,
@@ -101,7 +108,19 @@ export default function DocumentHistoryExpandable({ row }) {
     limit: CHILD_PAGE_SIZE,
   });
 
-  console.log(filesData);
+  const handleDeleteFile = async (fileRow) => {
+    try {
+      await deleteDocument({
+        doc_id: fileRow.id,
+        batch_id: row.id,
+      }).unwrap();
+      toast.success("Document deleted successfully.");
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to delete document.");
+    }
+  };
+
+  const columns = getBaseColumns(handleDeleteFile, isDeleting);
 
   const childRows = useMemo(() => {
     if (!filesData?.data) return [];
@@ -209,7 +228,7 @@ export default function DocumentHistoryExpandable({ row }) {
     return (
       <ExpandableTableSection
         rows={[]}
-        columns={EXPANDABLE_COLUMNS}
+        columns={columns}
         emptyMessage="Loading files..."
       />
     );
@@ -219,7 +238,7 @@ export default function DocumentHistoryExpandable({ row }) {
     return (
       <ExpandableTableSection
         rows={[]}
-        columns={EXPANDABLE_COLUMNS}
+        columns={columns}
         emptyMessage="Failed to load files."
       />
     );
@@ -228,7 +247,7 @@ export default function DocumentHistoryExpandable({ row }) {
   return (
     <ExpandableTableSection
       rows={childRows}
-      columns={EXPANDABLE_COLUMNS}
+      columns={columns}
       getRowKey={(r) => r.id}
       pagination={pagination}
       emptyMessage="No documents in this batch."
