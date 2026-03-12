@@ -10,6 +10,7 @@ import {
   Edit,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import CreditIcon from "../Icons/CreditIcon";
 
 const TranslationTag = ({
   tag,
@@ -208,7 +209,8 @@ const TranslationTag = ({
           <>
             <div className=" flex gap-5 w-fit px-3 py-2 rounded-[48px] border border-yellow-500">
               <div className="flex gap-2 items-center">
-                <Coins size={18} strokeWidth={1.5} className=" text-gray-700" />
+                {/* <Coins size={18} strokeWidth={1.5} className=" text-gray-700" /> */}
+                <CreditIcon size={22} className="text-[#545A7A]" />
                 <span className=" text-sm font-medium text-gray-800">
                   {tag.credits} credits
                   <span className=" text-gray-500">/doc</span>

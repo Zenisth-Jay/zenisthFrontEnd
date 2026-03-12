@@ -20,9 +20,8 @@ export const documentHistoryApi = createApi({
       query: ({ batch_id, page = 1, limit = 7 }) => ({
         url: `${import.meta.env.VITE_GET_DOCUMENT_HISTORY_FILES}documents/batches/${batch_id}?page=${page}&limit=${limit}`,
       }),
-      providesTags: (result, err, { batch_id }) => [
-        { type: "DocumentHistory", id: `files-${batch_id}` },
-      ],
+      providesTags: (result, error, { batch_id }) =>
+        batch_id ? [{ type: "DocumentHistory", id: `files-${batch_id}` }] : [],
     }),
 
     // GET DOCUMENT HISTORY FILES - ALL FILES
@@ -36,10 +35,15 @@ export const documentHistoryApi = createApi({
     deleteDocument: builder.mutation({
       query: ({ doc_id }) => ({
         url: `${import.meta.env.VITE_DELETE_DOCUMENT_URL}documents/${doc_id}`,
-        method: "DELETE",
+        method: "PATCH",
       }),
       invalidatesTags: (result, err, { batch_id }) =>
-        batch_id ? [{ type: "DocumentHistory", id: `files-${batch_id}` }] : [],
+        batch_id
+          ? [
+              { type: "DocumentHistory", id: `files-${batch_id}` },
+              "DocumentHistory",
+            ]
+          : [],
     }),
   }),
 });

@@ -12,12 +12,7 @@ import {
   useToggleFavoriteTagMutation,
   useUpdateTagMutation,
 } from "../../api/tags.api";
-import {
-  useNavigate,
-  useParams,
-  useSearchParams,
-  useLocation,
-} from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { clearUploads } from "../../redux/features/uploadSlice";
@@ -32,8 +27,8 @@ const SelectTag = () => {
   const isIdp = toolType == "idp";
 
   const [searchParams] = useSearchParams();
-  const location = useLocation();
   const batch_id = searchParams.get("batch_id");
+  console.log(batch_id);
 
   // Stpes For the stepper : 1,2,3,4
   const STEPS = [
@@ -117,21 +112,16 @@ const SelectTag = () => {
     (state) => state.upload,
   );
 
-  const isUploadInProgress = uploadedFiles.length > 0 && !hasCompletedBatch;
-  const fromContinueOperation = location.state?.fromContinueOperation === true;
-  const shouldFetchBatchSummary =
-    hasCompletedBatch ||
-    (batch_id && !isUploadInProgress) ||
-    (batch_id && fromContinueOperation);
-
   const {
     data: batchSummary,
     isLoading: isBatchLoading,
     isError: isBatchError,
   } = useGetBatchSummaryQuery(
     { application, userId, batch_id },
-    { skip: !shouldFetchBatchSummary },
+    { skip: !hasCompletedBatch }, // only fetch after uploads complete
   );
+
+  console.log("Batch Summary:", batchSummary);
 
   // Filtering
   const filteredTags = useMemo(() => {
@@ -260,13 +250,7 @@ const SelectTag = () => {
             <h2 className=" text-2xl text-gray-900 font-semibold">
               Batch Summary
             </h2>
-            {isUploadInProgress ? (
-              <>
-                <div>
-                  <p>Please wait while uploading your documents.</p>
-                </div>
-              </>
-            ) : (
+            {hasCompletedBatch ? (
               <>
                 {/* {isBatchLoading && <p>Calculating credits...</p>} */}
                 {isBatchLoading && (
@@ -463,6 +447,12 @@ const SelectTag = () => {
                       </div>
                     </>
                   )}
+              </>
+            ) : (
+              <>
+                <div>
+                  <p>Please wait while uploading your documents.</p>
+                </div>
               </>
             )}
           </div>

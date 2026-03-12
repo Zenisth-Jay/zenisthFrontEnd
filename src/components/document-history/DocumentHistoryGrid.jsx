@@ -44,7 +44,9 @@ function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
 
     if (optionId === "continue") {
       const batchId = row.id;
-      navigate(`/operations/${toolType}/select-tag?batch_id=${batchId}`);
+      navigate(`/operations/${toolType}/select-tag?batch_id=${batchId}`, {
+        state: { fromContinueOperation: true },
+      });
       return;
     }
   };
@@ -129,7 +131,9 @@ const DocumentHistoryGrid = () => {
   const rows = useMemo(() => {
     if (!batchData?.data) return [];
 
-    return batchData.data.map((batch) => ({
+    return batchData.data
+      .filter((batch) => (batch.document_count ?? 0) > 0)
+      .map((batch) => ({
       id: batch.batch_id,
       name: batch.batch_name,
 

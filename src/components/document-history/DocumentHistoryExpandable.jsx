@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { FileText, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import ExpandableTableSection from "../ui/ExpandableTableSection";
@@ -7,7 +7,7 @@ import {
   useDeleteDocumentMutation,
 } from "../../api/documentHistory.api";
 
-const getBaseColumns = (onDelete, isDeleting = false) => [
+const getBaseColumns = (onDelete) => [
   {
     key: "name",
     width: "2fr",
@@ -76,7 +76,6 @@ const getBaseColumns = (onDelete, isDeleting = false) => [
     render: (_, fileRow) => (
       <button
         type="button"
-        disabled={isDeleting}
         onClick={(e) => {
           e.stopPropagation();
           onDelete?.(fileRow);
@@ -94,9 +93,9 @@ const CHILD_PAGE_SIZE = 5;
 
 export default function DocumentHistoryExpandable({ row }) {
   const [childPage, setChildPage] = useState(1);
+  const [removedIds, setRemovedIds] = useState(() => new Set());
 
-  const [deleteDocument, { isLoading: isDeleting }] =
-    useDeleteDocumentMutation();
+  const [deleteDocument] = useDeleteDocumentMutation();
 
   const {
     data: filesData,
@@ -108,24 +107,36 @@ export default function DocumentHistoryExpandable({ row }) {
     limit: CHILD_PAGE_SIZE,
   });
 
-  const handleDeleteFile = async (fileRow) => {
-    try {
-      await deleteDocument({
+  const handleDeleteFile = useCallback(
+    (fileRow) => {
+      setRemovedIds((prev) => new Set(prev).add(fileRow.id));
+      deleteDocument({
         doc_id: fileRow.id,
         batch_id: row.id,
-      }).unwrap();
-      toast.success("Document deleted successfully.");
-    } catch (err) {
-      toast.error(err?.data?.message || "Failed to delete document.");
-    }
-  };
+      }).unwrap().catch((err) => {
+        setRemovedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(fileRow.id);
+          return next;
+        });
+        const message =
+          err?.status === 409
+            ? "Cannot delete the last document in the batch."
+            : "Failed to delete document.";
+        toast.error(message);
+      });
+    },
+    [deleteDocument, row.id],
+  );
 
-  const columns = getBaseColumns(handleDeleteFile, isDeleting);
+  const columns = getBaseColumns(handleDeleteFile);
 
   const childRows = useMemo(() => {
     if (!filesData?.data) return [];
 
-    return filesData.data.map((file) => ({
+    return filesData.data
+      .filter((file) => !removedIds.has(file.id))
+      .map((file) => ({
       id: file.id,
       name: file.filename,
 
@@ -153,7 +164,7 @@ export default function DocumentHistoryExpandable({ row }) {
 
       uploadedBy: row.uploadedBy,
     }));
-  }, [filesData, row]);
+  }, [filesData, row, removedIds]);
 
   const childTotalPages = filesData?.pagination?.total_pages || 1;
 

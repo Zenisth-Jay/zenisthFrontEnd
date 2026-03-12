@@ -20,6 +20,7 @@ import { useGetNotificationsQuery } from "../../api/notificationApi";
 import ProfileDropdown from "../navigation/ProfielDropdown";
 import { supabase } from "../../supabase/supabaseClient"; //
 import { toast } from "react-toastify"; //
+import CreditIcon from "../Icons/CreditIcon";
 
 const MainNavbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -134,7 +135,8 @@ const MainNavbar = () => {
               navigate("/credit-manage");
             }}
           >
-            <Coins size={30} strokeWidth={2.2} className="text-[#545A7A]" />
+            {/* <Coins size={30} strokeWidth={2.2} className="text-[#545A7A]" /> */}
+            <CreditIcon size={33} className="text-[#545A7A]" />
             <span className="w-25 text-green-600 font-extrabold text-2xl text-center">
               {isLoading ? "..." : (data?.balance ?? 0)}
             </span>

@@ -182,6 +182,7 @@ const CreateTag = () => {
           orgId: ORGANIZATION_ID,
           industry: data.tagIndustry,
           description: data.description,
+          prompt: data.prompt || null,
           outputFormat: data.outputFormat, // "CSV" | "JSON" | "XML"
           originalFormat: getOriginalFormat(file), // "CSV" | "JSON" | "XML"
           s3Key: key, // ✅ correct
@@ -353,25 +354,48 @@ const CreateTag = () => {
             </div>
 
             {/* Descreption */}
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="text-[#424242] text-[18px] font-medium">
-                Description <span className="text-red-500">*</span>
-              </label>
+            <div className="flex gap-6 justify-between w-full">
+              <div className="w-full">
+                <label className="text-[#424242] text-[18px] font-medium">
+                  Description <span className="text-red-500">*</span>
+                </label>
 
-              <div className="relative">
-                <div className="absolute left-3 top-3 text-gray-400">
-                  <AlignLeft size={22} strokeWidth={2} />
+                <div className="relative">
+                  <div className="absolute left-3 top-3 text-gray-400">
+                    <AlignLeft size={22} strokeWidth={2} />
+                  </div>
+
+                  <textarea
+                    {...register("description", {
+                      required: "Description is required",
+                    })}
+                    placeholder="Describe the context, tone, and when to use this label..."
+                    rows={4}
+                    className="w-full border border-gray-300 pl-10 pr-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-gray-400"
+                  />
                 </div>
-
-                <textarea
-                  {...register("description", {
-                    required: "Description is required",
-                  })}
-                  placeholder="Describe the context, tone, and when to use this label..."
-                  rows={4}
-                  className="w-full border border-gray-300 pl-10 pr-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-gray-400"
-                />
               </div>
+
+              {isIdp && (
+                <div className="w-full">
+                  <label className="text-[#424242] text-[18px] font-medium">
+                    Extraction Prompt
+                  </label>
+
+                  <div className="relative">
+                    <div className="absolute left-3 top-3 text-gray-400">
+                      <AlignLeft size={22} strokeWidth={2} />
+                    </div>
+
+                    <textarea
+                      {...register("prompt")}
+                      placeholder="Rules and instruction for the extraction..."
+                      rows={4}
+                      className="w-full border border-gray-300 pl-10 pr-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-gray-400"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {isIdp ? (

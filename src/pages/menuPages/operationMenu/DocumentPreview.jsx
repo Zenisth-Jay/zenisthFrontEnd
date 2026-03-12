@@ -18,7 +18,10 @@ import {
 import { useDispatch } from "react-redux";
 import MainFileUpload from "../../../components/general/MainFileUpload";
 import UploadedFilesGrid from "../../../components/general/UploadedFileGrid";
-import { useGetDocumentHistoryAllFilesQuery } from "../../../api/documentHistory.api";
+import {
+  useGetDocumentHistoryAllFilesQuery,
+  useDeleteDocumentMutation,
+} from "../../../api/documentHistory.api";
 
 const DocumentPreview = () => {
   const navigate = useNavigate();
@@ -140,6 +143,8 @@ const DocumentPreview = () => {
 
   // Same batch (epoch) for all uploads on this page – new files are added to existing batch
   const currentBatchId = batch_id;
+
+  const [deleteDocument] = useDeleteDocumentMutation();
 
   // Upload only new (local) files into the same batch; runs after navigate so overlay shows on next page
   const uploadNewFilesOnly = () => {
@@ -317,8 +322,22 @@ const DocumentPreview = () => {
   const removeFile = (item) => {
     if (item.source === "local") {
       setNewFiles((prev) => prev.filter((f) => f.id !== item.id));
-    } else if (item.source === "db") {
+      return;
+    }
+    if (item.source === "db") {
+      const deletedItem = { id: item.id, name: item.name, size: item.size, type: item.type, source: "db" };
       setExistingFiles((prev) => prev.filter((f) => f.id !== item.id));
+      deleteDocument({
+        doc_id: item.id,
+        batch_id: currentBatchId,
+      }).unwrap().catch((err) => {
+        setExistingFiles((prev) => [...prev, deletedItem]);
+        const message =
+          err?.status === 409
+            ? "Cannot delete the last document in the batch."
+            : err?.data?.message || "Failed to delete document.";
+        toast.error(message);
+      });
     }
   };
 

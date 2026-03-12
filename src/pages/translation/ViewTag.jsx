@@ -51,7 +51,9 @@ const buildTagVM = (apiTag) => {
 
     // fieldCount: apiTag.fieldCount || 0,
 
+    user_prompt: apiTag.user_prompt || "",
     rawSchema: apiTag.rawSchemaContent || "",
+    sampleOutput: apiTag.sample_output || "",
 
     // ✅ TRANSLATION fields
     sourceLanguage: apiTag.sourceLanguage || "",
@@ -158,6 +160,8 @@ const ViewTag = () => {
     refetchOnReconnect: false,
   });
 
+  console.log(tagData);
+
   const [updateTag, { isLoading: isUpdating }] = useUpdateTagMutation();
 
   const [previewFormat, setPreviewFormat] = useState("JSON");
@@ -174,6 +178,7 @@ const ViewTag = () => {
     defaultValues: {
       tagName: "",
       description: "",
+      prompt: "",
       tagIndustry: "",
       tagCategory: "",
       outputFormat: "",
@@ -205,6 +210,7 @@ const ViewTag = () => {
     reset({
       tagName: tagVM.name || "",
       description: tagVM.description || "",
+      prompt: tagVM.user_prompt || "",
       tagIndustry: isIdp ? tagVM.industry || "" : "",
       tagCategory: !isIdp ? tagVM.industry || "" : "",
       outputFormat: tagVM.outputFormat || "",
@@ -215,7 +221,8 @@ const ViewTag = () => {
     // ✅ Glossary from API -> rows
     setGlossaryRows(glossaryObjectToRows(tagVM.glossaryContent));
 
-    setSchemaText(tagVM.rawSchema);
+    // setSchemaText(tagVM.rawSchema);
+    setSchemaText(tagVM.sampleOutput);
     setApiOutputFormat(tagVM.outputFormat);
     setPreviewFormat(tagVM.outputFormat);
     originalRef.current = {
@@ -224,6 +231,7 @@ const ViewTag = () => {
       industry: tagVM.industry,
       outputFormat: tagVM.outputFormat,
       rawSchemaContent: tagVM.rawSchema,
+      prompt: tagVM.user_prompt,
 
       // ✅ Translation originals
       source_lang: tagVM.sourceLanguage || "",
@@ -294,29 +302,29 @@ const ViewTag = () => {
       const original = originalRef.current;
 
       // ✅ Validate schema for IDP before saving
-      if (isIdp) {
-        const text = schemaText?.trim();
+      // if (isIdp) {
+      //   const text = schemaText?.trim();
 
-        if (!text) {
-          toast.error("Schema cannot be empty");
-          return;
-        }
+      //   if (!text) {
+      //     toast.error("Schema cannot be empty");
+      //     return;
+      //   }
 
-        if (apiOutputFormat === "JSON" && !isValidJson(text)) {
-          toast.error("Invalid JSON schema. Please fix it before saving.");
-          return;
-        }
+      //   if (apiOutputFormat === "JSON" && !isValidJson(text)) {
+      //     toast.error("Invalid JSON schema. Please fix it before saving.");
+      //     return;
+      //   }
 
-        if (apiOutputFormat === "XML" && !isValidXml(text)) {
-          toast.error("Invalid XML schema. Please fix it before saving.");
-          return;
-        }
+      //   if (apiOutputFormat === "XML" && !isValidXml(text)) {
+      //     toast.error("Invalid XML schema. Please fix it before saving.");
+      //     return;
+      //   }
 
-        if (apiOutputFormat === "CSV" && !isValidCsv(text)) {
-          toast.error("Invalid CSV format. Please fix it before saving.");
-          return;
-        }
-      }
+      //   if (apiOutputFormat === "CSV" && !isValidCsv(text)) {
+      //     toast.error("Invalid CSV format. Please fix it before saving.");
+      //     return;
+      //   }
+      // }
 
       if (!original) {
         toast.error("Original data not loaded yet");
@@ -335,7 +343,8 @@ const ViewTag = () => {
 
         // IDP
         output_format: isIdp ? formData.outputFormat : undefined,
-        raw_schema_content: isIdp ? schemaText : undefined,
+        // raw_schema_content: isIdp ? schemaText : undefined,
+        prompt: isIdp ? formData.prompt : undefined,
 
         // TRANSLATION
         source_lang: !isIdp ? formData.sourceLanguage : undefined,
@@ -357,8 +366,10 @@ const ViewTag = () => {
         const origVal =
           key === "output_format"
             ? normalize(original.outputFormat)
-            : key === "raw_schema_content"
-              ? normalize(original.rawSchemaContent)
+            : // : key === "raw_schema_content"
+              //   ? normalize(original.rawSchemaContent)
+              key === "prompt"
+              ? normalize(original.prompt)
               : key === "source_lang"
                 ? normalize(original.source_lang)
                 : key === "target_lang"
@@ -519,26 +530,49 @@ const ViewTag = () => {
               </div>
 
               {/* Descreption */}
-              <div className="flex flex-col gap-1.5 w-full">
-                <label className="text-[#424242] text-[18px] font-medium">
-                  Description
-                </label>
+              <div className="flex gap-6 justify-between w-full">
+                <div className="w-full">
+                  <label className="text-[#424242] text-[18px] font-medium">
+                    Description
+                  </label>
 
-                <div className="relative">
-                  <div className="absolute left-3 top-3 text-gray-400">
-                    <AlignLeft size={22} strokeWidth={2} />
+                  <div className="relative">
+                    <div className="absolute left-3 top-3 text-gray-400">
+                      <AlignLeft size={22} strokeWidth={2} />
+                    </div>
+
+                    <textarea
+                      {...register("description", {
+                        required: "Description is required",
+                      })}
+                      placeholder="Describe the context, tone, and when to use this label..."
+                      rows={4}
+                      className="w-full border border-gray-300 pl-10 pr-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-gray-400"
+                      disabled={isViewMode}
+                    />
                   </div>
-
-                  <textarea
-                    {...register("description", {
-                      required: "Description is required",
-                    })}
-                    placeholder="Describe the context, tone, and when to use this label..."
-                    rows={4}
-                    className="w-full border border-gray-300 pl-10 pr-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-gray-400"
-                    disabled={isViewMode}
-                  />
                 </div>
+                {isIdp && (
+                  <div className="w-full">
+                    <label className="text-[#424242] text-[18px] font-medium">
+                      Extraction Prompt
+                    </label>
+
+                    <div className="relative">
+                      <div className="absolute left-3 top-3 text-gray-400">
+                        <AlignLeft size={22} strokeWidth={2} />
+                      </div>
+
+                      <textarea
+                        {...register("prompt")}
+                        placeholder="Rules and instruction for the extraction..."
+                        rows={4}
+                        className="w-full border border-gray-300 pl-10 pr-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-gray-400"
+                        disabled={isViewMode}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {isIdp ? (
@@ -697,19 +731,10 @@ const ViewTag = () => {
                     Output Preview
                   </h2>
 
-                  {/* Preview Panel */}
                   <div className="relative">
-                    {isEditMode ? (
-                      <textarea
-                        value={schemaText}
-                        onChange={(e) => setSchemaText(e.target.value)}
-                        className="w-full h-105 rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800 focus:outline-none"
-                      />
-                    ) : (
-                      <pre className="w-full h-105 overflow-auto rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800">
-                        {prettySchema || "No schema available"}
-                      </pre>
-                    )}
+                    <pre className="w-full h-105 overflow-auto rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800">
+                      {prettySchema || "No schema available"}
+                    </pre>
                   </div>
                 </>
               )}
@@ -724,3 +749,18 @@ const ViewTag = () => {
 };
 
 export default ViewTag;
+
+// it's for enable editing in output preview
+// {isIdp && (
+//   <>
+//     <h2 className="text-2xl font-semibold text-gray-900">
+//       Output Preview
+//     </h2>
+
+//     <div className="relative">
+//       <pre className="w-full h-105 overflow-auto rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800">
+//         {prettySchema || "No schema available"}
+//       </pre>
+//     </div>
+//   </>
+// )}
