@@ -69,10 +69,10 @@ const Dashboard = () => {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <header>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black">
-                Tool Dashboard
+                Your Workspace
               </h1>
               <p className="text-gray-800 text-base sm:text-lg md:text-xl mt-1">
-                Select a tool to get started with your workflow
+                Pick a Product to get started with your workflow.
               </p>
             </header>
 
@@ -85,7 +85,7 @@ const Dashboard = () => {
               <input
                 value={search}
                 type="text"
-                placeholder="Search tools......."
+                placeholder="Search Products......."
                 onChange={(e) => {
                   e.preventDefault();
                   setSearch(e.target.value);

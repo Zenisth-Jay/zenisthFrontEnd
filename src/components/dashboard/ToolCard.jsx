@@ -31,7 +31,7 @@ const ToolCard = ({ tool }) => {
       <div className="mt-4 md:mt-5">
         <h3 className="text-xl sm:text-2xl font-semibold">{tool.title}</h3>
 
-        <p className="text-base sm:text-lg md:text-xl mt-1 font-medium leading-relaxed text-white/85 min-h-[2.5rem] sm:min-h-18 line-clamp-2">
+        <p className="text-base sm:text-lg md:text-xl mt-1 font-medium leading-relaxed text-white/85 min-h-10 sm:min-h-18 line-clamp-2">
           {tool.description}
         </p>
       </div>
@@ -62,13 +62,14 @@ const ToolCard = ({ tool }) => {
           w-full bg-white rounded-lg py-2.5
           flex items-center justify-between px-4 sm:px-5
           font-bold transition-all duration-200
-          ${isDisabled
-            ? "cursor-not-allowed opacity-70"
-            : "text-indigo-600 hover:bg-gray-100 hover:shadow-md active:scale-[0.98] cursor-pointer"
+          ${
+            isDisabled
+              ? "cursor-not-allowed opacity-70"
+              : "text-indigo-600 hover:bg-gray-100 hover:shadow-md active:scale-[0.98] cursor-pointer"
           }
         `}
       >
-        <span>Launch Tool</span>
+        <span>Launch Product</span>
         <ArrowRight size={20} />
       </button>
     </div>

@@ -118,7 +118,7 @@ const SelectTag = () => {
     isError: isBatchError,
   } = useGetBatchSummaryQuery(
     { application, userId, batch_id },
-    { skip: !hasCompletedBatch }, // only fetch after uploads complete
+    { skip: !hasCompletedBatch },
   );
 
   console.log("Batch Summary:", batchSummary);

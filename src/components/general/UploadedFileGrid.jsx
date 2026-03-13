@@ -9,6 +9,7 @@ const UploadedFilesGrid = ({
   onPreviewFile, // (item) => void
   emptyText = 'Forgot a file? You can add it using the "Upload more" button above.',
   showHeader = true,
+  totalSize,
 }) => {
   if (!files.length) return null;
 
@@ -21,11 +22,16 @@ const UploadedFilesGrid = ({
       {/* Header */}
       {showHeader && (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3">
-          <Button leftIcon={<Plus size={18} />} onClick={handleAddMore} className="w-full sm:w-auto">
+          <Button
+            leftIcon={<Plus size={18} />}
+            onClick={handleAddMore}
+            className="w-full sm:w-auto"
+          >
             Upload more documents
           </Button>
+
           <span className="text-gray-800 font-medium text-base sm:text-lg">
-            {files.length} Documents
+            {files.length} Documents ({totalSize} MB)
           </span>
         </div>
       )}

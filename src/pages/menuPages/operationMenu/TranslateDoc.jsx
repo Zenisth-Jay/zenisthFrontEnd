@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import MainNavbar from "../../../components/dashboard/MainNavbar";
 import Button from "../../../components/ui/Button";
-import { History, Upload, FileText, Plus, ArrowRight, X } from "lucide-react";
+import {
+  History,
+  Upload,
+  FileText,
+  Plus,
+  ArrowRight,
+  X,
+  Tag,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -16,6 +24,15 @@ import {
 import { useDispatch } from "react-redux";
 import MainFileUpload from "../../../components/general/MainFileUpload";
 import UploadedFilesGrid from "../../../components/general/UploadedFileGrid";
+
+const InfoBox = ({ title, description }) => {
+  return (
+    <div className="border border-gray-300 w-[50%] rounded-lg p-5 bg-white shadow-sm">
+      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
+      <p className="text-sm text-gray-600">{description}</p>
+    </div>
+  );
+};
 
 const TranslateDoc = () => {
   // const batchEpoch = Date.now();
@@ -206,6 +223,11 @@ const TranslateDoc = () => {
     setFiles((prev) => prev.filter((f) => f.id !== item.id));
   };
 
+  const totalUploadedSizeMB = (
+    files.reduce((sum, f) => sum + f.file.size, 0) /
+    (1024 * 1024)
+  ).toFixed(2);
+
   return (
     <>
       <MainNavbar />
@@ -242,7 +264,7 @@ const TranslateDoc = () => {
             </div>
 
             {files.length == 0 && (
-              <div className="shrink-0">
+              <div className="shrink-0 flex gap-4">
                 <Button
                   onClick={() =>
                     navigate(
@@ -260,9 +282,57 @@ const TranslateDoc = () => {
                 >
                   View History
                 </Button>
+
+                {/* <Button
+                  leftIcon={<Plus size={22} className=" text-white" />}
+                  onClick={() =>
+                    navigate(
+                      `/operations/${isIdp ? "idp" : "translate"}/create-tag`,
+                    )
+                  }
+                >
+                  Create new Tag
+                </Button> */}
               </div>
             )}
           </div>
+
+          {files.length == 0 && (
+            <div className="w-full rounded-2xl border border-purple-200 bg-purple-50 p-6 flex gap-4 items-start">
+              {/* Icon */}
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100">
+                <Tag className="text-purple-500" size={20} />
+              </div>
+
+              {/* Content */}
+              <div className="w-full flex justify-between items-center">
+                <div className="w-[75%]">
+                  <p className="text-purple-700 font-semibold">
+                    Create a tag before you upload
+                  </p>
+                  <p className="w-full text-purple-600 text-sm mt-1">
+                    Tags help us organize and route your documents correctly.
+                    Since tag creation runs in the background and can take a
+                    moment, start here first your upload will be ready to go
+                    once it's set up.
+                  </p>
+                </div>
+
+                {/* Button */}
+                <Button
+                  leftIcon={<Plus size={22} className=" text-white" />}
+                  onClick={() =>
+                    navigate(
+                      `/operations/${isIdp ? "idp" : "translate"}/create-tag`,
+                    )
+                  }
+                  className="w-fit h-fit"
+                >
+                  Create new Tag
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* When User doesn't uploaded any document, this section will appear to upload file */}
           {files.length === 0 && (
@@ -275,6 +345,20 @@ const TranslateDoc = () => {
             />
           )}
 
+          {files.length === 0 && (
+            <div className="flex gap-5">
+              <InfoBox
+                title="Why do I need a tag?"
+                description="Tags act as folders for your translation jobs. They let you track, filter, and re-run batches without losing context especially useful when managing multiple projects at once."
+              />
+
+              <InfoBox
+                title="How long does tag creation take?"
+                description="Usually under a minute. While it's being set up, you can prep your files so you're ready to upload the moment the tag is confirmed."
+              />
+            </div>
+          )}
+
           {/* When user Upload any file, this section will apper */}
           {files.length !== 0 && (
             <>
@@ -283,6 +367,7 @@ const TranslateDoc = () => {
                 onFilesSelected={() => fileInputRef.current?.click()}
                 onRemoveFile={(item) => removeFile(item)}
                 onPreviewFile={(item) => handlePreview(item.file)}
+                totalSize={totalUploadedSizeMB}
               />
 
               {/* Uploaded Processing Cost Section */}
@@ -292,18 +377,48 @@ const TranslateDoc = () => {
                     Upload processing cost
                   </h3>
                   <hr className="text-gray-300" />
+
+                  {/* 1 */}
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-lg sm:text-2xl font-semibold text-gray-800">
+                    <span className="text-sm sm:text-lg  text-gray-500">
+                      Total Uploaded Size :
+                    </span>
+                    <span className="text-md sm:text-lg md:text-[20px]  font-bold text-gray-800">
+                      {totalUploadedSizeMB}{" "}
+                      <span className="text-sm sm:text-lg font-medium  text-gray-500">
+                        MB
+                      </span>
+                    </span>
+                  </div>
+                  <hr className="text-gray-300" />
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-sm sm:text-lg  text-gray-500">
+                      Rate :
+                    </span>
+                    <span className="text-md sm:text-lg md:text-[20px]  font-bold text-gray-800">
+                      0.5{" "}
+                      <span className="text-sm sm:text-lg font-medium text-gray-500">
+                        credits per MB
+                      </span>
+                    </span>
+                  </div>
+                  <hr className="text-gray-300" />
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-sm sm:text-2xl  text-gray-500">
                       Total Cost :
                     </span>
-                    <span className="text-xl sm:text-2xl md:text-[28px] font-bold text-gray-800">
-                      2 credits
+                    <span className="text-md sm:text-2xl md:text-[24px] font-bold text-gray-800">
+                      {totalUploadedSizeMB * 0.5}{" "}
+                      <span className="text-sm sm:text-lg font-medium text-gray-500">
+                        credits
+                      </span>
                     </span>
                   </div>
                 </div>
                 <div className="bg-indigo-50 border border-indigo-200 text-gray-600 rounded-lg p-3 sm:p-4 text-base sm:text-lg md:text-xl shadow-sm">
-                  💡 Credits will be deducted when you confirm by clicking
-                  “Next” and the upload begins.
+                  💡 Credits are only deducted once you confirm below and
+                  processing begins. Removing a file updates this estimate
+                  instantly.
                 </div>
               </div>
 
@@ -313,7 +428,7 @@ const TranslateDoc = () => {
                   className="w-full sm:w-40 md:w-67"
                   onClick={handleCancelAll}
                 >
-                  Cancel
+                  Go Back
                 </Button>
 
                 <Button
@@ -328,7 +443,7 @@ const TranslateDoc = () => {
                   }}
                   className="w-full sm:w-40 md:w-67"
                 >
-                  Next Step
+                  Confirm & start processing
                 </Button>
               </div>
             </>

@@ -92,7 +92,7 @@ const MainNavbar = () => {
               }`
             }
           >
-            Dashboard
+            Workspace
           </NavLink>
 
           {/* Operations */}
