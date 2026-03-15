@@ -11,6 +11,7 @@ import {
   Edit,
   Save,
   Trash2,
+  Download,
 } from "lucide-react";
 import SelectElement from "../../components/ui/SelectElement";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -170,6 +171,7 @@ const ViewTag = () => {
 
   const [glossaryMode, setGlossaryMode] = useState("manual"); // or "upload" if you want
   const [glossaryRows, setGlossaryRows] = useState([]);
+  const [idpPreviewTab, setIdpPreviewTab] = useState("output"); // "output" | "schema"
 
   const [schemaText, setSchemaText] = useState(""); // rawSchemaContent from API
   const [apiOutputFormat, setApiOutputFormat] = useState("CSV"); // from API
@@ -394,6 +396,8 @@ const ViewTag = () => {
         return;
       }
 
+      patchBody.status = "UPLOADED";
+
       // ✅ Call API
       await updateTag({ id: tagId, body: patchBody }).unwrap();
 
@@ -413,6 +417,63 @@ const ViewTag = () => {
 
     return schemaText; // CSV or unknown → show as-is
   }, [schemaText, apiOutputFormat]);
+
+  const prettyRawSchema = useMemo(() => {
+    const raw = tagVM?.rawSchema?.trim();
+    if (!raw) return "";
+    return prettyJson(raw);
+  }, [tagVM?.rawSchema]);
+
+  const handleDownloadOutput = useCallback(() => {
+    const content = schemaText?.trim() || "";
+    if (!content) {
+      toast.info("No output content to download");
+      return;
+    }
+    const baseName = (tagVM?.name || "output").replace(/[^a-zA-Z0-9-_]/g, "_");
+    const ext = apiOutputFormat?.toLowerCase() || "csv";
+    const filename = `${baseName}-preview.${ext}`;
+    let blobContent = content;
+    let mimeType = "text/plain";
+    if (apiOutputFormat === "JSON") {
+      blobContent = prettyJson(content);
+      mimeType = "application/json";
+    } else if (apiOutputFormat === "XML") {
+      blobContent = prettyXml(content);
+      mimeType = "application/xml";
+    } else {
+      mimeType = "text/csv";
+    }
+    const blob = new Blob([blobContent], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    // toast.success(`Downloaded ${filename}`);
+  }, [schemaText, apiOutputFormat, tagVM?.name]);
+
+  const handleDownloadSchema = useCallback(() => {
+    const content = prettyRawSchema?.trim() || tagVM?.rawSchema?.trim() || "";
+    if (!content) {
+      toast.info("No schema content to download");
+      return;
+    }
+    const baseName = (tagVM?.name || "schema").replace(/[^a-zA-Z0-9-_]/g, "_");
+    const filename = `${baseName}-schema.json`;
+    const blob = new Blob([content], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [tagVM?.name, tagVM?.rawSchema, prettyRawSchema]);
 
   if (isLoading) {
     return (
@@ -727,14 +788,62 @@ const ViewTag = () => {
 
               {isIdp && (
                 <>
-                  <h2 className="text-2xl font-semibold text-gray-900">
-                    Output Preview
-                  </h2>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex rounded-lg border border-gray-300 bg-gray-100/80 p-1">
+                        <button
+                          type="button"
+                          onClick={() => setIdpPreviewTab("output")}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            idpPreviewTab === "output"
+                              ? "bg-white text-indigo-600 shadow-sm border border-gray-200"
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                        >
+                          Output Preview
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIdpPreviewTab("schema")}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            idpPreviewTab === "schema"
+                              ? "bg-white text-indigo-600 shadow-sm border border-gray-200"
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                        >
+                          Schema
+                        </button>
+                      </div>
+                      {isViewMode && (
+                        <button
+                          type="button"
+                          onClick={
+                            idpPreviewTab === "output"
+                              ? handleDownloadOutput
+                              : handleDownloadSchema
+                          }
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors shadow-sm"
+                          title={
+                            idpPreviewTab === "output"
+                              ? `Download as ${apiOutputFormat}`
+                              : "Download schema as JSON"
+                          }
+                        >
+                          <Download size={18} />
+                          {idpPreviewTab === "output"
+                            ? `Download ${apiOutputFormat}`
+                            : "Download JSON"}
+                        </button>
+                      )}
+                    </div>
 
-                  <div className="relative">
-                    <pre className="w-full h-105 overflow-auto rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800">
-                      {prettySchema || "No schema available"}
-                    </pre>
+                    <div className="relative">
+                      <pre className="w-full h-105 overflow-auto rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800">
+                        {idpPreviewTab === "output"
+                          ? prettySchema || "No output available"
+                          : prettyRawSchema || "No schema available"}
+                      </pre>
+                    </div>
                   </div>
                 </>
               )}

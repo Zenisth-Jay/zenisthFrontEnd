@@ -30,8 +30,7 @@ function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toolType =
-    row.operation === "Translation" ? "translate" : "idp";
+  const toolType = row.operation === "Translation" ? "translate" : "idp";
 
   const handleMenuAction = (optionId) => {
     setMenuOpen(false);
@@ -134,31 +133,31 @@ const DocumentHistoryGrid = () => {
     return batchData.data
       .filter((batch) => (batch.document_count ?? 0) > 0)
       .map((batch) => ({
-      id: batch.batch_id,
-      name: batch.batch_name,
+        id: batch.batch_id,
+        name: batch.batch_name,
 
-      uploadedAt: `Uploaded ${new Date(batch.created_at).toLocaleDateString()} at ${new Date(
-        batch.created_at,
-      ).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`,
+        uploadedAt: `Uploaded ${new Date(batch.created_at).toLocaleDateString()} at ${new Date(
+          batch.created_at,
+        ).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`,
 
-      documentsCount: batch.document_count,
-      operation: batch.operation,
+        documentsCount: batch.document_count,
+        operation: batch.operation,
 
-      status: batch.status,
-      statusVariant:
-        batch.status === "Completed"
-          ? "completed"
-          : batch.status === "Failed"
-            ? "failed"
-            : "neutral",
+        status: batch.status,
+        statusVariant:
+          batch.status === "Completed"
+            ? "completed"
+            : batch.status === "Failed"
+              ? "failed"
+              : "neutral",
 
-      credits: batch.total_credits,
-      size: `${batch.total_size_mb} MB`,
-      uploadedBy: batch.uploaded_by,
-    }));
+        credits: batch.total_credits,
+        size: `${batch.total_size_mb} MB`,
+        uploadedBy: batch.uploaded_by,
+      }));
   }, [batchData]);
 
   const columns = useMemo(
@@ -171,13 +170,13 @@ const DocumentHistoryGrid = () => {
         type: "custom",
         render: (_, row) => (
           <div className="w-full flex items-center gap-4 self-stretch">
-            <div className="flex items-center gap-2 min-w-0 w-45 shrink-0">
+            <div className="flex items-center gap-2 min-w-0 w-47 shrink-0">
               <Folder className="text-gray-800 shrink-0" size={22} />
               <div className="flex flex-col justify-center min-w-0 flex-1 truncate items-start gap-0.5">
                 <span className="text-gray-900 text-sm truncate font-semibold leading-tight">
                   {row.name}
                 </span>
-                <span className="text-xs truncate text-gray-700 font-normal leading-tight">
+                <span className="text-[10px] truncate text-gray-700 font-normal leading-tight">
                   {row.uploadedAt}
                 </span>
               </div>

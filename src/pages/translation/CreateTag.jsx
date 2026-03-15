@@ -8,6 +8,7 @@ import {
   AlignLeft,
   ChevronDown,
   Landmark,
+  Sparkles,
 } from "lucide-react";
 import SelectElement from "../../components/ui/SelectElement";
 import { useRef, useState } from "react";
@@ -25,6 +26,57 @@ const OUTPUT_FORMAT = [
   { code: "XML", label: "XML" },
   { code: "JSON", label: "JSON" },
 ];
+
+const renderFormats = (formats = [], bgColor, borderColor) => {
+  return formats.map((format, index) => (
+    <span
+      key={index}
+      className={`px-2 py-1 text-sm font-semibold rounded-md border text-gray-700 ${bgColor} ${borderColor}`}
+    >
+      {format}
+    </span>
+  ));
+};
+
+const FormatCard = ({
+  title,
+  badgeText,
+  description,
+  formats = [],
+  borderColor = "border-gray-300",
+  bgColor = "bg-gray-50",
+  badgeBg = "bg-gray-200",
+  badgeTextColor = "text-gray-800",
+}) => {
+  return (
+    <div
+      className={` w-1/2 flex flex-col gap-3 p-4 rounded-lg border ${borderColor} ${bgColor}`}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className=" text-lg font-semibold text-gray-800">{title}</h3>
+
+        <span
+          className={`text-md font-bold px-5 py-1 rounded-full ${badgeBg} ${badgeTextColor}`}
+        >
+          {badgeText}
+        </span>
+      </div>
+
+      {/* Format tags */}
+      <div className={`flex gap-2 flex-wrap`}>
+        {renderFormats(
+          formats,
+          (bgColor = badgeBg),
+          (borderColor = borderColor),
+        )}
+      </div>
+
+      {/* Description */}
+      <p className="text-md text-gray-600">{description}</p>
+    </div>
+  );
+};
 
 const CreateTag = () => {
   const navigate = useNavigate();
@@ -137,6 +189,7 @@ const CreateTag = () => {
     if (name.endsWith(".jpg")) return "JPG";
     if (name.endsWith(".jpeg")) return "JPEG";
     if (name.endsWith(".png")) return "PNG";
+    if (name.endsWith(".pdf")) return "PDF";
 
     return null;
   };
@@ -264,6 +317,7 @@ const CreateTag = () => {
           "text/xml",
           "image/jpeg",
           "image/png",
+          "application/pdf",
         ]
       : ["text/csv"];
 
@@ -298,7 +352,7 @@ const CreateTag = () => {
         <input
           ref={fileInputRef}
           type="file"
-          accept={isIdp ? ".csv,.json,.xml,.jpg,.jpeg,.png" : ".csv"}
+          accept={isIdp ? ".csv,.json,.xml,.jpg,.jpeg,.png,.pdf" : ".csv"}
           hidden
           onChange={(e) => {
             handleGlossaryFiles(e.target.files);
@@ -435,6 +489,32 @@ const CreateTag = () => {
             )}
           </div>
 
+          {isIdp && (
+            <div className="w-full flex gap-3">
+              <FormatCard
+                title="Image formats"
+                badgeText="10 credits / page"
+                formats={["JPG", "JPEG", "PNG", "PDF"]}
+                description="Scanned documents, invoices, and photos. It uses OCR to extract content, credit covers the processing cost."
+                borderColor="border-orange-300"
+                bgColor="bg-orange-50"
+                badgeBg="bg-orange-200"
+                badgeTextColor="text-orange-900"
+              />
+
+              <FormatCard
+                title="Structured formats"
+                badgeText="No credits used"
+                formats={["CSV", "JSON", "XML"]}
+                description="Already structured data. IDP reads and maps fields directly, no OCR needed, so no credit charge."
+                borderColor="border-green-300"
+                bgColor="bg-green-50"
+                badgeBg="bg-green-200"
+                badgeTextColor="text-green-900"
+              />
+            </div>
+          )}
+
           {/* Glossary Card */}
           <div className="px-10 py-8 bg-white border border-gray-300 rounded-2xl flex flex-col gap-6">
             {/* Gloassary Header */}
@@ -499,7 +579,7 @@ const CreateTag = () => {
                     title={`Drag and drop your ${isIdp ? "documents" : "glossaries"} here, or click to browse`}
                     supportedText={
                       isIdp
-                        ? "Supported formats: JPG, JPEG, PNG, CSV, JSON, XML"
+                        ? "Supported formats: JPG, JPEG, PNG, PDF CSV, JSON, XML"
                         : "Supported formats: CSV"
                     }
                     helperText="Max file size: 2 GB, Max glossaries: 250"
@@ -586,6 +666,27 @@ const CreateTag = () => {
               </div>
             )}
           </div>
+
+          {isIdp && (
+            <div className="flex items-start gap-4 p-4 rounded-xl border border-indigo-200 bg-indigo-50">
+              {/* Icon */}
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-500 text-white">
+                <Sparkles size={18} />
+              </div>
+
+              {/* Content */}
+              <div className="flex flex-col">
+                <h3 className=" text-xl font-semibold text-indigo-900">
+                  Auto schema detection
+                </h3>
+
+                <p className="text-md text-indigo-700 mt-1">
+                  After upload, IDP will identify fields like invoice number,
+                  dates, line items, and totals and create an extraction schema.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-6 mt-6">
             <Button

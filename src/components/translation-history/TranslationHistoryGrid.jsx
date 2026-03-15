@@ -39,13 +39,15 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
       status:
         job.job_status === "FAILED"
           ? "Failed"
-          : job.job_status === "COMPLETED"
+          : job.job_status === "COMPLETED" ||
+              job.job_status === "PARTIAL_FAILURE"
             ? "Completed"
             : "Processing",
       statusVariant:
         job.job_status === "FAILED"
           ? "failed"
-          : job.job_status === "COMPLETED"
+          : job.job_status === "COMPLETED" ||
+              job.job_status === "PARTIAL_FAILURE"
             ? "completed"
             : "processing",
       sourceLanguage: isIdp ? null : job.source_lang?.toUpperCase() || "",

@@ -40,7 +40,7 @@ const Translating = () => {
     { jobId, appType: toolType }, // 👈 pass an object
     { skip: !jobId },
   );
-  // console.log(jobResponse);
+  console.log(jobResponse);
 
   // const {
   //   data: jobResponse,
@@ -95,15 +95,15 @@ const Translating = () => {
   const targetLanguage = jobResponse.target_language;
   const downloadLink = jobResponse.download_link;
 
-  if (status == "QUEUED" || status == "PARTIAL_FAILURE") {
+  if (status == "QUEUED") {
     status = "PROCESSING";
   }
+  if (status == "PARTIAL_FAILURE") {
+    status = "COMPLETED";
+  }
 
-  const isProcessing =
-    status === "PROCESSING" ||
-    status == "QUEUED" ||
-    status == "PARTIAL_FAILURE";
-  const isCompleted = status === "COMPLETED";
+  const isProcessing = status === "PROCESSING" || status == "QUEUED";
+  const isCompleted = status === "COMPLETED" || status == "PARTIAL_FAILURE";
   const isFailed = status === "FAILED";
 
   return (
