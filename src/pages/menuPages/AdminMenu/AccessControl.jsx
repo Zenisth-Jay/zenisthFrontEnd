@@ -2,6 +2,7 @@ import { Edit, MoreVertical, Plus, Trash2, ChevronDown } from "lucide-react";
 import MainNavbar from "../../../components/dashboard/MainNavbar";
 import Button from "../../../components/ui/Button";
 import { useRef, useState } from "react";
+import { toast } from "react-toastify";
 import {
   useGetUsersQuery,
   useInviteUserMutation,
@@ -253,23 +254,26 @@ const AccessControl = () => {
                 disabled={isInviting || !inviteEmail}
                 onClick={async () => {
                   if (!canManageUsers) return;
-
                   try {
                     const result = await inviteUser({
                       email: inviteEmail,
                       role: inviteRole,
                     }).unwrap();
 
-                    // 👇 Adjust this key based on your API response
-                    const link = result.signupLink;
+                    const message =
+                      result?.message || "Invitation sent successfully";
+                    toast.success(message);
 
-                    setInviteLink(link || "");
-
-                    // keep modal open so admin can copy the link
+                    // Reset and close the invite modal
                     setInviteEmail("");
                     setInviteRole("MEMBER");
+                    setInviteLink("");
+                    setIsInviteOpen(false);
                   } catch (err) {
                     console.error("Invite failed", err);
+                    const errorMessage =
+                      err?.data?.message || "Failed to send invitation";
+                    toast.error(errorMessage);
                   }
                 }}
               >

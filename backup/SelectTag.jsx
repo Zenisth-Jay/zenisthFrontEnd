@@ -380,6 +380,15 @@ const SelectTag = () => {
                           onClick={async () => {
                             try {
                               // console.log(selectedTag.id);
+                              console.log(
+                                "Starting job with tag:",
+                                selectedTag.id,
+                              );
+                              console.log(
+                                "batchSummary",
+                                batchSummary?.total_credits,
+                              );
+                              console.log("batch_id", batch_id);
 
                               const res = await startJob({
                                 tagId: selectedTag.id,
@@ -394,6 +403,11 @@ const SelectTag = () => {
                               // );
 
                               const { jobId } = res;
+
+                              // 🔥 refresh credits immediately
+                              dispatch(
+                                tokenApi.util.invalidateTags(["Tokens"]),
+                              );
 
                               dispatch(clearUploads());
 

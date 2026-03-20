@@ -75,7 +75,7 @@ const TranslationTag = ({
       {/* Row 1: Title + Actions */}
       <div className="flex justify-between">
         <div className="flex flex-wrap justify-between w-full text-black text-lg font-medium truncate">
-          <div className="w-[60%] truncate">{tag.name}</div>
+          <div className="w-[70%] truncate">{tag.name}</div>
 
           {tag.status == "PROCESSING" && (
             <span className=" flex justify-center items-center text-xs px-3 py-2 bg-yellow-100 text-yellow-700 rounded-full">

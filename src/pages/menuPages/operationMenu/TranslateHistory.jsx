@@ -13,6 +13,8 @@ const TranslateHistory = () => {
   const { toolType } = useParams();
   const isIdp = toolType == "idp";
 
+  console.log("toolType", toolType);
+
   // Filters
   const [draftFilters, setDraftFilters] = useState({
     status: "",

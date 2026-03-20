@@ -16,6 +16,8 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
   const page = Number(searchParams.get("page") || 1);
   const pageSize = 5; // 🔹 rows per page
 
+  console.log("hi");
+
   // Fetch history batches from API
   const {
     data: historyResponse,
@@ -27,35 +29,53 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
     appType,
   });
 
+  console.log("historyResponse", historyResponse);
+
   // 🔹 Map API response to UI rows
   const allRows = useMemo(() => {
     if (!historyResponse?.jobs) return [];
 
-    return historyResponse.jobs.map((job) => ({
-      id: job.job_id,
-      batchName: job.tag_name,
-      uploadedAt: new Date(job.created_at).toLocaleString(),
-      documents: job.total_documents,
-      status:
-        job.job_status === "FAILED"
-          ? "Failed"
-          : job.job_status === "COMPLETED" ||
-              job.job_status === "PARTIAL_FAILURE"
-            ? "Completed"
-            : "Processing",
-      statusVariant:
-        job.job_status === "FAILED"
-          ? "failed"
-          : job.job_status === "COMPLETED" ||
-              job.job_status === "PARTIAL_FAILURE"
-            ? "completed"
-            : "processing",
-      sourceLanguage: isIdp ? null : job.source_lang?.toUpperCase() || "",
-      targetLanguage: isIdp ? null : job.target_lang?.toUpperCase() || "",
-      outputFormat: isIdp ? job.output_format : null,
-      domain: job.tag_industry,
-      credits: job.cost,
-    }));
+    return historyResponse.jobs.map((job) => {
+      const date = new Date(job.created_at);
+
+      const job_name = `job_${String(date.getDate()).padStart(2, "0")}_${String(
+        date.getMonth() + 1,
+      ).padStart(2, "0")}_${date.getFullYear()}_${String(
+        date.getHours(),
+      ).padStart(
+        2,
+        "0",
+      )}_${String(date.getMinutes()).padStart(2, "0")}_${String(
+        date.getSeconds(),
+      ).padStart(2, "0")}`;
+
+      return {
+        id: job.job_id,
+        batchName: job.tag_name,
+        job_name: job_name, // ✅ full timestamp job name
+        uploadedAt: new Date(job.created_at).toLocaleString(),
+        documents: job.total_documents,
+        status:
+          job.job_status === "FAILED"
+            ? "Failed"
+            : job.job_status === "COMPLETED" ||
+                job.job_status === "PARTIAL_FAILURE"
+              ? "Completed"
+              : "Processing",
+        statusVariant:
+          job.job_status === "FAILED"
+            ? "failed"
+            : job.job_status === "COMPLETED" ||
+                job.job_status === "PARTIAL_FAILURE"
+              ? "completed"
+              : "processing",
+        sourceLanguage: isIdp ? null : job.source_lang?.toUpperCase() || "",
+        targetLanguage: isIdp ? null : job.target_lang?.toUpperCase() || "",
+        outputFormat: isIdp ? job.output_format : null,
+        domain: job.tag_industry,
+        credits: job.cost,
+      };
+    });
   }, [historyResponse]);
 
   const totalPages = historyResponse?.pagination?.total_pages || 1;
@@ -152,7 +172,7 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
   return (
     <div className=" bg-white border border-gray-300 shadow-md">
       {/* Table Header */}
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] items-center justify-center gap-4 px-6 py-4 bg-gray-100 border-b border-gray-200 text-[16px] font-semibold text-gray-800">
+      <div className="grid grid-cols-[2.5fr_1fr_1fr_1fr_1fr_1fr] items-center justify-center gap-4 px-6 py-4 bg-gray-100 border-b border-gray-200 text-[16px] font-semibold text-gray-800">
         <div className="text-center">Job Document</div>
         <div className="text-center">Status</div>
         <div className="text-center">

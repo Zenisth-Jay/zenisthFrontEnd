@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import { useGetBatchFilesQuery } from "../../api/HistoryBatch.api";
 import { useNavigate, useParams } from "react-router-dom";
+import { file } from "zod";
 
 const VARIANTS = {
   neutral: "border-[#787D9C] text-[#373B4F] bg-gray-50",
@@ -56,6 +57,8 @@ const TranslationRow = ({ row }) => {
     { skip: !open }, // 👈 only fetch when open
   );
 
+  console.log(filesResponse);
+
   const files = filesResponse?.files || [];
   const childTotalPages = filesResponse?.pagination?.total_pages || 1;
 
@@ -78,7 +81,7 @@ const TranslationRow = ({ row }) => {
   return (
     <div className="border-b border-gray-300">
       {/* Header Row */}
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm">
+      <div className="grid grid-cols-[2.5fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm">
         {/* Job Document */}
         <div className=" w-full flex items-center truncate gap-5">
           <div
@@ -90,9 +93,9 @@ const TranslationRow = ({ row }) => {
             }
           >
             <LibrarySquare className="text-gray-800" />
-            <div className="flex flex-col w-36 truncate items-start">
+            <div className="flex flex-col w-55 truncate items-start">
               <h1 className="text-gray-900 text-[16px] truncate font-semibold">
-                {row.id}
+                {row.job_name}
               </h1>
               <span className="text-xs truncate text-gray-700 font-normal">
                 {row.uploadedAt}
@@ -170,7 +173,7 @@ const TranslationRow = ({ row }) => {
             files.map((child) => (
               <div
                 key={`${child.document_name}-${child.time_stamp}`}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm border-t border-gray-300"
+                className="grid grid-cols-[2.5fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm border-t border-gray-300"
               >
                 <div className="flex items-center gap-2">
                   <FileText className="text-indigo-700" />
@@ -190,7 +193,9 @@ const TranslationRow = ({ row }) => {
                 <div className="flex items-center justify-center">
                   <CircleContainer
                     variant={
-                      child.status === "SUCCESS" ? "completed" : "failed"
+                      child.status === "SUCCESS" || child.status === "COMPLETED"
+                        ? "completed"
+                        : "failed"
                     }
                   >
                     {child.status}

@@ -10,6 +10,7 @@ const JOB_DISPATCHER_URL = {
 export const translateApi = createApi({
   reducerPath: "translateApi",
   baseQuery: baseQueryWithAuth,
+  tagTypes: ["Tokens"],
 
   endpoints: (builder) => ({
     // START TRANSLATE OR IDP JOB
@@ -22,6 +23,7 @@ export const translateApi = createApi({
           cost: cost,
         },
       }),
+      invalidatesTags: ["Tokens"],
     }),
   }),
 });

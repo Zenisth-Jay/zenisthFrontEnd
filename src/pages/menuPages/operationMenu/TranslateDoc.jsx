@@ -73,11 +73,9 @@ const TranslateDoc = () => {
   }, [uploadStatus, showUploadOverlay]);
 
   // *** First Upload all files
-  const uploadAllFiles = async () => {
+  const uploadAllFiles = async (batchId) => {
     // 1️⃣ Open overlay
     dispatch(openOverlay());
-
-    const batchId = Date.now();
 
     // 2️⃣ Add ALL files to redux first
     files.forEach((fileObj) => {
@@ -101,6 +99,9 @@ const TranslateDoc = () => {
   // *** Function to Start Uploading
   const startUpload = async (fileObj, batchId) => {
     const id = fileObj.id;
+
+    console.log("Starting upload for:", fileObj);
+    console.log("Batch ID:", batchId);
 
     try {
       // 1. Ask backend for presigned URL
@@ -436,10 +437,15 @@ const TranslateDoc = () => {
                   disabled={files.length === 0}
                   onClick={(e) => {
                     e.stopPropagation();
-                    uploadAllFiles();
+                    const batchId = Date.now();
+                    uploadAllFiles(batchId);
                     isIdp
-                      ? navigate("/operations/idp/select-tag")
-                      : navigate("/operations/translate/select-tag");
+                      ? navigate(
+                          `/operations/idp/select-tag?batchId=${batchId}`,
+                        )
+                      : navigate(
+                          `/operations/translate/select-tag?batchId=${batchId}`,
+                        );
                   }}
                   className="w-full sm:w-40 md:w-67"
                 >

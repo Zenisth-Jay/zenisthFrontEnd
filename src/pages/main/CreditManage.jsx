@@ -43,7 +43,8 @@ const columns = [
     header: "Operation",
     width: "1fr",
     headerClassName: "justify-center",
-    cellClassName: " justify-center text-center text-lg font-semibold",
+    cellClassName:
+      " justify-center text-center text-[16px] font-semibold whitespace-nowrap",
   },
   {
     key: "job",
@@ -91,7 +92,12 @@ const columns = [
     width: "1fr",
     headerClassName: "justify-center",
     cellClassName: "justify-center",
-    render: (v) => v && <CircleContainer variant="tag">{v}</CircleContainer>,
+    render: (v) =>
+      v && (
+        <CircleContainer variant="tag">
+          <span className="truncate w-full text-center text-sm">{v}</span>
+        </CircleContainer>
+      ),
   },
   {
     key: "units",
@@ -144,23 +150,6 @@ const columns = [
 ];
 
 const CreditManage = () => {
-  // const [isExpanded, setIsExpanded] = useState(false);
-
-  // const [showAddCreditsModal, setShowAddCreditsModal] = useState(false);
-
-  // const limit = isExpanded ? 7 : 3;
-
-  // // For Pagination
-  // // const [searchParams] = useSearchParams();
-  // // const page = Number(searchParams.get("page") || 1);
-
-  // const [searchParams, setSearchParams] = useSearchParams();
-
-  // const view = searchParams.get("view") || "less"; // "less" | "all"
-  // const isExpanded = view === "all";
-
-  // const page = Number(searchParams.get("page") || 1);
-
   const [showAddCreditsModal, setShowAddCreditsModal] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -179,7 +168,7 @@ const CreditManage = () => {
     limit,
   });
 
-  // console.log(data);
+  console.log(data);
 
   const stats = data?.stats;
   const rows = data?.transactions || [];
