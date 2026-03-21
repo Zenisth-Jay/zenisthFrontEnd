@@ -49,7 +49,7 @@ const columns = [
   {
     key: "job",
     header: "Job Document",
-    width: "1.8fr",
+    width: "1.5fr",
     headerClassName: "justify-center",
     cellClassName: "justify-center",
     render: (_, row) => (
@@ -116,7 +116,7 @@ const columns = [
   {
     key: "credits",
     header: "Credits",
-    width: "1fr",
+    width: "0.7fr",
     headerClassName: "justify-center",
     cellClassName: "justify-center text-lg",
     render: (v) => {
@@ -140,9 +140,17 @@ const columns = [
   },
 
   {
+    key: "user",
+    header: "User",
+    width: "1.2fr",
+    headerClassName: "justify-center",
+    cellClassName: "justify-center text-md font-semibold truncate",
+  },
+
+  {
     key: "review",
     header: "Review",
-    width: "0.6fr",
+    width: "0.4fr",
     headerClassName: "justify-center",
     cellClassName: "justify-center text-lg",
     render: () => "-",
@@ -187,6 +195,7 @@ const CreditManage = () => {
     label: t.tag_name === "-" ? "-" : t.tag_name,
     units: t.units,
     credits: t.credits > 0 ? `+${t.credits}` : String(t.credits),
+    user: t.user_name || "-",
   }));
 
   // const totalPages = data?.total_pages ?? 1;

@@ -73,7 +73,7 @@ const TranslateDoc = () => {
   }, [uploadStatus, showUploadOverlay]);
 
   // *** First Upload all files
-  const uploadAllFiles = async (batchId) => {
+  const uploadAllFiles = async (batchId, totalBatchSize) => {
     // 1️⃣ Open overlay
     dispatch(openOverlay());
 
@@ -90,38 +90,50 @@ const TranslateDoc = () => {
       );
     });
 
+    let isFirst = true;
+
     // 3️⃣ Then start uploading them one by one
     for (const fileObj of files) {
-      await startUpload(fileObj, batchId);
+      await startUpload(fileObj, batchId, isFirst, totalBatchSize);
+      isFirst = false;
     }
   };
 
   // *** Function to Start Uploading
-  const startUpload = async (fileObj, batchId) => {
+  const startUpload = async (fileObj, batchId, isFirst, totalBatchSize) => {
     const id = fileObj.id;
 
-    console.log("Starting upload for:", fileObj);
-    console.log("Batch ID:", batchId);
-
     try {
-      // 1. Ask backend for presigned URL
-      const res = await createDocumentAPI({
+      const payload = {
         fileName: fileObj.file.name,
         fileSize: fileObj.file.size,
         application: isIdp ? "IDP" : "TRANSLATE",
-        // userId: "550e8400-e29b-41d4-a716-446655440000",
-        batchId: batchId,
-      });
+        batchId,
+      };
+
+      // 👇 ONLY for first file
+      if (isFirst) {
+        payload.isFirstDocument = true;
+        payload.totalBatchSize = totalBatchSize;
+      }
+
+      const res = await createDocumentAPI(payload);
 
       const { uploadUrl } = res.data;
-      console.log(res);
 
-      // 2. REAL upload to S3
-      await uploadToS3(uploadUrl, fileObj.file, (percent) => {
-        dispatch(updateProgress({ id, progress: percent }));
-      });
+      await uploadToS3(
+        uploadUrl,
+        {
+          file: fileObj.file,
+          batchId,
+          isFirstDocument: isFirst,
+          totalBatchSize,
+        },
+        (percent) => {
+          dispatch(updateProgress({ id, progress: percent }));
+        },
+      );
 
-      // 3. Mark success
       dispatch(markSuccess({ id }));
     } catch (err) {
       console.error(err);
@@ -438,7 +450,13 @@ const TranslateDoc = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     const batchId = Date.now();
-                    uploadAllFiles(batchId);
+
+                    const totalBatchSize = files.reduce(
+                      (sum, f) => sum + f.file.size,
+                      0,
+                    );
+
+                    uploadAllFiles(batchId, totalBatchSize);
                     isIdp
                       ? navigate(
                           `/operations/idp/select-tag?batchId=${batchId}`,

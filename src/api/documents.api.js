@@ -8,11 +8,40 @@ export const createDocumentAPI = (payload) => {
   );
 };
 
-export const uploadToS3 = async (uploadUrl, file, onProgress) => {
-  const res = await axios.put(uploadUrl, file, {
-    headers: {
-      "Content-Type": file.type,
-    },
+// export const uploadToS3 = async (uploadUrl, file, onProgress) => {
+//   const res = await axios.put(uploadUrl, file, {
+//     headers: {
+//       "Content-Type": file.type,
+//     },
+//     onUploadProgress: (e) => {
+//       if (e.total && onProgress) {
+//         const percent = Math.round((e.loaded * 100) / e.total);
+//         onProgress(percent);
+//       }
+//     },
+//   });
+
+//   if (res.status !== 200 && res.status !== 204) {
+//     throw new Error("Upload to S3 failed");
+//   }
+
+//   return true;
+// };
+
+export const uploadToS3 = async (uploadUrl, fileObj, onProgress) => {
+  const headers = {
+    "Content-Type": fileObj.file.type,
+    "x-amz-meta-batchid": fileObj.batchId.toString(),
+  };
+
+  // 👇 only for first file
+  if (fileObj.isFirstDocument) {
+    headers["x-amz-meta-isfirstdocument"] = "true";
+    headers["x-amz-meta-totalbatchsize"] = fileObj.totalBatchSize.toString();
+  }
+
+  const res = await axios.put(uploadUrl, fileObj.file, {
+    headers,
     onUploadProgress: (e) => {
       if (e.total && onProgress) {
         const percent = Math.round((e.loaded * 100) / e.total);
