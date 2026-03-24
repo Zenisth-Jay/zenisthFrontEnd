@@ -81,20 +81,20 @@ const TranslationRow = ({ row }) => {
   return (
     <div className="border-b border-gray-300">
       {/* Header Row */}
-      <div className="grid grid-cols-[2.5fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm">
+      <div className="grid grid-cols-[2.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm">
         {/* Job Document */}
-        <div className=" w-full flex items-center truncate gap-5">
+        <div className=" w-full flex items-center truncate gap-2">
           <div
-            className="flex items-center gap-2 cursor-pointer"
+            className=" w-[60%] flex items-center gap-2 cursor-pointer"
             onClick={() =>
               navigate(
                 `/operations/${toolType}/${isIdp ? "extracting" : "translating"}?jobId=${row.id}`,
               )
             }
           >
-            <LibrarySquare className="text-gray-800" />
+            <LibrarySquare size={35} className="text-gray-800" />
             <div className="flex flex-col w-55 truncate items-start">
-              <h1 className="text-gray-900 text-[16px] truncate font-semibold">
+              <h1 className="text-gray-900 text-[14px] truncate font-semibold">
                 {row.job_name}
               </h1>
               <span className="text-xs truncate text-gray-700 font-normal">
@@ -132,11 +132,13 @@ const TranslationRow = ({ row }) => {
           )}
         </CircleContainer>
 
-        <CircleContainer variant="tag" className=" truncate">
+        <CircleContainer variant="tag" className=" truncate text-sm">
           {row.domain}
         </CircleContainer>
 
         <p className="text-gray-700 font-semibold text-lg">{row.credits}</p>
+
+        <p className="text-gray-700 font-semibold text-lg">{row.user_name}</p>
 
         <button
           onClick={handleToggle}
@@ -173,7 +175,7 @@ const TranslationRow = ({ row }) => {
             files.map((child) => (
               <div
                 key={`${child.document_name}-${child.time_stamp}`}
-                className="grid grid-cols-[2.5fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm border-t border-gray-300"
+                className="grid grid-cols-[2.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm border-t border-gray-300"
               >
                 <div className="flex items-center gap-2">
                   <FileText className="text-indigo-700" />
@@ -231,6 +233,10 @@ const TranslationRow = ({ row }) => {
 
                 <p className="text-gray-700 font-semibold text-lg">
                   {/* {child.tokens} */}-
+                </p>
+
+                <p className="text-gray-700 font-semibold text-lg">
+                  {row.user_name}
                 </p>
 
                 <button className="flex items-center justify-center">--</button>

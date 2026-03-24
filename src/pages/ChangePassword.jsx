@@ -2,25 +2,29 @@ import Logo from "../components/Authentication/Logo";
 import RightPanel from "../components/Authentication/RightPanel";
 import InputElement from "../components/Authentication/InputElement";
 import AuthButton from "../components/Authentication/AuthButton";
-import { Mail } from "lucide-react";
+import { KeyRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-const ForgotPass = () => {
+const ChangePassword = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { isSubmitting },
   } = useForm({
     defaultValues: {
-      email: "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
+  const passwordValue = watch("password");
+
   const onSubmit = async () => {
     // API integration will be added later.
-    toast.info("Reset password flow will be connected soon.");
+    toast.info("Change password API will be connected soon.");
   };
 
   return (
@@ -31,34 +35,47 @@ const ForgotPass = () => {
           <Logo />
 
           <h1 className="text-2xl sm:text-4xl font-semibold text-[#212121] mt-6">
-            Forgot Password? <span className="inline-block">🔒</span>
+            Reset Password <span className="inline-block">🔐</span>
           </h1>
           <p className="text-[#9E9E9E] text-base sm:text-[18px] font-normal mb-6">
-            Don&apos;t worry! It happens. Please enter the email associated with
-            your account.
+            Create a new password for your account. Make it strong and secure.
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
-            <div className="flex flex-col gap-3 sm:gap-4 mb-4">
+            <div className="flex flex-col gap-3 sm:gap-4 mb-2">
               <InputElement
-                label="Enter your email"
-                name="email"
-                type="email"
-                placeholder="Enter your email..."
+                label="New Password"
+                name="password"
+                type="password"
+                placeholder="Enter new password..."
                 register={register}
-                icon={Mail}
+                icon={KeyRound}
                 rules={{
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Please enter a valid email address",
+                  required: "New password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters",
                   },
+                }}
+              />
+
+              <InputElement
+                label="Confirm Password"
+                name="confirmPassword"
+                type="password"
+                placeholder="Re-enter new password..."
+                register={register}
+                icon={KeyRound}
+                rules={{
+                  required: "Please confirm your password",
+                  validate: (value) =>
+                    value === passwordValue || "Passwords do not match",
                 }}
               />
             </div>
 
             <AuthButton type="submit" disabled={isSubmitting}>
-              Sent Reset Link
+              Update Password
             </AuthButton>
           </form>
 
@@ -80,4 +97,4 @@ const ForgotPass = () => {
   );
 };
 
-export default ForgotPass;
+export default ChangePassword;

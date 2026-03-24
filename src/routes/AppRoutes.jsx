@@ -5,6 +5,7 @@ import ProtectedRoute from "./ProtectedRoute"; // Import the Gatekeeper
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import ForgotPass from "../pages/ForgotPass";
+import ChangePassword from "../pages/ChangePassword";
 
 // Protected Pages
 import Dashboard from "../pages/main/Dashboard";
@@ -40,6 +41,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPass />} />
+      <Route path="/change-password" element={<ChangePassword />} />
 
       {/* --- Protected Routes (Wrapped in ProtectedRoute) --- */}
 

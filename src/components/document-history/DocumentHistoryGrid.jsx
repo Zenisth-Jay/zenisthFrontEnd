@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { ChevronDown, Folder, MoreVertical, Trash2 } from "lucide-react";
+import { ChevronDown, Folder, MoreVertical } from "lucide-react";
 import ConfigurableTable from "../ui/ConfigurableTable";
 import { Pill } from "../ui/ConfigurableTable";
 import { VARIANTS } from "../../data/variants";
 import Pagination from "../ui/Pagination";
 import DocumentHistoryExpandable from "./DocumentHistoryExpandable";
-import { useGetDocumentHistoryBatchesQuery } from "../../api/documentHistory.api";
+import {
+  useGetDocumentHistoryAllFilesQuery,
+  useGetDocumentHistoryBatchesQuery,
+} from "../../api/documentHistory.api";
 
 const FOLDER_MENU_OPTIONS = [
   // { id: "select", label: "Select Document" },
@@ -15,10 +18,29 @@ const FOLDER_MENU_OPTIONS = [
   { id: "add", label: "Add More Document" },
 ];
 
+const isDeletedStatus = (status) =>
+  String(status ?? "").trim().toUpperCase() === "DELETED";
+
 function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
+
+  // Fetch files only when the actions menu is opened (avoids extra requests).
+  const {
+    data: allFilesData,
+    isLoading: allFilesLoading,
+    isError: allFilesError,
+  } = useGetDocumentHistoryAllFilesQuery(
+    { batch_id: row.id },
+    { skip: !menuOpen },
+  );
+
+  const allFiles = allFilesData?.data ?? allFilesData?.files ?? allFilesData ?? [];
+  const allDeletedInBatch =
+    !allFilesError && allFiles.length > 0
+      ? allFiles.every((f) => isDeletedStatus(f?.status))
+      : false;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -42,6 +64,8 @@ function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
     }
 
     if (optionId === "continue") {
+      if (allFilesLoading) return;
+      if (allFilesData && allDeletedInBatch) return; // keep disabled if everything is deleted
       const batchId = row.id;
       navigate(`/operations/${toolType}/select-tag?batch_id=${batchId}`, {
         state: { fromContinueOperation: true },
@@ -71,11 +95,19 @@ function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
               <button
                 key={opt.id}
                 type="button"
+                disabled={
+                  opt.id === "continue" &&
+                  (allFilesLoading ||
+                    (!allFilesError &&
+                      Boolean(allFilesData) &&
+                      allDeletedInBatch))
+                }
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (opt.id === "continue" && allDeletedInBatch) return;
                   handleMenuAction(opt.id);
                 }}
-                className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-50"
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
               >
                 {opt.label}
               </button>

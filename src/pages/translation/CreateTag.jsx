@@ -90,10 +90,7 @@ const CreateTag = () => {
   const { register, handleSubmit, watch } = useForm();
   const sourceLanguage = watch("sourceLanguage");
 
-  const [glossaryMode, setGlossaryMode] = useState("upload"); // "upload" | "manual"
-  // const [glossaryRows, setGlossaryRows] = useState([
-  //   { id: crypto.randomUUID(), term: "", keepAs: "" },
-  // ]);
+  const [glossaryMode, setGlossaryMode] = useState("upload");
   const [glossaryRows, setGlossaryRows] = useState([]);
 
   const fileInputRef = useRef(null);
@@ -221,12 +218,20 @@ const CreateTag = () => {
           fileSize: file.size,
           application: "TAG_CREATION",
           batchId,
+          isFirstDocument: true,
+          totalBatchSize: file.size,
         });
 
         const { uploadUrl, key } = res.data;
 
         // 2️⃣ Upload to S3
-        await uploadToS3(uploadUrl, file);
+        // await uploadToS3(uploadUrl, file);
+        await uploadToS3(uploadUrl, {
+          file: file,
+          batchId: batchId,
+          isFirstDocument: true,
+          totalBatchSize: file.size,
+        });
 
         // 3️⃣ Create tag with S3 KEY (not URL)
         const body = {

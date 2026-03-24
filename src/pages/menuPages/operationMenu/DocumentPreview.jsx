@@ -23,6 +23,11 @@ import {
   useDeleteDocumentMutation,
 } from "../../../api/documentHistory.api";
 
+const isDeletedStatus = (status) =>
+  String(status ?? "")
+    .trim()
+    .toUpperCase() === "DELETED";
+
 const DocumentPreview = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -51,12 +56,17 @@ const DocumentPreview = () => {
             ? filesData
             : [];
 
-    if (rawList.length === 0) {
+    // Hide deleted documents from the preview UI.
+    const visibleList = rawList.filter(
+      (file) => !isDeletedStatus(file?.status),
+    );
+
+    if (visibleList.length === 0) {
       setExistingFiles([]);
       return;
     }
 
-    const mapped = rawList.map((file) => {
+    const mapped = visibleList.map((file) => {
       const fileName = file.filename ?? file.name ?? "file";
       const ext = String(fileName).split(".").pop()?.toLowerCase() ?? "";
 
@@ -165,9 +175,20 @@ const DocumentPreview = () => {
       );
     });
 
+    // (async () => {
+    //   for (const fileObj of newFiles) {
+    //     await startUpload(fileObj, currentBatchId);
+    //   }
+    // })();
+
     (async () => {
+      let isFirst = true;
+
+      const totalBatchSize = newFiles.reduce((sum, f) => sum + f.file.size, 0);
+
       for (const fileObj of newFiles) {
-        await startUpload(fileObj, currentBatchId);
+        await startUpload(fileObj, currentBatchId, isFirst, totalBatchSize);
+        isFirst = false;
       }
     })();
   };
@@ -207,26 +228,66 @@ const DocumentPreview = () => {
   };
 
   // Upload one file into the given batch (same epoch – adds to existing batch)
-  const startUpload = async (fileObj, batchId) => {
+  // const startUpload = async (fileObj, batchId) => {
+  //   const id = fileObj.id;
+
+  //   try {
+  //     const res = await createDocumentAPI({
+  //       fileName: fileObj.file.name,
+  //       fileSize: fileObj.file.size,
+  //       application: isIdp ? "IDP" : "TRANSLATE",
+  //       batchId, // same batch_id so file is added to existing batch, not new epoch
+  //     });
+
+  //     const { uploadUrl } = res.data;
+  //     console.log(res);
+
+  //     // 2. REAL upload to S3
+  //     await uploadToS3(uploadUrl, fileObj.file, (percent) => {
+  //       dispatch(updateProgress({ id, progress: percent }));
+  //     });
+
+  //     // 3. Mark success
+  //     dispatch(markSuccess({ id }));
+  //   } catch (err) {
+  //     console.error(err);
+  //     dispatch(markError({ id }));
+  //   }
+  // };
+
+  const startUpload = async (fileObj, batchId, isFirst, totalBatchSize) => {
     const id = fileObj.id;
 
     try {
-      const res = await createDocumentAPI({
+      const payload = {
         fileName: fileObj.file.name,
         fileSize: fileObj.file.size,
         application: isIdp ? "IDP" : "TRANSLATE",
-        batchId, // same batch_id so file is added to existing batch, not new epoch
-      });
+        batchId,
+      };
 
+      // ✅ IMPORTANT (same as TranslateDoc)
+      if (isFirst) {
+        payload.isFirstDocument = true;
+        payload.totalBatchSize = totalBatchSize;
+      }
+
+      const res = await createDocumentAPI(payload);
       const { uploadUrl } = res.data;
-      console.log(res);
 
-      // 2. REAL upload to S3
-      await uploadToS3(uploadUrl, fileObj.file, (percent) => {
-        dispatch(updateProgress({ id, progress: percent }));
-      });
+      await uploadToS3(
+        uploadUrl,
+        {
+          file: fileObj.file,
+          batchId,
+          isFirstDocument: isFirst,
+          totalBatchSize,
+        },
+        (percent) => {
+          dispatch(updateProgress({ id, progress: percent }));
+        },
+      );
 
-      // 3. Mark success
       dispatch(markSuccess({ id }));
     } catch (err) {
       console.error(err);
@@ -325,19 +386,27 @@ const DocumentPreview = () => {
       return;
     }
     if (item.source === "db") {
-      const deletedItem = { id: item.id, name: item.name, size: item.size, type: item.type, source: "db" };
+      const deletedItem = {
+        id: item.id,
+        name: item.name,
+        size: item.size,
+        type: item.type,
+        source: "db",
+      };
       setExistingFiles((prev) => prev.filter((f) => f.id !== item.id));
       deleteDocument({
         doc_id: item.id,
         batch_id: currentBatchId,
-      }).unwrap().catch((err) => {
-        setExistingFiles((prev) => [...prev, deletedItem]);
-        const message =
-          err?.status === 409
-            ? "Cannot delete the last document in the batch."
-            : err?.data?.message || "Failed to delete document.";
-        toast.error(message);
-      });
+      })
+        .unwrap()
+        .catch((err) => {
+          setExistingFiles((prev) => [...prev, deletedItem]);
+          const message =
+            err?.status === 409
+              ? "Cannot delete the last document in the batch."
+              : err?.data?.message || "Failed to delete document.";
+          toast.error(message);
+        });
     }
   };
 

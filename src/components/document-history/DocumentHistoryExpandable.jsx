@@ -1,73 +1,143 @@
 import { useState, useMemo, useCallback } from "react";
-import { FileText, Trash2 } from "lucide-react";
+import { Ban, FileText, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import ExpandableTableSection from "../ui/ExpandableTableSection";
 import {
   useGetDocumentHistoryFilesQuery,
   useDeleteDocumentMutation,
 } from "../../api/documentHistory.api";
+import { Pill } from "../ui/ConfigurableTable";
+import { VARIANTS } from "../../data/variants";
+
+const isDeletedStatus = (status) =>
+  String(status ?? "").trim().toUpperCase() === "DELETED";
 
 const getBaseColumns = (onDelete) => [
   {
     key: "name",
     width: "2fr",
     align: "left",
-    render: (_, row) => (
-      <div className="flex items-center gap-2 min-w-0 w-50">
-        <FileText className="text-indigo-700 shrink-0" size={20} />
-        <div className="flex flex-col justify-center min-w-0 flex-1 truncate items-start gap-0.5">
-          <span
-            className="text-gray-900 text-sm truncate font-medium leading-tight"
-            title={row.name}
-          >
-            {row.name}
-          </span>
-          <span className="text-xs truncate text-gray-600 leading-tight">
-            {row.uploadedAt}
-          </span>
+    render: (_, row) => {
+      const deleted = isDeletedStatus(row.status);
+      return (
+        <div className="flex items-center gap-2 w-full">
+          <FileText
+            className={deleted ? "text-gray-400 shrink-0" : "text-indigo-700 shrink-0"}
+            size={20}
+          />
+          <div className="flex flex-col justify-center flex-1 truncate items-start gap-0.5">
+            <span
+              className={[
+                "text-gray-900 text-sm truncate font-medium leading-tight",
+                deleted ? "line-through text-gray-400" : "",
+              ].join(" ")}
+              title={row.name}
+            >
+              {row.name}
+            </span>
+            <span
+              className={[
+                "text-xs truncate text-gray-600 leading-tight",
+                deleted ? "line-through text-gray-400" : "",
+              ].join(" ")}
+            >
+              {row.uploadedAt}
+            </span>
+          </div>
         </div>
-      </div>
-    ),
+      );
+    },
   },
   {
     key: "operation",
     width: "1fr",
     align: "center",
-    type: "pill",
-    variant: "neutral",
+    render: (val, row) => {
+      const deleted = isDeletedStatus(row.status);
+      return (
+        <Pill
+          className={[
+            VARIANTS.neutral,
+            deleted ? "opacity-60 line-through" : "",
+          ].join(" ")}
+        >
+          {val}
+        </Pill>
+      );
+    },
   },
   {
     key: "status",
     width: "1fr",
     align: "center",
-    type: "pill",
-    variantKey: "statusVariant",
+    render: (val, row) => {
+      const deleted = isDeletedStatus(row.status);
+      const variant = row.statusVariant || "neutral";
+      return (
+        <Pill
+          className={[
+            VARIANTS[variant] || VARIANTS.neutral,
+            deleted ? "opacity-60 line-through" : "",
+          ].join(" ")}
+        >
+          {val}
+        </Pill>
+      );
+    },
   },
   {
     key: "credits",
     width: "0.8fr",
     align: "center",
-    render: (val) => (
-      <span className="text-gray-700 font-semibold text-lg">
-        {Number(val).toLocaleString()}
-      </span>
-    ),
+    render: (val, row) => {
+      const deleted = isDeletedStatus(row.status);
+      return (
+        <span
+          className={[
+            "text-gray-700 font-semibold text-lg",
+            deleted ? "line-through text-gray-400" : "",
+          ].join(" ")}
+        >
+          {Number(val).toLocaleString()}
+        </span>
+      );
+    },
   },
   {
     key: "size",
     width: "0.8fr",
     align: "center",
-    render: (val) => (
-      <span className="text-gray-700 font-semibold text-lg">{val}</span>
-    ),
+    render: (val, row) => {
+      const deleted = isDeletedStatus(row.status);
+      return (
+        <span
+          className={[
+            "text-gray-700 font-semibold text-lg",
+            deleted ? "line-through text-gray-400" : "",
+          ].join(" ")}
+        >
+          {val}
+        </span>
+      );
+    },
   },
   {
     key: "uploadedBy",
     width: "1fr",
     align: "center",
-    render: (val) => (
-      <span className=" text-lg font-normal  text-gray-600">{val}</span>
-    ),
+    render: (val, row) => {
+      const deleted = isDeletedStatus(row.status);
+      return (
+        <span
+          className={[
+            "text-lg font-normal text-gray-600",
+            deleted ? "line-through text-gray-400" : "",
+          ].join(" ")}
+        >
+          {val}
+        </span>
+      );
+    },
   },
   {
     key: "actions",
@@ -76,14 +146,20 @@ const getBaseColumns = (onDelete) => [
     render: (_, fileRow) => (
       <button
         type="button"
+        disabled={isDeletedStatus(fileRow.status)}
         onClick={(e) => {
           e.stopPropagation();
+          if (isDeletedStatus(fileRow.status)) return;
           onDelete?.(fileRow);
         }}
-        className="p-1.5 rounded-md hover:bg-red-50 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-        aria-label="Delete file"
+        className="p-1.5 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+        aria-label={isDeletedStatus(fileRow.status) ? "File deleted" : "Delete file"}
       >
-        <Trash2 size={20} className="text-red-500" />
+        {isDeletedStatus(fileRow.status) ? (
+          <Ban size={20} className="text-gray-400" />
+        ) : (
+          <Trash2 size={20} className="text-red-500" />
+        )}
       </button>
     ),
   },
@@ -93,7 +169,9 @@ const CHILD_PAGE_SIZE = 5;
 
 export default function DocumentHistoryExpandable({ row }) {
   const [childPage, setChildPage] = useState(1);
-  const [removedIds, setRemovedIds] = useState(() => new Set());
+  const [optimisticallyDeletedIds, setOptimisticallyDeletedIds] = useState(
+    () => new Set(),
+  );
 
   const [deleteDocument] = useDeleteDocumentMutation();
 
@@ -109,22 +187,26 @@ export default function DocumentHistoryExpandable({ row }) {
 
   const handleDeleteFile = useCallback(
     (fileRow) => {
-      setRemovedIds((prev) => new Set(prev).add(fileRow.id));
+      if (isDeletedStatus(fileRow.status)) return;
+      // Keep the row visible, but disable it immediately (optimistic UI).
+      setOptimisticallyDeletedIds((prev) => new Set(prev).add(fileRow.id));
       deleteDocument({
         doc_id: fileRow.id,
         batch_id: row.id,
-      }).unwrap().catch((err) => {
-        setRemovedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(fileRow.id);
-          return next;
+      })
+        .unwrap()
+        .catch((err) => {
+          setOptimisticallyDeletedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(fileRow.id);
+            return next;
+          });
+          const message =
+            err?.status === 409
+              ? "Cannot delete the last document in the batch."
+              : "Failed to delete document.";
+          toast.error(message);
         });
-        const message =
-          err?.status === 409
-            ? "Cannot delete the last document in the batch."
-            : "Failed to delete document.";
-        toast.error(message);
-      });
     },
     [deleteDocument, row.id],
   );
@@ -135,36 +217,40 @@ export default function DocumentHistoryExpandable({ row }) {
     if (!filesData?.data) return [];
 
     return filesData.data
-      .filter((file) => !removedIds.has(file.id))
       .map((file) => ({
-      id: file.id,
-      name: file.filename,
+        id: file.id,
+        name: file.filename,
 
-      uploadedAt: `Uploaded ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString(
-        [],
-        {
-          hour: "2-digit",
-          minute: "2-digit",
-        },
-      )}`,
+        uploadedAt: `Uploaded ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString(
+          [],
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+          },
+        )}`,
 
-      operation: file.operation,
+        operation: file.operation,
 
-      status: file.status,
-      statusVariant:
-        file.status === "UPLOADED" || file.status === "COMPLETED"
-          ? "successful"
-          : file.status === "FAILED"
-            ? "failed"
-            : "neutral",
+        status: optimisticallyDeletedIds.has(file.id) ? "DELETED" : file.status,
+        statusVariant: (() => {
+          const derivedStatus = optimisticallyDeletedIds.has(file.id)
+            ? "DELETED"
+            : file.status;
 
-      credits: file.credits,
+          return derivedStatus === "UPLOADED" || derivedStatus === "COMPLETED"
+            ? "successful"
+            : derivedStatus === "FAILED"
+              ? "failed"
+              : "neutral";
+        })(),
 
-      size: `${file.size ?? 0}`,
+        credits: file.credits,
 
-      uploadedBy: row.uploadedBy,
-    }));
-  }, [filesData, row, removedIds]);
+        size: `${file.size ?? 0}`,
+
+        uploadedBy: row.uploadedBy,
+      }));
+  }, [filesData, row, optimisticallyDeletedIds]);
 
   const childTotalPages = filesData?.pagination?.total_pages || 1;
 

@@ -44,14 +44,14 @@ const columns = [
     width: "1fr",
     headerClassName: "justify-center",
     cellClassName:
-      " justify-center text-center text-[16px] font-semibold whitespace-nowrap",
+      " justify-left text-center text-[16px] font-semibold whitespace-nowrap",
   },
   {
     key: "job",
     header: "Job Document",
     width: "1.5fr",
     headerClassName: "justify-center",
-    cellClassName: "justify-center",
+    cellClassName: "justify-left pl-6",
     render: (_, row) => (
       <div className="flex items-center gap-3 min-w-0">
         <FileText className="text-indigo-500 shrink-0" size={22} />
@@ -147,14 +147,14 @@ const columns = [
     cellClassName: "justify-center text-md font-semibold truncate",
   },
 
-  {
-    key: "review",
-    header: "Review",
-    width: "0.4fr",
-    headerClassName: "justify-center",
-    cellClassName: "justify-center text-lg",
-    render: () => "-",
-  },
+  // {
+  //   key: "review",
+  //   header: "Review",
+  //   width: "0.4fr",
+  //   headerClassName: "justify-center",
+  //   cellClassName: "justify-center text-lg",
+  //   render: () => "-",
+  // },
 ];
 
 const CreditManage = () => {

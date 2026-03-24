@@ -16,8 +16,6 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
   const page = Number(searchParams.get("page") || 1);
   const pageSize = 5; // 🔹 rows per page
 
-  console.log("hi");
-
   // Fetch history batches from API
   const {
     data: historyResponse,
@@ -74,6 +72,7 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
         outputFormat: isIdp ? job.output_format : null,
         domain: job.tag_industry,
         credits: job.cost,
+        user_name: job.user_name,
       };
     });
   }, [historyResponse]);
@@ -172,7 +171,7 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
   return (
     <div className=" bg-white border border-gray-300 shadow-md">
       {/* Table Header */}
-      <div className="grid grid-cols-[2.5fr_1fr_1fr_1fr_1fr_1fr] items-center justify-center gap-4 px-6 py-4 bg-gray-100 border-b border-gray-200 text-[16px] font-semibold text-gray-800">
+      <div className="grid grid-cols-[2.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center justify-center gap-4 px-6 py-4 bg-gray-100 border-b border-gray-200 text-[16px] font-semibold text-gray-800">
         <div className="text-center">Job Document</div>
         <div className="text-center">Status</div>
         <div className="text-center">
@@ -180,6 +179,7 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
         </div>
         <div className="text-center">Tag</div>
         <div className="text-center">Credits</div>
+        <div className="text-center">User</div>
         <div className="text-center">Actions</div>
       </div>
       {/* TABLE ROWS */}
