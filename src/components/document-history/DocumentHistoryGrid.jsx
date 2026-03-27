@@ -19,7 +19,9 @@ const FOLDER_MENU_OPTIONS = [
 ];
 
 const isDeletedStatus = (status) =>
-  String(status ?? "").trim().toUpperCase() === "DELETED";
+  String(status ?? "")
+    .trim()
+    .toUpperCase() === "DELETED";
 
 function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,7 +38,8 @@ function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
     { skip: !menuOpen },
   );
 
-  const allFiles = allFilesData?.data ?? allFilesData?.files ?? allFilesData ?? [];
+  const allFiles =
+    allFilesData?.data ?? allFilesData?.files ?? allFilesData ?? [];
   const allDeletedInBatch =
     !allFilesError && allFiles.length > 0
       ? allFiles.every((f) => isDeletedStatus(f?.status))
@@ -59,7 +62,7 @@ function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
 
     if (optionId === "view" || optionId === "add") {
       const batchId = row.id;
-      navigate(`/operations/${toolType}/preview?batch_id=${batchId}`);
+      navigate(`/operations/${toolType}/preview?batchId=${batchId}`);
       return;
     }
 
@@ -67,7 +70,7 @@ function DocumentHistoryActionsCell({ row, onToggleExpand, expandOpen }) {
       if (allFilesLoading) return;
       if (allFilesData && allDeletedInBatch) return; // keep disabled if everything is deleted
       const batchId = row.id;
-      navigate(`/operations/${toolType}/select-tag?batch_id=${batchId}`, {
+      navigate(`/operations/${toolType}/select-tag?batchId=${batchId}`, {
         state: { fromContinueOperation: true },
       });
       return;

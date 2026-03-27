@@ -123,25 +123,6 @@ const MainNavbar = () => {
 
         {/* Right Part: below 1300px smaller icons; from 1300px unchanged */}
         <div className="flex items-center gap-2 min-[1300px]:gap-4 shrink-0">
-          {/* Credits – same at all widths */}
-          <div
-            // className="px-5 py-2 flex items-center gap-2 border border-[#CFD1DC] rounded-full bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-            className="px-5 py-2 flex items-center gap-2 border border-[#CFD1DC] rounded-full 
-             bg-gray-50 from-green-50 to-emerald-50 cursor-pointer 
-             hover:from-green-100 hover:to-emerald-100 
-             transition-all duration-300 hover:scale-101 hover:shadow-sm active:scale-99"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("/credit-manage");
-            }}
-          >
-            {/* <Coins size={30} strokeWidth={2.2} className="text-[#545A7A]" /> */}
-            <CreditIcon size={33} className="text-[#545A7A]" />
-            <span className="w-25 text-green-600 font-extrabold text-2xl text-center">
-              {isLoading ? "..." : (data?.balance ?? 0)}
-            </span>
-          </div>
-
           {/* Notification bell */}
           <Dropdown
             trigger={() => (

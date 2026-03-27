@@ -42,25 +42,6 @@ const Translating = () => {
   );
   console.log(jobResponse);
 
-  // const {
-  //   data: jobResponse,
-  //   isLoading,
-  //   isError,
-  // } = useGetJobStatusQuery(jobId, {
-  //   skip: !jobId,
-  // });
-
-  // if (isLoading) {
-  //   return (
-  //     <>
-  //       <MainNavbar />
-  //       <main className="px-4 sm:px-6 md:px-10 lg:px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
-  //         <div className="text-gray-600 text-lg">Loading job status...</div>
-  //       </main>
-  //     </>
-  //   );
-  // }
-
   if (isLoading) {
     return (
       <>
@@ -94,6 +75,7 @@ const Translating = () => {
   const sourceLanguage = jobResponse.source_language;
   const targetLanguage = jobResponse.target_language;
   const downloadLink = jobResponse.download_link;
+  const batchId = jobResponse.files[0]?.batch_id;
 
   if (status == "QUEUED") {
     status = "PROCESSING";
@@ -110,10 +92,10 @@ const Translating = () => {
     <>
       <MainNavbar />
 
-      <main className="px-4 sm:px-6 md:px-10 lg:px-16 py-5 w-full min-h-[calc(100vh-64px)] bg-gray-50 flex flex-col">
+      <main className="px-4 sm:px-6 md:px-10 lg:px-16 py-5 w-full min-h-[calc(100vh-74px)] bg-gray-50 flex flex-col">
         <Stepper steps={STEPS} activeStep={isCompleted ? 3 : 2} />
 
-        <section className=" bg-white w-full h-full mt-5 px-12 py-1 flex flex-col flex-1 justify-between items-center rounded-3xl">
+        <section className=" bg-white shadow-md w-full h-full mt-5 px-12 py-1 flex flex-col flex-1 gap-10 items-center rounded-3xl">
           {/* <Languages size={35} /> */}
 
           <TranslatingAnimation status={status} idp={isIdp} />
@@ -173,8 +155,13 @@ const Translating = () => {
             </Button>
             <Button
               leftIcon={<SquarePen className="" />}
-              variant="disable"
+              variant={isFailed ? "primary" : "outline"}
               className="w-[31%] text-gray-600 shadow-sm"
+              onClick={() => {
+                navigate(
+                  `/operations/${isIdp ? "idp" : "translate"}/select-tag?batchId=${batchId}`,
+                );
+              }}
             >
               Change Tag
             </Button>

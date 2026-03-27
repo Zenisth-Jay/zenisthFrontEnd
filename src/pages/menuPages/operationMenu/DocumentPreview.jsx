@@ -36,7 +36,7 @@ const DocumentPreview = () => {
 
   // batch_id: URL ?batch_id=xxx, or location state from Document History, or fallback for dev
   const batch_id =
-    searchParams.get("batch_id") || location.state?.batch_id || 1772716498466;
+    searchParams.get("batchId") || location.state?.batchId || 1772716498466;
 
   const {
     data: filesData,
@@ -194,7 +194,7 @@ const DocumentPreview = () => {
   };
 
   const getSelectTagPath = () =>
-    `/operations/${isIdp ? "idp" : "translate"}/select-tag?batch_id=${currentBatchId}`;
+    `/operations/${isIdp ? "idp" : "translate"}/select-tag?batchId=${currentBatchId}`;
 
   const handleNextStep = (e) => {
     e.stopPropagation();
