@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginScema } from "../schemas/auth.schema";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabase/supabaseClient"; // Ensure your client is imported
+import { supabase } from "../supabase/supabaseClient";
 
 const Login = () => {
   const navigate = useNavigate();

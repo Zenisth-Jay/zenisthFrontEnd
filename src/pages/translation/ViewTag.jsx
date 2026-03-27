@@ -18,10 +18,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Button from "../../components/ui/Button";
 import { useGetTagByIdQuery, useUpdateTagMutation } from "../../api/tags.api";
 import { toast } from "react-toastify";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import { LANGUAGES } from "../../data/translateLanguage";
 import Spinner from "../../components/ui/Spinner";
+import BackButton from "../../components/ui/BackButton";
 
 // const LANGUAGES = [
 //   { code: "en", label: "English" },
@@ -148,6 +149,24 @@ const ViewTag = () => {
   const isViewMode = tagAction === "view";
   const isEditMode = tagAction === "edit";
 
+  const [searchParams] = useSearchParams();
+
+  const queryString = searchParams.toString()
+    ? `?${searchParams.toString()}`
+    : "";
+
+  const backParam = searchParams.get("back");
+  const batchId = searchParams.get("batch_id");
+
+  const backPath =
+    backParam === "upload"
+      ? `/operations/${toolType}`
+      : backParam === "select-tag"
+        ? `/operations/${toolType}/select-tag${
+            batchId ? `?batchId=${batchId}` : ""
+          }`
+        : undefined;
+
   // FETCH TAGS DATA FROM API
   const stableTagId = useMemo(() => tagId, [tagId]);
 
@@ -265,17 +284,36 @@ const ViewTag = () => {
     );
   };
 
+  // const breadcrumbs = [
+  //   { label: "Tag library", href: `/operations/${toolType}/tags-library` },
+  //   {
+  //     label: "Tag",
+  //     href: `/operations/${toolType}/tag/view/${tagId}`,
+  //   },
+  //   ...(isEditMode
+  //     ? [
+  //         {
+  //           label: "Edit tag",
+  //           href: `/operations/${toolType}/tag/edit/${tagId}`,
+  //         },
+  //       ]
+  //     : []),
+  // ];
+
   const breadcrumbs = [
-    { label: "Tag library", href: `/operations/${toolType}/tags-library` },
+    {
+      label: "Tag library",
+      href: `/operations/${toolType}/tags-library${queryString}`,
+    },
     {
       label: "Tag",
-      href: `/operations/${toolType}/tag/view/${tagId}`,
+      href: `/operations/${toolType}/tag/view/${tagId}${queryString}`,
     },
     ...(isEditMode
       ? [
           {
             label: "Edit tag",
-            href: `/operations/${toolType}/tag/edit/${tagId}`,
+            href: `/operations/${toolType}/tag/edit/${tagId}${queryString}`,
           },
         ]
       : []),
@@ -402,7 +440,8 @@ const ViewTag = () => {
       await updateTag({ id: tagId, body: patchBody }).unwrap();
 
       toast.success("Tag updated successfully!");
-      navigate(`/operations/${toolType}/tag/view/${tagId}`);
+      // navigate(`/operations/${toolType}/tag/view/${tagId}`);
+      navigate(`/operations/${toolType}/tag/view/${tagId}${queryString}`);
     } catch (err) {
       console.error(err);
       toast.error(err?.data?.message || "Failed to update tag");
@@ -505,7 +544,10 @@ const ViewTag = () => {
       <MainNavbar />
 
       <main className="w-full bg-gray-50 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 md:py-10 flex flex-col gap-6">
-        <Breadcrumbs items={breadcrumbs} />
+        <div className="flex gap-2 items-center">
+          <BackButton size={22} pathToNavigate={backPath} />
+          <Breadcrumbs items={breadcrumbs} />
+        </div>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -535,7 +577,9 @@ const ViewTag = () => {
                 type="button"
                 leftIcon={<Edit size={18} />}
                 onClick={() => {
-                  navigate(`/operations/${toolType}/tag/edit/${tagId}`);
+                  navigate(
+                    `/operations/${toolType}/tag/edit/${tagId}${queryString}`,
+                  );
                 }}
               >
                 Edit

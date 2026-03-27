@@ -1,6 +1,6 @@
 import MainNavbar from "../../components/dashboard/MainNavbar";
 import Stepper from "../../components/general/Stepper";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import Button from "../../components/ui/Button";
 import SearchBar from "../../components/general/SearchBar";
 import { useMemo, useState } from "react";
@@ -33,7 +33,8 @@ const SelectTag = () => {
 
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  const batch_id = searchParams.get("batch_id");
+  // const batch_id = searchParams.get("batch_id");
+  const batch_id = searchParams.get("batchId");
 
   // Stpes For the stepper : 1,2,3,4
   const STEPS = [
@@ -188,9 +189,19 @@ const SelectTag = () => {
           </div>
           <Button
             leftIcon={<Plus size={22} className=" text-white" />}
-            onClick={() =>
-              navigate(`/operations/${isIdp ? "idp" : "translate"}/create-tag`)
-            }
+            onClick={() => {
+              const basePath = `/operations/${isIdp ? "idp" : "translate"}/create-tag`;
+
+              const params = new URLSearchParams();
+
+              params.set("back", "select-tag");
+
+              if (batch_id) {
+                params.set("batch_id", batch_id);
+              }
+
+              navigate(`${basePath}?${params.toString()}`);
+            }}
           >
             Create new Tag
           </Button>
@@ -252,6 +263,7 @@ const SelectTag = () => {
                   }
                 }}
                 idp={isIdp}
+                queryString={`?back=select-tag${batch_id ? `&batch_id=${batch_id}` : ""}`}
               />
             ))}
           </div>
@@ -349,7 +361,7 @@ const SelectTag = () => {
 
                           {/* Right side: result */}
                           <span className="text-gray-900 font-medium text-[16px]">
-                            {batchSummary?.total_credits ?? "refresh"} Credits
+                            ~ {batchSummary?.total_credits ?? "refresh"} Credits
                           </span>
                         </div>
                       </div>
@@ -361,7 +373,7 @@ const SelectTag = () => {
                           Total Credits :
                         </h2>
                         <span className="text-xl font-bold text-gray-800">
-                          {batchSummary?.total_credits ?? "refresh"} Credits
+                          ~ {batchSummary?.total_credits ?? "refresh"} Credits
                         </span>
                       </div>
 
@@ -452,7 +464,7 @@ const SelectTag = () => {
                         </Button>
                       </div>
 
-                      <div
+                      {/* <div
                         className=" w-full  p-4 pl-7 mt-2 rounded-lg text-lg font-medium border border-indigo-200 bg-indigo-50 text-gray-700
               shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_2px_6px_2px_rgba(0,0,0,0.15)]
               "
@@ -460,6 +472,21 @@ const SelectTag = () => {
                         💡 {batchSummary.credits_per_unit} credit ={" "}
                         {batchSummary.unit_size}{" "}
                         {`${isIdp ? "page" : "characters"}`}
+                      </div> */}
+
+                      <div
+                        className=" w-full  p-4 pl-7 mt-2 rounded-lg text-lg font-medium border border-indigo-200 bg-indigo-50 text-gray-700
+              shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_2px_6px_2px_rgba(0,0,0,0.15)]
+              "
+                      >
+                        <div className="flex gap-2 items-start">
+                          <Sparkles
+                            size={35}
+                            className="inline-block mt-1 mr-2 text-indigo-600"
+                          />
+                          Final credit usage may vary slightly based on document
+                          complexity.
+                        </div>
                       </div>
                     </>
                   )}

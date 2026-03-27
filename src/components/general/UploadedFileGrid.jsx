@@ -48,9 +48,9 @@ const UploadedFilesGrid = ({
       </div>
 
       {/* Footer helper */}
-      <p className="m-3 w-full text-center text-base sm:text-lg md:text-xl text-gray-800 font-medium">
+      {/* <p className="m-3 w-full text-center text-base sm:text-lg md:text-xl text-gray-800 font-medium">
         {emptyText}
-      </p>
+      </p> */}
 
       <hr className=" text-gray-300" />
     </div>

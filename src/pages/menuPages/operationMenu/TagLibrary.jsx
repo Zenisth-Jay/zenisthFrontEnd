@@ -10,15 +10,38 @@ import {
   useUpdateTagMutation,
 } from "../../../api/tags.api";
 import TranslationTag from "../../../components/tags/TranslationTag";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  useNavigate,
+  useParams,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import Spinner from "../../../components/ui/Spinner";
+import BackButton from "../../../components/ui/BackButton";
 
 const TagLibrary = () => {
   const navigate = useNavigate();
 
+  const location = useLocation();
+  const queryString = location.search || "";
+
   // IDP Check
   const { toolType } = useParams();
   const isIdp = toolType == "idp";
+
+  const [searchParams] = useSearchParams();
+
+  const backParam = searchParams.get("back");
+  const batchId = searchParams.get("batch_id");
+
+  const backPath =
+    backParam === "upload"
+      ? `/operations/${toolType}`
+      : backParam === "select-tag"
+        ? `/operations/${toolType}/select-tag${
+            batchId ? `?batch_id=${batchId}` : ""
+          }`
+        : undefined;
 
   // Tag Tabs
   const TAG_TABS = isIdp
@@ -117,17 +140,23 @@ const TagLibrary = () => {
         <header className="flex flex-col gap-5">
           {/* Heading Section */}
           <div className=" w-full flex items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <h2 className=" text-2xl font-bold">Tag Library</h2>
-              <p className=" text-xl font-normal text-gray-600">
-                Manage your translation Tags and prompts.
-              </p>
+            <div className="flex gap-2 items-start">
+              <BackButton size={22} pathToNavigate={backPath} />
+              <div className="flex flex-col gap-1">
+                <h2 className=" text-2xl font-bold">Tag Library</h2>
+                <p className=" text-xl font-normal text-gray-600">
+                  Manage your translation Tags and prompts.
+                </p>
+              </div>
             </div>
             <Button
               leftIcon={<Plus />}
               onClick={() =>
+                // navigate(
+                //   `/operations/${isIdp ? "idp" : "translate"}/create-tag`,
+                // )
                 navigate(
-                  `/operations/${isIdp ? "idp" : "translate"}/create-tag`,
+                  `/operations/${isIdp ? "idp" : "translate"}/create-tag${queryString}`,
                 )
               }
             >
@@ -195,6 +224,7 @@ const TagLibrary = () => {
                 }
               }}
               idp={isIdp}
+              queryString={queryString}
             />
           ))}
         </div>

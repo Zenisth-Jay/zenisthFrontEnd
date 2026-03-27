@@ -4,6 +4,7 @@ import { useState } from "react";
 import TranslationHistoryGrid from "../../../components/translation-history/TranslationHistoryGrid";
 import FilterPopover from "../../../components/translation-history/FilterPopover";
 import { useParams } from "react-router-dom";
+import BackButton from "../../../components/ui/BackButton";
 
 const TranslateHistory = () => {
   // Search bar
@@ -56,14 +57,17 @@ const TranslateHistory = () => {
     <>
       <MainNavbar />
       <main className="w-full bg-gray-50 min-h-[calc(100vh-64px)] px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 md:py-10 flex flex-col gap-6 md:gap-8">
-        <div className="animate-fade-in-up">
-          <h1 className="text-2xl sm:text-3xl md:text-[40px] font-bold">
-            {isIdp ? "Extraction" : "Translation"} History
-          </h1>
-          <p className="text-gray-700 text-base sm:text-lg mt-1">
-            View and manage all your{" "}
-            {isIdp ? "document extraction" : "translation"} jobs
-          </p>
+        <div className="animate-fade-in-up flex gap-2 items-top">
+          <BackButton size={25} />
+          <div>
+            <h1 className="text-2xl sm:text-3xl md:text-[40px] font-bold">
+              {isIdp ? "Extraction" : "Translation"} History
+            </h1>
+            <p className="text-gray-700 text-base sm:text-lg mt-1">
+              View and manage all your{" "}
+              {isIdp ? "document extraction" : "translation"} jobs
+            </p>
+          </div>
         </div>
 
         {/* <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">

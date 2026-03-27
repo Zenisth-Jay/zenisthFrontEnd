@@ -51,6 +51,7 @@ const TranslateDoc = () => {
     ? ["application/pdf", "image/png", "image/jpeg"]
     : [
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/pdf",
       ];
 
   // initialize files array
@@ -175,7 +176,7 @@ const TranslateDoc = () => {
       toast.error(
         isIdp
           ? "Only PDF, PNG, and JPG files are allowed"
-          : "Only DOCX files are allowed",
+          : "Only DOCX and PDF files are allowed",
         { autoClose: 3000 },
       );
     }
@@ -252,7 +253,7 @@ const TranslateDoc = () => {
             ref={fileInputRef}
             type="file"
             multiple
-            accept={isIdp ? ".pdf,.png,.jpg,.jpeg" : ".docx"}
+            accept={isIdp ? ".pdf,.png,.jpg,.jpeg" : ".docx,.pdf"}
             hidden
             onChange={(e) => {
               handleFiles(e.target.files);
@@ -336,7 +337,7 @@ const TranslateDoc = () => {
                   leftIcon={<Plus size={22} className=" text-white" />}
                   onClick={() =>
                     navigate(
-                      `/operations/${isIdp ? "idp" : "translate"}/create-tag`,
+                      `/operations/${isIdp ? "idp" : "translate"}/create-tag?back=upload`,
                     )
                   }
                   className="w-fit h-fit"
@@ -353,7 +354,7 @@ const TranslateDoc = () => {
               onFilesSelected={handleFiles}
               onBrowseClick={() => fileInputRef.current?.click()}
               title="Drag and drop your documents here, or click to browse"
-              supportedText={`Supported formats: ${isIdp ? "PDF , PNG, JPG, JPEG" : "DOCX"}`}
+              supportedText={`Supported formats: ${isIdp ? "PDF , PNG, JPG, JPEG" : "DOCX, PDF"}`}
               helperText="Max file size: 20 MB, Max Total File Size: 5GB"
             />
           )}

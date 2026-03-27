@@ -11,17 +11,15 @@ import {
   Sparkles,
 } from "lucide-react";
 import SelectElement from "../../components/ui/SelectElement";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import MainFileUpload from "../../components/general/MainFileUpload";
 import UploadedFilesGrid from "../../components/general/UploadedFileGrid";
 import Button from "../../components/ui/Button";
-import Spinner from "../../components/ui/Spinner";
-import { useCreateTagMutation, useGetTagByIdQuery } from "../../api/tags.api";
+import { useCreateTagMutation } from "../../api/tags.api";
 import { toast } from "react-toastify";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { createDocumentAPI, uploadToS3 } from "../../api/documents.api";
 import { LANGUAGES } from "../../data/translateLanguage";
-import BackButton from "../../components/ui/BackButton";
 
 const OUTPUT_FORMAT = [
   { code: "CSV", label: "CSV" },
@@ -86,46 +84,8 @@ const CreateTag = () => {
   const { toolType } = useParams();
   const isIdp = toolType == "idp";
 
-  const [searchParams] = useSearchParams();
-
-  const queryString = searchParams.toString()
-    ? `?${searchParams.toString()}`
-    : "";
-
-  const backParam = searchParams.get("back");
-  const batchId = searchParams.get("batch_id");
-
-  const backPath =
-    backParam === "upload" ? `/operations/${toolType}` : undefined;
-
+  const [uploadedS3Key, setUploadedS3Key] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-
-  const getRedirectPath = (type = "view", tagId = null) => {
-    if (type === "view" && tagId) {
-      return `/operations/${toolType}/tag/view/${tagId}${queryString}`;
-    }
-
-    if (backParam === "upload") {
-      return `/operations/${toolType}`;
-    }
-
-    if (backParam === "select-tag") {
-      return `/operations/${toolType}/select-tag${
-        batchId ? `?batch_id=${batchId}` : ""
-      }`;
-    }
-
-    // fallback
-    return `/operations/${toolType}`;
-  };
-
-  // IDP only: after tag creation, schema generation is async server-side.
-  // We show a waiting UI and poll until the tag becomes COMPLETED.
-  const [schemaWaitTagId, setSchemaWaitTagId] = useState(null);
-  const [schemaWaitStartedAt, setSchemaWaitStartedAt] = useState(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const schemaWaitActive = Boolean(isIdp && schemaWaitTagId);
-  const didRedirectRef = useRef(false);
 
   const { register, handleSubmit, watch } = useForm();
   const sourceLanguage = watch("sourceLanguage");
@@ -138,86 +98,6 @@ const CreateTag = () => {
 
   // API
   const [createTag, { isLoading }] = useCreateTagMutation();
-  const { data: schemaWaitTagData, isError: isSchemaPollError } =
-    useGetTagByIdQuery(schemaWaitTagId, {
-      skip: !schemaWaitActive,
-      pollingInterval: schemaWaitActive ? 5000 : 0,
-      refetchOnMountOrArgChange: true,
-    });
-
-  useEffect(() => {
-    if (!schemaWaitActive || !schemaWaitStartedAt) return;
-
-    const t = window.setInterval(() => {
-      setElapsedSeconds(
-        Math.max(0, Math.floor((Date.now() - schemaWaitStartedAt) / 1000)),
-      );
-    }, 1000);
-
-    return () => window.clearInterval(t);
-  }, [schemaWaitActive, schemaWaitStartedAt]);
-
-  useEffect(() => {
-    if (!schemaWaitActive) return;
-    if (!schemaWaitTagData) return;
-
-    const rawStatus = schemaWaitTagData?.status ?? "";
-
-    const status = String(rawStatus).toUpperCase().trim();
-
-    if (status === "COMPLETED") {
-      const tagId = schemaWaitTagId;
-      if (didRedirectRef.current) return;
-      didRedirectRef.current = true;
-      setSchemaWaitTagId(null);
-      setSchemaWaitStartedAt(null);
-      setElapsedSeconds(0);
-      // navigate(`/operations/${toolType}/tag/view/${tagId}`);
-      // navigate(`/operations/${toolType}/tag/view/${tagId}?back=upload`);
-      // navigate(`/operations/${toolType}/tag/view/${tagId}${queryString}`);
-      navigate(getRedirectPath("view", tagId));
-      return;
-    }
-
-    if (status === "FAILED") {
-      if (didRedirectRef.current) return;
-      didRedirectRef.current = true;
-      setSchemaWaitTagId(null);
-      setSchemaWaitStartedAt(null);
-      setElapsedSeconds(0);
-      toast.error(
-        "Schema generation failed. Please try creating the tag again.",
-      );
-    }
-  }, [
-    schemaWaitActive,
-    schemaWaitTagData,
-    schemaWaitTagId,
-    toolType,
-    navigate,
-  ]);
-
-  useEffect(() => {
-    if (!schemaWaitActive) return;
-
-    // Safety fallback: after ~2 minutes, route back to tag library.
-    const MAX_WAIT_SECONDS = 120;
-    if (!Number.isFinite(elapsedSeconds)) return;
-
-    if (elapsedSeconds >= MAX_WAIT_SECONDS) {
-      if (didRedirectRef.current) return;
-      didRedirectRef.current = true;
-      setSchemaWaitTagId(null);
-      setSchemaWaitStartedAt(null);
-      setElapsedSeconds(0);
-      toast.info(
-        "Schema generation may still be running. Opening tag library...",
-      );
-      // navigate(`/operations/${toolType}/tags-library`);
-      // navigate(`/operations/${toolType}/tags-library${queryString}`);
-      navigate(getRedirectPath());
-    }
-  }, [schemaWaitActive, elapsedSeconds, toolType, navigate]);
 
   const addRow = () => {
     setGlossaryRows((prev) => [
@@ -366,34 +246,18 @@ const CreateTag = () => {
           s3Key: key, // ✅ correct
         };
 
-        // Tag creation succeeds before schema generation completes.
-        // Backend will mark the tag as COMPLETED when schema is ready.
-        const createdRes = await createTag({
+        // console.log("IDP CREATE TAG BODY 👉", body);
+
+        await createTag({
           organizationId: ORGANIZATION_ID,
           applicationId: "IDP",
           tab: TAB,
           body,
         }).unwrap();
 
-        const createdTagId =
-          createdRes?.id ??
-          createdRes?.tag?.id ??
-          createdRes?.tagId ??
-          createdRes?.data?.id ??
-          createdRes?.data?.tag?.id;
-
-        if (!createdTagId) {
-          // toast.success("IDP Tag created successfully!");
-          navigate(getRedirectPath());
-          return;
-        }
-
-        setIsUploading(false);
-        setElapsedSeconds(0);
-        didRedirectRef.current = false;
-        setSchemaWaitTagId(createdTagId);
-        setSchemaWaitStartedAt(Date.now());
-        toast.success("IDP Tag created successfully!");
+        // toast.success("IDP Tag created successfully!");
+        // navigate("/operations/idp/select-tag");
+        navigate(-1);
         return;
       }
 
@@ -422,7 +286,9 @@ const CreateTag = () => {
         body,
       }).unwrap();
 
-      toast.success("Tag created successfully!");
+      if (!isIdp) {
+        toast.success("Tag created successfully!");
+      }
       navigate(-1);
     } catch (err) {
       console.error(err);
@@ -489,36 +355,6 @@ const CreateTag = () => {
   return (
     <>
       <MainNavbar />
-
-      {schemaWaitActive && (
-        <div className="fixed inset-0 z-60 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-lg p-6">
-            <div className="flex items-start gap-4">
-              <Spinner size={46} />
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Please wait
-                </h2>
-                <p className="text-gray-600 mt-2">
-                  Your schema is generating. Please wait a few seconds. It can
-                  take up to 2 minutes.
-                </p>
-                <p className="text-gray-500 text-sm mt-3">
-                  Time elapsed: {elapsedSeconds}s
-                </p>
-
-                {isSchemaPollError && (
-                  <p className="text-red-600 text-sm mt-2">
-                    We&apos;re still waiting. If this continues, you can open
-                    the tag view page.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit(onSubmit)}>
         <input
           ref={fileInputRef}
@@ -533,20 +369,16 @@ const CreateTag = () => {
 
         {/* Main Container */}
         <div className="w-full bg-gray-50 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 md:py-10 flex flex-col gap-6">
-          <div className="flex gap-2 items-start">
-            <BackButton size={30} pathToNavigate={backPath} />
-
-            {/* Create a new atg label ROW */}
-            <div className="flex flex-col">
-              <h1 className=" text-[40px] font-bold text-gray-900">
-                Create New Tag
-              </h1>
-              <span className=" text-lg font-normal text-gray-700">
-                {isIdp
-                  ? "Define how data should be extracted from documents of this type."
-                  : "Define rules for consistent translations"}
-              </span>
-            </div>
+          {/* Create a new atg label ROW */}
+          <div className="flex flex-col">
+            <h1 className=" text-[40px] font-bold text-gray-900">
+              Create New Tag
+            </h1>
+            <span className=" text-lg font-normal text-gray-700">
+              {isIdp
+                ? "Define how data should be extracted from documents of this type."
+                : "Define rules for consistent translations"}
+            </span>
           </div>
 
           {/* First Container */}
@@ -872,7 +704,6 @@ const CreateTag = () => {
                 window.history.back();
               }}
               className="w-full"
-              disabled={schemaWaitActive}
             >
               Cancel
             </Button>
@@ -880,7 +711,7 @@ const CreateTag = () => {
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || isUploading || schemaWaitActive}
+              disabled={isLoading || isUploading}
             >
               {isUploading
                 ? "Uploading..."
@@ -889,6 +720,8 @@ const CreateTag = () => {
                   : "Create Tag"}
             </Button>
           </div>
+
+          {/* Min div over */}
         </div>
       </form>
     </>

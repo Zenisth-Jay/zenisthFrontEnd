@@ -19,6 +19,7 @@ const TranslationTag = ({
   isSelected,
   width,
   idp,
+  queryString = "",
 }) => {
   const {
     name,
@@ -131,7 +132,7 @@ const TranslationTag = ({
                       setMenuOpen(false);
                       // TODO: handle view
                       navigate(
-                        `/operations/${idp ? "idp" : "translate"}/tag/view/${tag.id}`,
+                        `/operations/${idp ? "idp" : "translate"}/tag/view/${tag.id}${queryString}`,
                       );
                     }}
                   >
@@ -146,7 +147,7 @@ const TranslationTag = ({
                       setMenuOpen(false);
                       // TODO: handle edit
                       navigate(
-                        `/operations/${idp ? "idp" : "translate"}/tag/edit/${tag.id}`,
+                        `/operations/${idp ? "idp" : "translate"}/tag/edit/${tag.id}${queryString}`,
                       );
                     }}
                   >
