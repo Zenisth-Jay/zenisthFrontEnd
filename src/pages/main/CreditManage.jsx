@@ -187,7 +187,7 @@ const CreditManage = () => {
     name: t.job_document || "-",
     uploadedAt: new Date(t.created_at).toLocaleString(),
     status:
-      t.status === "COMPLETED"
+      t.status === "COMPLETED" || t.status === "PARTIAL_FAILURE"
         ? "Completed"
         : t.status === "FAILED"
           ? "Failed"

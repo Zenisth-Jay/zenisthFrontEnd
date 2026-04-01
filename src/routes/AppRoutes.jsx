@@ -32,6 +32,7 @@ import CreditManage from "../pages/main/CreditManage";
 import ViewTag from "../pages/translation/ViewTag";
 import DocumentHistory from "../pages/menuPages/operationMenu/DocumentHistory";
 import DocumentPreview from "../pages/menuPages/operationMenu/DocumentPreview";
+import FileStatus from "../pages/translation/FileStatus";
 
 const AppRoutes = () => {
   return (
@@ -158,6 +159,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Translating />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/operations/:toolType/file-status"
+        element={
+          <ProtectedRoute>
+            <FileStatus />
           </ProtectedRoute>
         }
       />

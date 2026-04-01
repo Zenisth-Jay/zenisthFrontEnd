@@ -35,10 +35,6 @@ const InfoBox = ({ title, description }) => {
 };
 
 const TranslateDoc = () => {
-  // const batchEpoch = Date.now();
-  // console.log("Batch Epoch:", batchEpoch);
-  // console.log("Epoch:", batchEpoch);
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -398,7 +394,7 @@ const TranslateDoc = () => {
                       Total Uploaded Size :
                     </span>
                     <span className="text-md sm:text-lg md:text-[20px]  font-bold text-gray-800">
-                      {totalUploadedSizeMB}{" "}
+                      {Number(totalUploadedSizeMB).toFixed(2)}{" "}
                       <span className="text-sm sm:text-lg font-medium  text-gray-500">
                         MB
                       </span>
@@ -422,7 +418,7 @@ const TranslateDoc = () => {
                       Total Cost :
                     </span>
                     <span className="text-md sm:text-2xl md:text-[24px] font-bold text-gray-800">
-                      {totalUploadedSizeMB * 0.5}{" "}
+                      {Number((totalUploadedSizeMB * 0.5).toFixed(2))}{" "}
                       <span className="text-sm sm:text-lg font-medium text-gray-500">
                         credits
                       </span>

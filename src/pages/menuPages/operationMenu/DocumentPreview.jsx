@@ -35,8 +35,7 @@ const DocumentPreview = () => {
   const location = useLocation();
 
   // batch_id: URL ?batch_id=xxx, or location state from Document History, or fallback for dev
-  const batch_id =
-    searchParams.get("batchId") || location.state?.batchId || 1772716498466;
+  const batch_id = searchParams.get("batchId") || location.state?.batchId;
 
   const {
     data: filesData,

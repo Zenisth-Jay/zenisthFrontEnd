@@ -284,22 +284,6 @@ const ViewTag = () => {
     );
   };
 
-  // const breadcrumbs = [
-  //   { label: "Tag library", href: `/operations/${toolType}/tags-library` },
-  //   {
-  //     label: "Tag",
-  //     href: `/operations/${toolType}/tag/view/${tagId}`,
-  //   },
-  //   ...(isEditMode
-  //     ? [
-  //         {
-  //           label: "Edit tag",
-  //           href: `/operations/${toolType}/tag/edit/${tagId}`,
-  //         },
-  //       ]
-  //     : []),
-  // ];
-
   const breadcrumbs = [
     {
       label: "Tag library",

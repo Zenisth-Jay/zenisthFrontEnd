@@ -3,14 +3,13 @@ import MainNavbar from "../../components/dashboard/MainNavbar";
 import Stepper from "../../components/general/Stepper";
 import { Languages, Eye, SquarePen, FileText, Download } from "lucide-react";
 import Button from "../../components/ui/Button";
-import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useGetJobStatusQuery } from "../../api/HistoryBatch.api";
 import { useNavigate } from "react-router-dom";
 import { LANGUAGE_MAP } from "../../components/functions/getLanguageLabel";
 import Spinner from "../../components/ui/Spinner";
 
-const Translating = () => {
+const FileStatus = () => {
   const getLanguageLabel = (code) => LANGUAGE_MAP[code] || code;
 
   const navigate = useNavigate();
@@ -74,11 +73,21 @@ const Translating = () => {
   let status = jobResponse.job_status;
   const sourceLanguage = jobResponse.source_language;
   const targetLanguage = jobResponse.target_language;
+  const fileName = jobResponse.files[0]?.document_name || "your document";
   const downloadLink = jobResponse.download_link;
   const batchId = jobResponse.files[0]?.batch_id;
+  let parsedError = null;
 
-  const failedCount = jobResponse?.metrics?.failed_documents;
-  const totalDocs = jobResponse?.metrics?.total_documents;
+  try {
+    parsedError = jobResponse.error_msg
+      ? JSON.parse(jobResponse.error_msg)
+      : null;
+  } catch (e) {
+    parsedError = null;
+  }
+
+  const failedCount = parsedError?.FAILED_DOCUMENTS_COUNT;
+  const totalDocs = parsedError?.TOTAL_DOCUMENTS;
 
   if (status == "QUEUED") {
     status = "PROCESSING";
@@ -103,6 +112,14 @@ const Translating = () => {
 
           <TranslatingAnimation status={status} idp={isIdp} />
 
+          <div>
+            {fileName && (
+              <h2 className=" text-2xl font-semibold text-gray-700">
+                File name: <span className="font-bold">{fileName}</span>
+              </h2>
+            )}
+          </div>
+
           <div className="flex flex-col gap-2 items-center">
             <h2 className=" text-5xl font-bold text-black">
               {isProcessing
@@ -118,17 +135,13 @@ const Translating = () => {
               {isProcessing
                 ? `We are applying your custom instructions and ${isIdp ? "extracting" : "translating"} the content. Please wait...`
                 : isCompleted
-                  ? failedCount > 0
-                    ? failedCount === totalDocs
-                      ? `All document${totalDocs > 1 ? "s" : ""} failed. Please review the files and try again.`
-                      : `${failedCount} out of ${totalDocs} document${totalDocs > 1 ? "s" : ""} failed. 
-                        Please review the failed files and try again.`
+                  ? failedCount && totalDocs
+                    ? `${failedCount} out of ${totalDocs} document${totalDocs > 1 ? "s" : ""} failed. 
+                  Please review the failed files and try again.`
                     : `Your documents have been successfully ${isIdp ? "extracted" : "translated"} and are ready to download.`
-                  : failedCount > 0
-                    ? failedCount === totalDocs
-                      ? `All document${totalDocs > 1 ? "s" : ""} failed. Please review the files and try again.`
-                      : `${failedCount} out of ${totalDocs} document${totalDocs > 1 ? "s" : ""} failed. 
-                        Please review the failed files and try again.`
+                  : failedCount && totalDocs
+                    ? `${failedCount} out of ${totalDocs} document${totalDocs > 1 ? "s" : ""} failed. 
+                  Please review the failed files and try again. `
                     : `Something went wrong while ${isIdp ? "extracting" : "translating"} your documents.`}
             </p>
           </div>
@@ -153,7 +166,7 @@ const Translating = () => {
             </div>
           )}
 
-          <div className="flex justify-between w-full">
+          {/* <div className="flex justify-between w-full">
             <Button
               variant={isCompleted && downloadLink ? "primary" : "disable"}
               className="w-[31%] shadow-sm"
@@ -188,25 +201,11 @@ const Translating = () => {
             >
               Upload Another Document
             </Button>
-          </div>
-
-          <div className="p-6 bg-gray-50 w-full rounded-3xl border border-indigo-200 shadow-md">
-            <h2 className="text-2xl font-bold">What happens next?</h2>
-            <p className=" text-lg font-normal text-gray-700">
-              {isProcessing
-                ? `Once completed , you’ll be able to review ${isIdp ? "Extractions" : "translations"}, compare
-              with the original, and download the final document. We’ll
-              highlight suggested fixes and improvements.`
-                : isCompleted
-                  ? `Your files were ${isIdp ? "extracted" : "translated"} using the selected tag and ${isIdp ? "uploaded file" : "glossary"}.
-                  Download the ${isIdp ? "extracted" : "translated"} documents or continue with another upload.`
-                  : `Retry the ${isIdp ? "extraction" : "translation"} with the same configuration, or upload the documents again to try a new batch.`}
-            </p>
-          </div>
+          </div> */}
         </section>
       </main>
     </>
   );
 };
 
-export default Translating;
+export default FileStatus;

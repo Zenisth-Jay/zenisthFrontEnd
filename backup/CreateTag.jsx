@@ -80,6 +80,7 @@ const FormatCard = ({
 
 const CreateTag = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { toolType } = useParams();
   const isIdp = toolType == "idp";
@@ -257,7 +258,13 @@ const CreateTag = () => {
 
         // toast.success("IDP Tag created successfully!");
         // navigate("/operations/idp/select-tag");
-        navigate(-1);
+        // navigate(-1);
+        const params = new URLSearchParams(location.search);
+
+        // ✅ redirect to view page
+        navigate(
+          `/operations/translate/view/${resTag.id}?${params.toString()}`,
+        );
         return;
       }
 
@@ -293,6 +300,10 @@ const CreateTag = () => {
     } catch (err) {
       console.error(err);
       toast.error(err?.data?.message || "Failed to create tag");
+
+      setTimeout(() => {
+        window.location.replace(window.location.href);
+      }, 1500);
     }
   };
 

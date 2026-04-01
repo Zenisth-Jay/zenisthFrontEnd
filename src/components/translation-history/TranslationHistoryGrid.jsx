@@ -27,8 +27,6 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
     appType,
   });
 
-  console.log("historyResponse", historyResponse);
-
   // 🔹 Map API response to UI rows
   const allRows = useMemo(() => {
     if (!historyResponse?.jobs) return [];

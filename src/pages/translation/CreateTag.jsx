@@ -427,6 +427,7 @@ const CreateTag = () => {
     } catch (err) {
       console.error(err);
       toast.error(err?.data?.message || "Failed to create tag");
+      setIsUploading(false);
     }
   };
 

@@ -1,14 +1,17 @@
 import { User, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import CreditIcon from "../Icons/CreditIcon";
 
 const ProfileDropdown = ({ onLogout }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="w-60 rounded-2xl border border-[#DAD4F2] bg-white/95 backdrop-blur-sm shadow-[0_20px_45px_-20px_rgba(84,90,122,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
       {/* Account */}
-      <Link
-        to="/user-profile"
-        className="group flex items-center gap-3 px-5 py-4 text-gray-800 hover:bg-[#F7F5FF] transition-all duration-200"
+      <button
+        type="button"
+        onClick={() => navigate("/user-profile")}
+        className="group w-full flex items-center gap-3 px-5 py-4 text-gray-800 hover:bg-[#F7F5FF] transition-all duration-200 text-left cursor-pointer"
       >
         <User
           size={20}
@@ -17,11 +20,12 @@ const ProfileDropdown = ({ onLogout }) => {
         <span className="text-[16px] font-medium tracking-[0.01em] transition-colors duration-200 group-hover:text-[#4B3FA8]">
           Account
         </span>
-      </Link>
+      </button>
 
-      <Link
-        to="/credit-manage"
-        className="group flex items-center gap-2.5 px-5 py-4 text-gray-800 hover:bg-[#F7F5FF] transition-all duration-200"
+      <button
+        type="button"
+        onClick={() => navigate("/credit-manage")}
+        className="group w-full flex items-center gap-2.5 px-5 py-4 text-gray-800 hover:bg-[#F7F5FF] transition-all duration-200 text-left cursor-pointer"
       >
         <CreditIcon
           size={24}
@@ -30,7 +34,7 @@ const ProfileDropdown = ({ onLogout }) => {
         <span className="text-[16px] font-medium tracking-[0.01em] transition-colors duration-200 group-hover:text-[#4B3FA8]">
           Credits
         </span>
-      </Link>
+      </button>
 
       <div className="h-px bg-linear-to-r from-transparent via-[#D6D0EE] to-transparent mx-4" />
 

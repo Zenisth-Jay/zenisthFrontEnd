@@ -1,14 +1,17 @@
 import {
   ArrowRight,
+  AlertCircle,
   ChevronDownIcon,
-  Eye,
   LibrarySquare,
   FileText,
 } from "lucide-react";
 import { useState } from "react";
 import { useGetBatchFilesQuery } from "../../api/HistoryBatch.api";
 import { useNavigate, useParams } from "react-router-dom";
-import { file } from "zod";
+import {
+  extractErrorCode,
+  getErrorMessageFromCode,
+} from "../../utils/translationErrorMessages";
 
 const VARIANTS = {
   neutral: "border-[#787D9C] text-[#373B4F] bg-gray-50",
@@ -16,7 +19,7 @@ const VARIANTS = {
   failed: "border-red-700 text-gray-800 bg-red-50",
   processing: "border-orange-700 text-gray-800 bg-orange-50",
   language: "bg-gray-50 border-gray-500 text-[#262938]",
-  tag: "border-indigo-200 text-indigo-700 bg-indigo-50 text-lg",
+  tag: "border-indigo-200 text-indigo-700 bg-indigo-50 text-md",
 };
 
 const CircleContainer = ({ children, variant = "neutral", className = "" }) => {
@@ -31,6 +34,37 @@ const CircleContainer = ({ children, variant = "neutral", className = "" }) => {
       `}
     >
       {children}
+    </div>
+  );
+};
+
+const StatusWithErrorTooltip = ({ status, errorMessage }) => {
+  const errorCode = extractErrorCode(errorMessage);
+  const friendlyMessage = getErrorMessageFromCode(errorCode);
+  const hasError = Boolean(errorCode && friendlyMessage);
+  const isSuccess = status === "SUCCESS" || status === "COMPLETED";
+
+  return (
+    <div className="w-full relative group flex items-center justify-center">
+      <CircleContainer variant={isSuccess ? "completed" : "failed"}>
+        <span>{status}</span>
+        {hasError && <AlertCircle size={14} className="ml-2 text-red-700" />}
+      </CircleContainer>
+
+      {hasError && (
+        <div
+          className="pointer-events-none absolute z-20 left-1/2 -translate-x-1/2 mt-2 top-full
+                     w-[320px] rounded-lg border border-red-200 bg-white p-3 text-left shadow-lg
+                     opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+        >
+          <p className="text-xs font-semibold text-red-700">
+            Processing failed
+          </p>
+          <p className="mt-1 text-sm text-gray-800 leading-5">
+            {friendlyMessage}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
@@ -56,8 +90,6 @@ const TranslationRow = ({ row }) => {
     { jobId: row.id, page: childPage, limit: childPageSize, appType: toolType },
     { skip: !open }, // 👈 only fetch when open
   );
-
-  console.log(filesResponse);
 
   const files = filesResponse?.files || [];
   const childTotalPages = filesResponse?.pagination?.total_pages || 1;
@@ -108,7 +140,7 @@ const TranslationRow = ({ row }) => {
 
         <div className="flex items-center justify-center">
           <CircleContainer variant={row.statusVariant}>
-            {row.status}
+            {row.status?.toUpperCase()}
           </CircleContainer>
         </div>
 
@@ -193,15 +225,10 @@ const TranslationRow = ({ row }) => {
                 </div>
 
                 <div className="flex items-center justify-center">
-                  <CircleContainer
-                    variant={
-                      child.status === "SUCCESS" || child.status === "COMPLETED"
-                        ? "completed"
-                        : "failed"
-                    }
-                  >
-                    {child.status}
-                  </CircleContainer>
+                  <StatusWithErrorTooltip
+                    status={child.status}
+                    errorMessage={child.error_message}
+                  />
                 </div>
 
                 <CircleContainer variant="language">
