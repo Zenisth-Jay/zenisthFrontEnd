@@ -1,4 +1,5 @@
 export const LANGUAGES = [
+  { code: "auto", label: "Auto-Detect" },
   { code: "af", label: "Afrikaans" },
   { code: "sq", label: "Albanian" },
   { code: "am", label: "Amharic" },

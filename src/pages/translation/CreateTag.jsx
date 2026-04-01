@@ -115,7 +115,6 @@ const CreateTag = () => {
       }`;
     }
 
-    // fallback
     return `/operations/${toolType}`;
   };
 
@@ -415,15 +414,36 @@ const CreateTag = () => {
         field_count: glossaryOutput.length,
       };
 
-      await createTag({
+      // await createTag({
+      //   organizationId: ORGANIZATION_ID,
+      //   applicationId: APPLICATION_ID,
+      //   tab: TAB,
+      //   body,
+      // }).unwrap();
+
+      const createdRes = await createTag({
         organizationId: ORGANIZATION_ID,
         applicationId: APPLICATION_ID,
         tab: TAB,
         body,
       }).unwrap();
 
+      // ✅ extract tag id safely
+      const createdTagId =
+        createdRes?.id ??
+        createdRes?.tag?.id ??
+        createdRes?.tagId ??
+        createdRes?.data?.id ??
+        createdRes?.data?.tag?.id;
+
       toast.success("Tag created successfully!");
-      navigate(-1);
+
+      // ✅ redirect to view page (same pattern as IDP)
+      if (createdTagId) {
+        navigate(getRedirectPath("view", createdTagId));
+      } else {
+        navigate(getRedirectPath());
+      }
     } catch (err) {
       console.error(err);
       toast.error(err?.data?.message || "Failed to create tag");
@@ -655,10 +675,11 @@ const CreateTag = () => {
                   name="targetLanguage"
                   register={register}
                   rules={{ required: "Target language is required" }}
-                  options={LANGUAGES.map((lang) => ({
-                    ...lang,
-                    disabled: lang.code === sourceLanguage,
-                  }))}
+                  options={LANGUAGES.filter((lang) => lang.code !== "auto") // ❌ remove auto-detect
+                    .map((lang) => ({
+                      ...lang,
+                      disabled: lang.code === sourceLanguage,
+                    }))}
                   placeholder="Select language"
                 />
               </div>

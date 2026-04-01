@@ -4,13 +4,24 @@ const ERROR_CODE_MESSAGES = {
   INVALID_TAG:
     "The selected tag is not valid for this document. Please choose a different tag or review your document.",
   JOB_FAILED:
-    "The operation failed due to an internal error. Please try again later.",
-  INTERNAL_SERVER_ERROR: "Something went wrong. Please try again.",
+    "The operation failed due to an internal error. Please visit the Document History page, select the correct tag for your documents, and start the batch again.",
+
+  FILE_PROCESS_FAILURE:
+    "We couldn’t open this file. It may be corrupted or protected. Please upload a different file.",
+
+  AWS_TRANSLATE_ERROR:
+    "We couldn’t translate this file. It may not contain readable text or is not supported.",
+
+  POST_PROCESSING_ERROR:
+    "Your file was translated, but we couldn’t prepare the final output. Please try again.",
 };
 
 export const getErrorMessageFromCode = (code) => {
   if (!code) return null;
-  return ERROR_CODE_MESSAGES[code] || "Something went wrong. Please try again.";
+  return (
+    ERROR_CODE_MESSAGES[code] ||
+    "The operation failed due to an internal error. Please visit the Document History page, select the correct tag for your documents, and start the batch again."
+  );
 };
 
 export const extractErrorCode = (rawErrorMessage) => {

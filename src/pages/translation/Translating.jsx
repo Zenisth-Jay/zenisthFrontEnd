@@ -110,8 +110,8 @@ const Translating = () => {
                   ? "Extracting...."
                   : "Translating...."
                 : isCompleted
-                  ? `${isIdp ? "IDP" : "Translation"} Completed`
-                  : `${isIdp ? "IDP" : "Translation"} Failed`}
+                  ? `${isIdp ? "IDP" : "Translation"} Job Completed`
+                  : `${isIdp ? "IDP" : "Translation"} Job Failed`}
             </h2>
 
             <p className=" text-gray-600 text-xl font-semibold">

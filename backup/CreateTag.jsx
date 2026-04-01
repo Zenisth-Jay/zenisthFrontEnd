@@ -497,10 +497,11 @@ const CreateTag = () => {
                   name="targetLanguage"
                   register={register}
                   rules={{ required: "Target language is required" }}
-                  options={LANGUAGES.map((lang) => ({
-                    ...lang,
-                    disabled: lang.code === sourceLanguage,
-                  }))}
+                  options={LANGUAGES.filter((lang) => lang.code !== "auto") // ❌ remove auto-detect
+                    .map((lang) => ({
+                      ...lang,
+                      disabled: lang.code === sourceLanguage,
+                    }))}
                   placeholder="Select language"
                 />
               </div>
