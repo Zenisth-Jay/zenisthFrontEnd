@@ -42,7 +42,7 @@ const columns = [
     key: "operation",
     header: "Operation",
     width: "1fr",
-    headerClassName: "justify-center",
+    headerClassName: "justify-left",
     cellClassName:
       " justify-left text-center text-[16px] font-semibold whitespace-nowrap",
   },
@@ -51,18 +51,41 @@ const columns = [
     header: "Job Document",
     width: "1.5fr",
     headerClassName: "justify-center",
-    cellClassName: "justify-left pl-6",
-    render: (_, row) => (
-      <div className="flex items-center gap-3 min-w-0">
-        <FileText className="text-indigo-500 shrink-0" size={22} />
-        <div className="flex flex-col min-w-0">
-          <span className="font-medium text-gray-900 truncate max-w-45">
-            {row.name}
-          </span>
-          <span className="text-xs text-gray-500">{row.uploadedAt}</span>
+    cellClassName: "justify-left pl-3",
+    // render: (_, row) => (
+    //   <div className="flex items-center gap-3 min-w-0">
+    //     <FileText className="text-indigo-500 shrink-0" size={22} />
+    //     <div className="flex flex-col min-w-0">
+    //       <span className="font-medium text-gray-900 truncate max-w-45">
+    //         {row.name}
+    //       </span>
+    //       <span className="text-xs text-gray-500">{row.uploadedAt}</span>
+    //     </div>
+    //   </div>
+    // ),
+    render: (_, row) => {
+      // 👉 If SIGNUP → show only time
+      if (row.operation === "SIGNUP") {
+        return (
+          <div className="text-lg text-gray-500 text-center w-full font-semibold">
+            {row.uploadedAt}
+          </div>
+        );
+      }
+
+      // 👉 Default (existing UI)
+      return (
+        <div className="flex items-center gap-2 min-w-0">
+          <FileText className="text-indigo-500 shrink-0" size={22} />
+          <div className="flex flex-col min-w-0">
+            <span className="font-medium text-gray-900 truncate max-w-45">
+              {row.name}
+            </span>
+            <span className="text-xs text-gray-500">{row.uploadedAt}</span>
+          </div>
         </div>
-      </div>
-    ),
+      );
+    },
   },
   {
     key: "status",
@@ -92,10 +115,33 @@ const columns = [
     width: "1fr",
     headerClassName: "justify-center",
     cellClassName: "justify-center",
+    // render: (v) =>
+    //   v && (
+    //     <CircleContainer variant="tag">
+    //       <span className="truncate w-full text-center text-sm">{v}</span>
+    //     </CircleContainer>
+    //   ),
     render: (v) =>
       v && (
         <CircleContainer variant="tag">
-          <span className="truncate w-full text-center text-sm">{v}</span>
+          <div className="relative group w-full flex justify-center">
+            {/* Truncated Text */}
+            <span className="truncate text-sm text-center w-full">{v}</span>
+
+            {/* Tooltip */}
+            <div
+              className="
+                absolute bottom-full mb-4
+                hidden group-hover:block
+                bg-white text-gray-500 text-xs
+                px-3 py-1 rounded-md
+                whitespace-nowrap z-50
+                shadow-lg
+              "
+            >
+              {v}
+            </div>
+          </div>
         </CircleContainer>
       ),
   },
@@ -144,7 +190,8 @@ const columns = [
     header: "User",
     width: "1.2fr",
     headerClassName: "justify-center",
-    cellClassName: "justify-center text-md font-semibold truncate",
+    cellClassName:
+      "justify-center text-lg font-semibold truncate text-gray-500",
   },
 
   // {

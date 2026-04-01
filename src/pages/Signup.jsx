@@ -222,7 +222,7 @@ const Signup = () => {
                     "the address you entered"
                   )}
                   . Open the message and tap the link to finish setting up your
-                  account—it only takes a moment.
+                  account, it only takes a moment.
                 </p>
                 <p className="text-sm text-[#9E9E9E] mt-4 mb-6">
                   Didn&apos;t see it? Check your spam or promotions folder.
