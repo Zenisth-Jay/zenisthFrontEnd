@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 import Logo from "../components/Authentication/Logo";
@@ -12,29 +12,17 @@ import { toast } from "react-toastify";
 
 const ChangePassword = () => {
   const navigate = useNavigate();
-  const [strength, setStrength] = useState(0);
 
   const {
     register,
     handleSubmit,
     watch,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = useForm({
     defaultValues: { password: "", confirmPassword: "" },
   });
 
   const passwordValue = watch("password");
-
-  // Calculate Password Strength
-  useEffect(() => {
-    let score = 0;
-    if (!passwordValue) return setStrength(0);
-    if (passwordValue.length >= 8) score += 25;
-    if (/[A-Z]/.test(passwordValue)) score += 25;
-    if (/[0-9]/.test(passwordValue)) score += 25;
-    if (/[^A-Za-z0-9]/.test(passwordValue)) score += 25;
-    setStrength(score);
-  }, [passwordValue]);
 
   // Check recovery session on page load
   useEffect(() => {
@@ -97,27 +85,36 @@ const ChangePassword = () => {
                 placeholder="Enter new password..."
                 register={register}
                 icon={KeyRound}
-                rules={{ required: "Password is required", minLength: 8 }}
+                rules={{
+                  required: "Password is required.",
+                  validate: {
+                    minLength: (value) =>
+                      value.length >= 8 ||
+                      "Password must be at least 8 characters long.",
+                    hasUppercase: (value) =>
+                      /[A-Z]/.test(value) ||
+                      "Password must include at least one uppercase letter.",
+                    hasLowercase: (value) =>
+                      /[a-z]/.test(value) ||
+                      "Password must include at least one lowercase letter.",
+                    hasNumber: (value) =>
+                      /\d/.test(value) ||
+                      "Password must include at least one number.",
+                    hasSpecial: (value) =>
+                      /[^A-Za-z0-9]/.test(value) ||
+                      "Password must include at least one special character.",
+                  },
+                }}
               />
-
-              {/* Strength Meter UI */}
-              <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden mt-1">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    strength <= 25
-                      ? "bg-red-500"
-                      : strength <= 50
-                        ? "bg-orange-500"
-                        : strength <= 75
-                          ? "bg-yellow-500"
-                          : "bg-green-500"
-                  }`}
-                  style={{ width: `${strength}%` }}
-                />
-              </div>
-              <p className="text-xs text-gray-500 mb-2">
-                Password strength: {strength}%
+              <p className="text-xs text-[#6B7280] -mt-2">
+                Use 8+ characters with uppercase, lowercase, number, and special
+                character.
               </p>
+              {errors.password?.message && (
+                <p className="text-sm text-red-600 -mt-2">
+                  {errors.password.message}
+                </p>
+              )}
 
               <InputElement
                 label="Confirm Password"
@@ -129,11 +126,16 @@ const ChangePassword = () => {
                 rules={{
                   required: "Confirmation required",
                   validate: (val) =>
-                    val === passwordValue || "Passwords do not match",
+                    val === passwordValue || "Passwords do not match.",
                 }}
               />
+              {errors.confirmPassword?.message && (
+                <p className="text-sm text-red-600 -mt-2">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
             </div>
-            <AuthButton type="submit" disabled={isSubmitting || strength < 50}>
+            <AuthButton type="submit" disabled={isSubmitting}>
               Update & Go to Login
             </AuthButton>
           </form>
