@@ -69,33 +69,115 @@ const AppRoutes = () => {
       {/* <Route path="/operations/translate" element={<TranslateDoc />} /> */}
       <Route
         path="/operations/:toolType/history"
-        element={<TranslateHistory />}
+        element={
+          <ProtectedRoute>
+            <TranslateHistory />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/operations/:toolType/tags-library"
-        element={<TagLibrary />}
+        element={
+          <ProtectedRoute>
+            <TagLibrary />
+          </ProtectedRoute>
+        }
       />
 
       <Route
         path="/operations/document-history"
-        element={<DocumentHistory />}
+        element={
+          <ProtectedRoute>
+            <DocumentHistory />
+          </ProtectedRoute>
+        }
       />
 
       {/* Resources Menu */}
-      <Route path="/resources/api-keys" element={<ApiKeys />} />
-      <Route path="/resources/api-reference" element={<ApiReferences />} />
-      <Route path="/resources/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/resources/terms" element={<TermsAndService />} />
+      <Route
+        path="/resources/api-keys"
+        element={
+          <ProtectedRoute>
+            <ApiKeys />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resources/api-reference"
+        element={
+          <ProtectedRoute>
+            <ApiReferences />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resources/privacy-policy"
+        element={
+          <ProtectedRoute>
+            <PrivacyPolicy />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resources/terms"
+        element={
+          <ProtectedRoute>
+            <TermsAndService />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Learn Menu */}
-      <Route path="/learn/plateform-overview" element={<PlatformOverview />} />
-      <Route path="/learn/video-tutorial" element={<VideoTutorial />} />
-      <Route path="/learn/user-guides" element={<UserGuides />} />
-      <Route path="/learn/developer-docs" element={<DeveloperDocs />} />
+      <Route
+        path="/learn/plateform-overview"
+        element={
+          <ProtectedRoute>
+            <PlatformOverview />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/learn/video-tutorial"
+        element={
+          <ProtectedRoute>
+            <VideoTutorial />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/learn/user-guides"
+        element={
+          <ProtectedRoute>
+            <UserGuides />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/learn/developer-docs"
+        element={
+          <ProtectedRoute>
+            <DeveloperDocs />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Support Menu */}
-      <Route path="/support/help" element={<Help />} />
-      <Route path="/support/contact-support" element={<ContactSupport />} />
+      <Route
+        path="/support/help"
+        element={
+          <ProtectedRoute>
+            <Help />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/support/contact-support"
+        element={
+          <ProtectedRoute>
+            <ContactSupport />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/operations/:toolType/translate-history"
@@ -109,7 +191,11 @@ const AppRoutes = () => {
       {/* TAG Edit and VIew */}
       <Route
         path="operations/:toolType/tag/:tagAction/:tagId"
-        element={<ViewTag />}
+        element={
+          <ProtectedRoute>
+            <ViewTag />
+          </ProtectedRoute>
+        }
       />
 
       <Route
@@ -234,13 +320,48 @@ const AppRoutes = () => {
       />
 
       {/* Static/Info Pages (Can stay public or be protected) */}
-      <Route path="/resources/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/resources/terms" element={<TermsAndService />} />
-      <Route path="/support/help" element={<Help />} />
-      <Route path="/support/contact-support" element={<ContactSupport />} />
+      <Route
+        path="/resources/privacy-policy"
+        element={
+          <ProtectedRoute>
+            <PrivacyPolicy />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resources/terms"
+        element={
+          <ProtectedRoute>
+            <TermsAndService />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/support/help"
+        element={
+          <ProtectedRoute>
+            <Help />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/support/contact-support"
+        element={
+          <ProtectedRoute>
+            <ContactSupport />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Credit Management */}
-      <Route path="/credit-manage" element={<CreditManage />} />
+      <Route
+        path="/credit-manage"
+        element={
+          <ProtectedRoute>
+            <CreditManage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* 404 */}
       <Route path="*" element={<h1>404 - Page not found</h1>} />

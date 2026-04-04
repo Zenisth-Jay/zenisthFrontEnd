@@ -32,7 +32,13 @@ const Login = () => {
 
       // 2. Handle Authentication Errors
       if (error) {
-        // Common errors: 'Invalid login credentials' or 'Email not confirmed'
+        // Catch the specific Supabase "ban" error
+        if (error.message.toLowerCase().includes("banned")) {
+          throw new Error(
+            "Your account is deactivated. Please contact support.",
+          );
+        }
+        // Throw any other standard errors (like "Invalid password")
         throw new Error(error.message);
       }
 
