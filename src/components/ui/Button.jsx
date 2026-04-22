@@ -35,7 +35,7 @@ const Button = ({
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${disabled ? " opacity-50 cursor-not-allowed" : ""} ${className}`}
       {...props}
     >
-      {leftIcon && <span className="mr-2">{leftIcon}</span>}
+      {leftIcon && <span className="">{leftIcon}</span>}
       {children}
       {rightIcon && <span className="ml-2">{rightIcon}</span>}
     </button>

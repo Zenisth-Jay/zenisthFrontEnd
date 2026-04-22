@@ -33,6 +33,7 @@ import ViewTag from "../pages/translation/ViewTag";
 import DocumentHistory from "../pages/menuPages/operationMenu/DocumentHistory";
 import DocumentPreview from "../pages/menuPages/operationMenu/DocumentPreview";
 import FileStatus from "../pages/translation/FileStatus";
+import ReviewTranslation from "../pages/translation/ReviewTranslation";
 
 const AppRoutes = () => {
   return (
@@ -359,6 +360,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <CreditManage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/translate-review"
+        element={
+          <ProtectedRoute>
+            <ReviewTranslation />
           </ProtectedRoute>
         }
       />

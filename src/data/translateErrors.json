@@ -1,0 +1,418 @@
+{
+  "job_id": "job_master_003",
+  "chunks": [
+    {
+      "chunk_id": "job_001",
+      "source_indices": [0,1,2,3,4,5],
+      "payload": {
+        "text_to_translate": [
+          {
+            "type": "Heading",
+            "text": "Understanding Generic Medicines"
+          },
+          {
+            "type": "Paragraph",
+            "text": "Generic medicines are pharmaceutical products intended to be equivalent to brand-name medicines in quality, dosage, safety, and therapeutic effect. They become available after patent expiry and allow multiple manufacturers to produce affordable alternatives."
+          },
+          {
+            "type": "Paragraph",
+            "text": "Regulatory agencies require strict bioequivalence testing before approval. These medicines must demonstrate that they behave in the body similarly to branded drugs and provide comparable outcomes."
+          },
+          {
+            "type": "Heading",
+            "text": "Public Value"
+          },
+          {
+            "type": "Paragraph",
+            "text": "Generic medicines help healthcare systems reduce expenditure, improve medicine availability, and support treatment continuity for patients with chronic diseases."
+          },
+          {
+            "type": "ListBlock",
+            "text": "* Reduces medicine costs\n* Expands patient access\n* Supports sustainable healthcare\n* Encourages market competition"
+          }
+        ]
+      },
+      "translated_chunk": [
+        {
+          "type": "Heading",
+          "text": "Comprensión de los Medicamentos Genéricos"
+        },
+        {
+          "type": "Paragraph",
+          "text": "Los medicamentos genéricos son productos farmacéuticos destinados a ser equivalentes a los medicamentos de marca en calidad, dosis, seguridad y efecto terapéutico. Están disponibles después del vencimiento de la patente y permiten que múltiples fabricantes produzcan alternativas asequibles."
+        },
+        {
+          "type": "Paragraph",
+          "text": "Las agencias regulatorias exigen pruebas estrictas de bioequivalencia antes de la aprobación. Estos medicamentos deben demostrar que se comportan en el cuerpo de manera similar a los medicamentos de marca y proporcionan resultados comparables."
+        },
+        {
+          "type": "Heading",
+          "text": "Valor Público"
+        },
+        {
+          "type": "Paragraph",
+          "text": "Los medicamentos genéricos ayudan a los sistemas de salud a reducir gasto, mejorar disponibilidad de medicamentos y apoyar la continuidad del tratamiento para pacientes con enfermedades crónicas."
+        },
+        {
+          "type": "ListBlock",
+          "text": "* Reduce costos de medicamentos\n* Expande acceso de pacientes\n* Apoya atención médica sostenible\n* Fomenta competencia del mercado"
+        }
+      ],
+      "mqm_result": {
+        "score": 82,
+        "summary": {
+          "critical_errors": 1,
+          "minor_errors": 3
+        },
+        "errors": [
+          {
+            "error_location_index": 1,
+            "severity": "Minor",
+            "category": "Terminology",
+            "description": "More natural term available.",
+            "problematic_text": "destinados a ser equivalentes",
+            "suggestions": [
+              "diseñados para ser equivalentes",
+              "concebidos para ser equivalentes"
+            ]
+          },
+          {
+            "error_location_index": 2,
+            "severity": "Minor",
+            "category": "Fluency",
+            "description": "Phrase sounds literal.",
+            "problematic_text": "se comportan en el cuerpo",
+            "suggestions": [
+              "actúan en el cuerpo",
+              "funcionan en el organismo"
+            ]
+          },
+          {
+            "error_location_index": 4,
+            "severity": "Critical",
+            "category": "Grammar",
+            "description": "Missing article.",
+            "problematic_text": "reducir gasto",
+            "suggestions": [
+              "reducir el gasto",
+              "reducir gastos"
+            ]
+          },
+          {
+            "error_location_index": 5,
+            "severity": "Minor",
+            "category": "Fluency",
+            "description": "Needs article for naturalness.",
+            "problematic_text": "Fomenta competencia del mercado",
+            "suggestions": [
+              "Fomenta la competencia del mercado",
+              "Fomenta la competencia en el mercado"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "chunk_id": "job_002",
+      "source_indices": [6,7,8,9,10],
+      "payload": {
+        "text_to_translate": [
+          {
+            "type": "Heading",
+            "text": "Advantages of Generic Medicines"
+          },
+          {
+            "type": "Paragraph",
+            "text": "Generic medicines lower treatment costs because manufacturers do not repeat the original research investment. This makes long-term therapy more affordable."
+          },
+          {
+            "type": "Paragraph",
+            "text": "They also improve access in underserved communities and help governments optimize public health budgets."
+          },
+          {
+            "type": "ListBlock",
+            "text": "* Reduces healthcare expenditure\n* Encourages generic prescribing\n* Improves treatment access\n* Preserves therapeutic quality"
+          },
+          {
+            "type": "Paragraph",
+            "text": "Their use can strengthen healthcare resilience during economic pressure."
+          }
+        ]
+      },
+      "translated_chunk": [
+        {
+          "type": "Heading",
+          "text": "Ventajas de los Medicamentos Genéricos"
+        },
+        {
+          "type": "Paragraph",
+          "text": "Los medicamentos genéricos reducen los costos del tratamiento porque los fabricantes no repiten la inversión original en investigación. Esto hace que la terapia a largo plazo sea más barato."
+        },
+        {
+          "type": "Paragraph",
+          "text": "También mejoran el acceso en comunidades desatendidas y ayudan a los gobiernos a optimizar presupuestos de salud pública."
+        },
+        {
+          "type": "ListBlock",
+          "text": "* Reduce el gasto sanitario\n* Fomenta la de genéricos\n* Mejora acceso al tratamiento\n* Preserva calidad terapéutica"
+        },
+        {
+          "type": "Paragraph",
+          "text": "Su uso puede fortalecer la resistencia sanitaria durante presión económica."
+        }
+      ],
+      "mqm_result": {
+        "score": 61,
+        "summary": {
+          "critical_errors": 2,
+          "minor_errors": 2
+        },
+        "errors": [
+          {
+            "error_location_index": 1,
+            "severity": "Critical",
+            "category": "Grammar",
+            "description": "Agreement error.",
+            "problematic_text": "más barato",
+            "suggestions": [
+              "más barata",
+              "más asequible"
+            ]
+          },
+          {
+            "error_location_index": 3,
+            "severity": "Critical",
+            "category": "Accuracy",
+            "description": "Missing key word.",
+            "problematic_text": "Fomenta la de genéricos",
+            "suggestions": [
+              "Fomenta la prescripción de genéricos",
+              "Promueve la prescripción de genéricos",
+              "Incentiva la prescripción genérica"
+            ]
+          },
+          {
+            "error_location_index": 3,
+            "severity": "Minor",
+            "category": "Fluency",
+            "description": "Needs article.",
+            "problematic_text": "Mejora acceso al tratamiento",
+            "suggestions": [
+              "Mejora el acceso al tratamiento",
+              "Mejora acceso a tratamientos"
+            ]
+          },
+          {
+            "error_location_index": 4,
+            "severity": "Minor",
+            "category": "Fluency",
+            "description": "Phrase is unnatural.",
+            "problematic_text": "durante presión económica",
+            "suggestions": [
+              "durante la presión económica",
+              "durante periodos de presión económica"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "chunk_id": "job_003",
+      "source_indices": [11,12,13,14,15],
+      "payload": {
+        "text_to_translate": [
+          {
+            "type": "Heading",
+            "text": "Challenges in Adoption"
+          },
+          {
+            "type": "Paragraph",
+            "text": "Some patients believe that lower prices mean lower quality, even though regulators require equivalent standards."
+          },
+          {
+            "type": "Paragraph",
+            "text": "Marketing by branded manufacturers may influence prescribing decisions and delay generic uptake."
+          },
+          {
+            "type": "Paragraph",
+            "text": "Education campaigns and physician guidance are important to improve trust."
+          },
+          {
+            "type": "ListBlock",
+            "text": "* Public misconceptions\n* Brand loyalty\n* Limited awareness\n* Uneven prescribing habits"
+          }
+        ]
+      },
+      "translated_chunk": [
+        {
+          "type": "Heading",
+          "text": "Desafíos en la Adopción"
+        },
+        {
+          "type": "Paragraph",
+          "text": "Algunos pacientes creen que precios más bajos significan menor calidad, aunque los reguladores exigen estándares equivalentes."
+        },
+        {
+          "type": "Paragraph",
+          "text": "El marketing de fabricantes de marca puede influir en decisiones de prescripción y retrasar adopción genérica."
+        },
+        {
+          "type": "Paragraph",
+          "text": "Las campañas educativas y la guía médica son importante para mejorar la confianza."
+        },
+        {
+          "type": "ListBlock",
+          "text": "* Conceptos erróneos públicos\n* Lealtad de marca\n* Conciencia limitada\n* Hábitos de prescripción desiguales"
+        }
+      ],
+      "mqm_result": {
+        "score": 72,
+        "summary": {
+          "critical_errors": 1,
+          "minor_errors": 3
+        },
+        "errors": [
+          {
+            "error_location_index": 1,
+            "severity": "Minor",
+            "category": "Grammar",
+            "description": "Needs article.",
+            "problematic_text": "precios más bajos",
+            "suggestions": [
+              "los precios más bajos",
+              "precios inferiores"
+            ]
+          },
+          {
+            "error_location_index": 2,
+            "severity": "Critical",
+            "category": "Grammar",
+            "description": "Missing article changes fluency.",
+            "problematic_text": "retrasar adopción genérica",
+            "suggestions": [
+              "retrasar la adopción genérica",
+              "retrasar la adopción de genéricos"
+            ]
+          },
+          {
+            "error_location_index": 3,
+            "severity": "Minor",
+            "category": "Grammar",
+            "description": "Agreement error.",
+            "problematic_text": "son importante",
+            "suggestions": [
+              "son importantes",
+              "resultan importantes"
+            ]
+          },
+          {
+            "error_location_index": 4,
+            "severity": "Minor",
+            "category": "Terminology",
+            "description": "Could be more natural.",
+            "problematic_text": "Conciencia limitada",
+            "suggestions": [
+              "Conocimiento limitado",
+              "Escasa concienciación"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "chunk_id": "job_004",
+      "source_indices": [16,17,18,19],
+      "payload": {
+        "text_to_translate": [
+          {
+            "type": "Heading",
+            "text": "Future Outlook"
+          },
+          {
+            "type": "Paragraph",
+            "text": "Generic medicines are expected to remain essential for sustainable healthcare systems worldwide."
+          },
+          {
+            "type": "Paragraph",
+            "text": "Governments should improve transparency, support competition, and encourage evidence-based prescribing."
+          },
+          {
+            "type": "Paragraph",
+            "text": "Better public understanding can accelerate adoption and improve long-term affordability."
+          }
+        ]
+      },
+      "translated_chunk": [
+        {
+          "type": "Heading",
+          "text": "Perspectiva Futura"
+        },
+        {
+          "type": "Paragraph",
+          "text": "Se espera que los medicamentos genéricos sigan siendo esencial para los sistemas de salud sostenibles en todo el mundo."
+        },
+        {
+          "type": "Paragraph",
+          "text": "Los gobiernos deberían mejorar transparencia, apoyar competencia y fomentar prescripción basada en evidencia."
+        },
+        {
+          "type": "Paragraph",
+          "text": "Una mejor comprensión pública puede acelerar adopción y mejorar la asequibilidad a largo plazo."
+        }
+      ],
+      "mqm_result": {
+        "score": 68,
+        "summary": {
+          "critical_errors": 1,
+          "minor_errors": 3
+        },
+        "errors": [
+          {
+            "error_location_index": 1,
+            "severity": "Critical",
+            "category": "Grammar",
+            "description": "Agreement error.",
+            "problematic_text": "siendo esencial",
+            "suggestions": [
+              "siendo esenciales",
+              "manteniéndose esenciales"
+            ]
+          },
+          {
+            "error_location_index": 2,
+            "severity": "Minor",
+            "category": "Grammar",
+            "description": "Missing articles.",
+            "problematic_text": "mejorar transparencia",
+            "suggestions": [
+              "mejorar la transparencia",
+              "aumentar la transparencia"
+            ]
+          },
+          {
+            "error_location_index": 2,
+            "severity": "Minor",
+            "category": "Grammar",
+            "description": "Missing article.",
+            "problematic_text": "apoyar competencia",
+            "suggestions": [
+              "apoyar la competencia",
+              "fomentar la competencia"
+            ]
+          },
+          {
+            "error_location_index": 3,
+            "severity": "Minor",
+            "category": "Grammar",
+            "description": "Missing article.",
+            "problematic_text": "acelerar adopción",
+            "suggestions": [
+              "acelerar la adopción",
+              "impulsar la adopción"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
