@@ -10,7 +10,7 @@ export const documentHistoryApi = createApi({
     // GET DOCUMENT HISTORY BATCHES
     getDocumentHistoryBatches: builder.query({
       query: ({ page = 1, limit = 7 }) => ({
-        url: `${import.meta.env.VITE_GET_DOCUMENT_HISTORY_BATCHES}/documents?page=${page}&limit=${limit}`,
+        url: `/documents/batches?page=${page}&limit=${limit}`,
       }),
       providesTags: ["DocumentHistory"],
     }),
@@ -18,7 +18,7 @@ export const documentHistoryApi = createApi({
     // GET DOCUMENT HISTORY FILES - IN PAGINATION
     getDocumentHistoryFiles: builder.query({
       query: ({ batch_id, page = 1, limit = 7 }) => ({
-        url: `${import.meta.env.VITE_GET_DOCUMENT_HISTORY_FILES}documents/batches/${batch_id}?page=${page}&limit=${limit}`,
+        url: `/documents/batches/${batch_id}?page=${page}&limit=${limit}`,
       }),
       providesTags: (result, error, { batch_id }) =>
         batch_id ? [{ type: "DocumentHistory", id: `files-${batch_id}` }] : [],
@@ -27,15 +27,15 @@ export const documentHistoryApi = createApi({
     // GET DOCUMENT HISTORY FILES - ALL FILES
     getDocumentHistoryAllFiles: builder.query({
       query: ({ batch_id }) => ({
-        url: `${import.meta.env.VITE_GET_DOCUMENT_HISTORY_FILES}documents/batches/${batch_id}`,
+        url: `/documents/batches/${batch_id}`,
       }),
     }),
 
     // DELETE DOCUMENT
     deleteDocument: builder.mutation({
       query: ({ doc_id }) => ({
-        url: `${import.meta.env.VITE_DELETE_DOCUMENT_URL}documents/${doc_id}`,
-        method: "PATCH",
+        url: `/documents/batches/${doc_id}`,
+        method: "DELETE",
       }),
       invalidatesTags: (result, err, { batch_id }) =>
         batch_id

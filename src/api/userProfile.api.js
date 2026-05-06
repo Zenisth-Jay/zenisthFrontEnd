@@ -8,7 +8,7 @@ export const userProfileApi = createApi({
 
   endpoints: (builder) => ({
     getUserProfile: builder.query({
-      query: () => `${import.meta.env.VITE_GET_USER_PROFILE_URL}/userProfile`,
+      query: () => `/userProfile`,
     }),
 
     // UPDATE USER PROFILE - CURRENTLY NOT ACTIVE

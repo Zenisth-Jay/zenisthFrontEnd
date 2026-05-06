@@ -17,7 +17,7 @@ export const batchSummaryApi = createApi({
       ) {
         await sleep(2000);
 
-        let url = `${import.meta.env.VITE_CREDIT_CALCULATION_URL}/credits/quote?application=${encodeURIComponent(application)}`;
+        let url = `/credits/quote?application=${encodeURIComponent(application)}`;
 
         if (batch_id) {
           url += `&batch_id=${encodeURIComponent(batch_id)}`;

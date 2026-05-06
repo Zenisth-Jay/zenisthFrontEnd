@@ -11,7 +11,7 @@ export const cardsApi = createApi({
     // GET TOOL CARDS - DASHBOARD
     getCards: builder.query({
       query: () => ({
-        url: `${import.meta.env.VITE_GET_TOOL_CARDS_URL}/applications/`,
+        url: `/applications`,
       }),
       providesTags: ["toolCards"],
     }),

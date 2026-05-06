@@ -2,7 +2,7 @@ import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { supabase } from "../supabase/supabaseClient";
 
 export const baseQueryWithAuth = fetchBaseQuery({
-  baseUrl: "", // we will pass full URLs in endpoints
+  baseUrl: import.meta.env.VITE_API_BASE_URL,
 
   prepareHeaders: async (headers) => {
     try {

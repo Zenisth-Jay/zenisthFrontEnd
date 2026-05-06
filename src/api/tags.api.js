@@ -11,7 +11,7 @@ export const tagsApi = createApi({
     // 1. GET ALL TAGS
     getTags: builder.query({
       query: ({ applicationId }) => ({
-        url: `${import.meta.env.VITE_GET_TAGS_URL}/tags?applicationId=${applicationId}`,
+        url: `/tags?applicationId=${applicationId}`,
       }),
       providesTags: ["Tags"],
     }),
@@ -19,14 +19,14 @@ export const tagsApi = createApi({
     // GET SPECIFIC TAG BY TAG-ID
     getTagById: builder.query({
       query: (tagId) => ({
-        url: `${import.meta.env.VITE_GET_SPECIFIC_TAG_URL}/tags/${tagId}`,
+        url: `/tags/${tagId}`,
       }),
     }),
 
     // UPDATE SPECIFIC TAG
     updateTag: builder.mutation({
       query: ({ id, body }) => ({
-        url: `${import.meta.env.VITE_UPDATE_SPECIFIC_TAG}/tags/${id}`,
+        url: `/tags/${id}`,
         method: "PUT",
         body,
       }),
@@ -36,7 +36,7 @@ export const tagsApi = createApi({
     // TOGGLE FAVOURITE - STAR
     toggleFavoriteTag: builder.mutation({
       query: ({ id, isFavorite }) => ({
-        url: `${import.meta.env.VITE_UPDATE_SPECIFIC_TAG}/tags/${id}`,
+        url: `/tags/${id}`,
         method: "PUT",
         body: { isFavorite },
       }),
@@ -46,7 +46,7 @@ export const tagsApi = createApi({
     // CREATE TAG
     createTag: builder.mutation({
       query: ({ applicationId, tab, body }) => ({
-        url: `${import.meta.env.VITE_CREATE_TAG_URL}/tags?applicationId=${applicationId}&tab=${tab}`, //
+        url: `/tags?applicationId=${applicationId}&tab=${tab}`,
         method: "POST",
         body,
       }),
@@ -56,7 +56,7 @@ export const tagsApi = createApi({
     // 4. File upload for IDP
     uploadIdpFile: builder.mutation({
       query: (formData) => ({
-        url: `${import.meta.env.VITE_INITIAL_DOCUMENT_UPLOAD}/idp/upload`,
+        url: `/idp/upload`,
         method: "POST",
         body: formData,
       }),

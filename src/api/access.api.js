@@ -11,7 +11,7 @@ export const accessApi = createApi({
     // 1. GET ALL USER FOR ONE ORGANIZATION IN ACCESS CONTROL PAGE
     getUsers: builder.query({
       query: () => ({
-        url: `${import.meta.env.VITE_GET_USERS_URL}/users`,
+        url: `/users`,
       }),
       providesTags: ["Users"],
     }),
@@ -38,7 +38,7 @@ export const accessApi = createApi({
     // 3. UPDATE USER ROLE - ACCESS CONTROL PAGE
     updateUser: builder.mutation({
       query: ({ userId, role }) => ({
-        url: `${import.meta.env.VITE_UPDATE_USER_URL}/users`,
+        url: `/users`,
         method: "PUT",
         body: {
           user_id: userId, // backend expects this

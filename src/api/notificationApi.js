@@ -11,7 +11,7 @@ export const notificationApi = createApi({
     // GET NOTIFICATIONS
     getNotifications: builder.query({
       query: () => ({
-        url: `${import.meta.env.VITE_GET_NOTIFICATIONS_URL}/notifications`,
+        url: `/notifications`,
       }),
       providesTags: ["Notifications"],
     }),
@@ -19,8 +19,8 @@ export const notificationApi = createApi({
     // READ NOTIFICATION
     markNotificationRead: builder.mutation({
       query: (notificationId) => ({
-        url: `${import.meta.env.VITE_READ_NOTIFICATION_URL}/notifications/${notificationId}/read`,
-        method: "PATCH",
+        url: `/notifications/${notificationId}/read`,
+        method: "PUT",
       }),
       invalidatesTags: ["Notifications"],
     }),

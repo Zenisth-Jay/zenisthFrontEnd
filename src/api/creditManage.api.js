@@ -10,7 +10,7 @@ export const creditManageApi = createApi({
     // CREDIT MANAGEMENT PAGE - GET CREDIT HISTORY AND SOME DATA FOR CARDS
     getCreditManagement: builder.query({
       query: ({ page = 1, limit = 7 }) => ({
-        url: `${import.meta.env.VITE_GET_CREDIT_HISTORY}/credits/history?page=${page}&limit=${limit}`,
+        url: `/credits/history?page=${page}&limit=${limit}`,
       }),
       providesTags: ["CreditManagement"],
     }),

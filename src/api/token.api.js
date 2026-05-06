@@ -8,7 +8,7 @@ export const tokenApi = createApi({
 
   endpoints: (builder) => ({
     getTokens: builder.query({
-      query: () => `${import.meta.env.VITE_GET_CREDIT_BALANCE}/credits`,
+      query: () => `/credits`,
       providesTags: ["Tokens"],
     }),
   }),

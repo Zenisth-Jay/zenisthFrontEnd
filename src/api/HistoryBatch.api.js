@@ -23,7 +23,7 @@ export const historyBatchApi = createApi({
     // GET HISTORY BATCHES (paginated)
     getHistoryBatches: builder.query({
       query: ({ page = 1, limit = 10, appType = "translate" }) => ({
-        url: `${HISTORY_BATCH_URLS[appType]}/${appType}/?page=${page}&limit=${limit}`,
+        url: `/${appType}/history?page=${page}&limit=${limit}`,
       }),
       providesTags: ["HistoryBatches"],
     }),
@@ -31,14 +31,14 @@ export const historyBatchApi = createApi({
     // GET HISTORY FILES OF A BATCH (paginated)
     getBatchFiles: builder.query({
       query: ({ jobId, page = 1, limit = 10, appType = "translate" }) => ({
-        url: `${HISTORY_FILES_URLS[appType]}/${appType}/${jobId}?page=${page}&limit=${limit}`,
+        url: `/${appType}/${jobId}?page=${page}&limit=${limit}`,
       }),
     }),
 
     //  STATUS OF A JOB - FOR STATUS PAGE
     getJobStatus: builder.query({
       query: ({ jobId, appType = "translate" }) => ({
-        url: `${HISTORY_FILES_URLS[appType]}/${appType}/${jobId}`,
+        url: `/${appType}/${jobId}`,
       }),
     }),
   }),
