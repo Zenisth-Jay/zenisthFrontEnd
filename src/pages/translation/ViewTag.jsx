@@ -67,6 +67,7 @@ const buildTagVM = (apiTag) => {
 
     createdAt: apiTag.createdAt,
     updatedAt: apiTag.updatedAt,
+    version: apiTag.version ?? 1,
   };
 };
 
@@ -141,6 +142,15 @@ const isValidCsv = (text) => {
   }
 };
 
+const normalizeJsonText = (text) => {
+  if (typeof text !== "string") return text;
+  try {
+    return JSON.stringify(JSON.parse(text));
+  } catch {
+    return text.trim();
+  }
+};
+
 const ViewTag = () => {
   const navigate = useNavigate();
 
@@ -192,7 +202,8 @@ const ViewTag = () => {
   const [glossaryRows, setGlossaryRows] = useState([]);
   const [idpPreviewTab, setIdpPreviewTab] = useState("output"); // "output" | "schema"
 
-  const [schemaText, setSchemaText] = useState(""); // rawSchemaContent from API
+  const [sampleOutputText, setSampleOutputText] = useState("");
+  const [rawSchemaText, setRawSchemaText] = useState(""); // editable schema JSON
   const [apiOutputFormat, setApiOutputFormat] = useState("CSV"); // from API
 
   const { register, handleSubmit, watch, setValue, reset } = useForm({
@@ -208,10 +219,14 @@ const ViewTag = () => {
     },
   });
   const sourceLanguage = watch("sourceLanguage");
+  const selectedOutputFormat = watch("outputFormat");
 
   const fileInputRef = useRef(null);
 
   const tagVM = useMemo(() => buildTagVM(tagData), [tagData]);
+  const effectiveOutputFormat = selectedOutputFormat || apiOutputFormat;
+  const isOutputFormatLocked = isIdp && (tagVM?.version ?? 1) !== 1;
+  const canEditSchema = isIdp && isEditMode && effectiveOutputFormat === "JSON";
 
   const originalRef = useRef(null);
   const lastSyncedTagIdRef = useRef(null);
@@ -242,8 +257,8 @@ const ViewTag = () => {
     // ✅ Glossary from API -> rows
     setGlossaryRows(glossaryObjectToRows(tagVM.glossaryContent));
 
-    // setSchemaText(tagVM.rawSchema);
-    setSchemaText(tagVM.sampleOutput);
+    setSampleOutputText(tagVM.sampleOutput || "");
+    setRawSchemaText(prettyJson(tagVM.rawSchema || ""));
     setApiOutputFormat(tagVM.outputFormat);
     setPreviewFormat(tagVM.outputFormat);
     originalRef.current = {
@@ -325,30 +340,19 @@ const ViewTag = () => {
     try {
       const original = originalRef.current;
 
-      // ✅ Validate schema for IDP before saving
-      // if (isIdp) {
-      //   const text = schemaText?.trim();
+      // Validate editable schema JSON for IDP
+      if (isIdp && effectiveOutputFormat === "JSON") {
+        const schema = rawSchemaText?.trim();
+        if (!schema) {
+          toast.error("Schema cannot be empty.");
+          return;
+        }
 
-      //   if (!text) {
-      //     toast.error("Schema cannot be empty");
-      //     return;
-      //   }
-
-      //   if (apiOutputFormat === "JSON" && !isValidJson(text)) {
-      //     toast.error("Invalid JSON schema. Please fix it before saving.");
-      //     return;
-      //   }
-
-      //   if (apiOutputFormat === "XML" && !isValidXml(text)) {
-      //     toast.error("Invalid XML schema. Please fix it before saving.");
-      //     return;
-      //   }
-
-      //   if (apiOutputFormat === "CSV" && !isValidCsv(text)) {
-      //     toast.error("Invalid CSV format. Please fix it before saving.");
-      //     return;
-      //   }
-      // }
+        if (!isValidJson(schema)) {
+          toast.error("Invalid JSON schema. Please provide valid JSON.");
+          return;
+        }
+      }
 
       if (!original) {
         toast.error("Original data not loaded yet");
@@ -367,7 +371,7 @@ const ViewTag = () => {
 
         // IDP
         output_format: isIdp ? formData.outputFormat : undefined,
-        // raw_schema_content: isIdp ? schemaText : undefined,
+        raw_schema_content: isIdp && effectiveOutputFormat === "JSON" ? rawSchemaText : undefined,
         prompt: isIdp ? formData.prompt : undefined,
 
         // TRANSLATION
@@ -385,14 +389,16 @@ const ViewTag = () => {
         const currVal =
           key === "glossary_content"
             ? JSON.stringify(current[key] || {})
+            : key === "raw_schema_content"
+              ? normalizeJsonText(current[key])
             : normalize(current[key]);
 
         const origVal =
           key === "output_format"
             ? normalize(original.outputFormat)
-            : // : key === "raw_schema_content"
-              //   ? normalize(original.rawSchemaContent)
-              key === "prompt"
+            : key === "raw_schema_content"
+              ? normalizeJsonText(original.rawSchemaContent)
+              : key === "prompt"
               ? normalize(original.prompt)
               : key === "source_lang"
                 ? normalize(original.source_lang)
@@ -433,22 +439,22 @@ const ViewTag = () => {
   };
 
   const prettySchema = useMemo(() => {
-    if (!schemaText) return "";
+    if (!sampleOutputText) return "";
 
-    if (apiOutputFormat === "JSON") return prettyJson(schemaText);
-    if (apiOutputFormat === "XML") return prettyXml(schemaText);
+    if (effectiveOutputFormat === "JSON") return prettyJson(sampleOutputText);
+    if (effectiveOutputFormat === "XML") return prettyXml(sampleOutputText);
 
-    return schemaText; // CSV or unknown → show as-is
-  }, [schemaText, apiOutputFormat]);
+    return sampleOutputText; // CSV or unknown → show as-is
+  }, [sampleOutputText, effectiveOutputFormat]);
 
   const prettyRawSchema = useMemo(() => {
-    const raw = tagVM?.rawSchema?.trim();
+    const raw = rawSchemaText?.trim();
     if (!raw) return "";
     return prettyJson(raw);
-  }, [tagVM?.rawSchema]);
+  }, [rawSchemaText]);
 
   const handleDownloadOutput = useCallback(() => {
-    const content = schemaText?.trim() || "";
+    const content = sampleOutputText?.trim() || "";
     if (!content) {
       toast.info("No output content to download");
       return;
@@ -477,7 +483,7 @@ const ViewTag = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     // toast.success(`Downloaded ${filename}`);
-  }, [schemaText, apiOutputFormat, tagVM?.name]);
+  }, [sampleOutputText, apiOutputFormat, tagVM?.name]);
 
   const handleDownloadSchema = useCallback(() => {
     const content = prettyRawSchema?.trim() || tagVM?.rawSchema?.trim() || "";
@@ -673,9 +679,14 @@ const ViewTag = () => {
                     rules={{ required: "Output format is required" }}
                     options={OUTPUT_FORMAT}
                     placeholder="Select output format"
-                    disabled={isViewMode}
+                    disabled={isViewMode || isOutputFormatLocked}
                     showRequired={false}
                   />
+                  {isEditMode && isOutputFormatLocked && (
+                    <p className="mt-2 text-sm text-amber-700">
+                      Output format cannot be changed for this version.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-6">
@@ -866,12 +877,27 @@ const ViewTag = () => {
                     </div>
 
                     <div className="relative">
-                      <pre className="w-full h-105 overflow-auto rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800">
-                        {idpPreviewTab === "output"
-                          ? prettySchema || "No output available"
-                          : prettyRawSchema || "No schema available"}
-                      </pre>
+                      {idpPreviewTab === "schema" && canEditSchema ? (
+                        <textarea
+                          value={rawSchemaText}
+                          onChange={(e) => setRawSchemaText(e.target.value)}
+                          rows={20}
+                          className="w-full h-105 overflow-auto rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Enter valid JSON schema..."
+                        />
+                      ) : (
+                        <pre className="w-full h-105 overflow-auto rounded-xl bg-[#0f0f0f] text-green-400 p-4 text-sm font-mono border border-gray-800">
+                          {idpPreviewTab === "output"
+                            ? prettySchema || "No output available"
+                            : prettyRawSchema || "No schema available"}
+                        </pre>
+                      )}
                     </div>
+                    {idpPreviewTab === "schema" && isEditMode && !canEditSchema && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        Schema editing is only available when output format is JSON.
+                      </p>
+                    )}
                   </div>
                 </>
               )}

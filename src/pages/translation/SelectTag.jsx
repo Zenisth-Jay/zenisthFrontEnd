@@ -412,8 +412,8 @@ const SelectTag = () => {
                               const res = await startJob({
                                 tagId: selectedTag.id,
                                 application: isIdp ? "IDP" : "TRANSLATE",
-                                cost: batchSummary?.total_credits ?? "",
                                 batch_id: batch_id,
+                                cost: batchSummary?.total_credits,
                               }).unwrap();
 
                               // console.log(

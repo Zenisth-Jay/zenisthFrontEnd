@@ -22,6 +22,23 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createDocumentAPI, uploadToS3 } from "../../api/documents.api";
 import { LANGUAGES } from "../../data/translateLanguage";
 import BackButton from "../../components/ui/BackButton";
+import { useDirectUploadDocumentMutation } from "../../api/directUpload.api";
+
+const DIRECT_UPLOAD_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+
+const fileToBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = typeof result === "string" ? result.split(",")[1] : "";
+      resolve(base64);
+    };
+
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 
 const OUTPUT_FORMAT = [
   { code: "CSV", label: "CSV" },
@@ -137,6 +154,7 @@ const CreateTag = () => {
 
   // API
   const [createTag, { isLoading }] = useCreateTagMutation();
+  const [directUploadDocument] = useDirectUploadDocumentMutation();
   const { data: schemaWaitTagData, isError: isSchemaPollError } =
     useGetTagByIdQuery(schemaWaitTagId, {
       skip: !schemaWaitActive,
@@ -329,28 +347,53 @@ const CreateTag = () => {
 
         setIsUploading(true);
 
-        const batchId = Date.now();
+        const uploadBatchId = Date.now();
+        let key;
+        let documentId;
 
-        // 1️⃣ Ask backend for presigned URL
-        const res = await createDocumentAPI({
-          fileName: file.name,
-          fileSize: file.size,
-          application: "TAG_CREATION",
-          batchId,
-          isFirstDocument: true,
-          totalBatchSize: file.size,
-        });
+        if (file.size < DIRECT_UPLOAD_MAX_SIZE) {
+          const base64 = await fileToBase64(file);
 
-        const { uploadUrl, key } = res.data;
+          const directUploadRes = await directUploadDocument({
+            base64,
+            appType: "TAG_CREATION",
+            batchId: uploadBatchId,
+            fileName: file.name,
+          }).unwrap();
 
-        // 2️⃣ Upload to S3
-        // await uploadToS3(uploadUrl, file);
-        await uploadToS3(uploadUrl, {
-          file: file,
-          batchId: batchId,
-          isFirstDocument: true,
-          totalBatchSize: file.size,
-        });
+          const uploadedDocumentId = directUploadRes?.documentIds?.[0];
+          documentId = uploadedDocumentId
+            ? `${uploadedDocumentId}_${file.name}`
+            : undefined;
+        } else {
+          // 1️⃣ Ask backend for presigned URL
+          const res = await createDocumentAPI({
+            fileName: file.name,
+            fileSize: file.size,
+            application: "TAG_CREATION",
+            batchId: uploadBatchId,
+            isFirstDocument: true,
+            totalBatchSize: file.size,
+          });
+
+          key = res.data?.key;
+          const { uploadUrl } = res.data;
+
+          // 2️⃣ Upload to S3
+          // await uploadToS3(uploadUrl, file);
+          await uploadToS3(uploadUrl, {
+            file: file,
+            batchId: uploadBatchId,
+            isFirstDocument: true,
+            totalBatchSize: file.size,
+          });
+        }
+
+        if (!key && !documentId) {
+          throw new Error(
+            "Upload completed but no file reference was returned.",
+          );
+        }
 
         // 3️⃣ Create tag with S3 KEY (not URL)
         const body = {
@@ -362,7 +405,7 @@ const CreateTag = () => {
           prompt: data.prompt || null,
           outputFormat: data.outputFormat, // "CSV" | "JSON" | "XML"
           originalFormat: getOriginalFormat(file), // "CSV" | "JSON" | "XML"
-          s3Key: key, // ✅ correct
+          ...(documentId ? { documentId } : { s3Key: key }),
         };
 
         // Tag creation succeeds before schema generation completes.

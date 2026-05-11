@@ -22,6 +22,23 @@ import {
   useGetDocumentHistoryAllFilesQuery,
   useDeleteDocumentMutation,
 } from "../../../api/documentHistory.api";
+import { useDirectUploadDocumentMutation } from "../../../api/directUpload.api";
+
+const DIRECT_UPLOAD_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+
+const fileToBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = typeof result === "string" ? result.split(",")[1] : "";
+      resolve(base64);
+    };
+
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 
 const isDeletedStatus = (status) =>
   String(status ?? "")
@@ -31,6 +48,7 @@ const isDeletedStatus = (status) =>
 const DocumentPreview = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [directUploadDocument] = useDirectUploadDocumentMutation();
   const [searchParams] = useSearchParams();
   const location = useLocation();
 
@@ -115,6 +133,7 @@ const DocumentPreview = () => {
     ? ["application/pdf", "image/png", "image/jpeg"]
     : [
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/pdf",
       ];
 
   // initialize files array
@@ -226,42 +245,30 @@ const DocumentPreview = () => {
     uploadNewFilesOnly();
   };
 
-  // Upload one file into the given batch (same epoch – adds to existing batch)
-  // const startUpload = async (fileObj, batchId) => {
-  //   const id = fileObj.id;
-
-  //   try {
-  //     const res = await createDocumentAPI({
-  //       fileName: fileObj.file.name,
-  //       fileSize: fileObj.file.size,
-  //       application: isIdp ? "IDP" : "TRANSLATE",
-  //       batchId, // same batch_id so file is added to existing batch, not new epoch
-  //     });
-
-  //     const { uploadUrl } = res.data;
-  //     console.log(res);
-
-  //     // 2. REAL upload to S3
-  //     await uploadToS3(uploadUrl, fileObj.file, (percent) => {
-  //       dispatch(updateProgress({ id, progress: percent }));
-  //     });
-
-  //     // 3. Mark success
-  //     dispatch(markSuccess({ id }));
-  //   } catch (err) {
-  //     console.error(err);
-  //     dispatch(markError({ id }));
-  //   }
-  // };
-
   const startUpload = async (fileObj, batchId, isFirst, totalBatchSize) => {
     const id = fileObj.id;
 
     try {
+      const appType = isIdp ? "IDP" : "TRANSLATE";
+
+      if (fileObj.file.size < DIRECT_UPLOAD_MAX_SIZE) {
+        const base64 = await fileToBase64(fileObj.file);
+
+        await directUploadDocument({
+          base64,
+          appType,
+          batchId,
+        }).unwrap();
+
+        dispatch(updateProgress({ id, progress: 100 }));
+        dispatch(markSuccess({ id }));
+        return;
+      }
+
       const payload = {
         fileName: fileObj.file.name,
         fileSize: fileObj.file.size,
-        application: isIdp ? "IDP" : "TRANSLATE",
+        application: appType,
         batchId,
       };
 
@@ -273,6 +280,8 @@ const DocumentPreview = () => {
 
       const res = await createDocumentAPI(payload);
       const { uploadUrl } = res.data;
+
+      console.log("Obtained upload URL", { uploadUrl });
 
       await uploadToS3(
         uploadUrl,
@@ -322,7 +331,7 @@ const DocumentPreview = () => {
       toast.error(
         isIdp
           ? "Only PDF, PNG, and JPG files are allowed"
-          : "Only DOCX files are allowed",
+          : "Only DOCX and PDF files are allowed",
         { autoClose: 3000 },
       );
     }
@@ -431,7 +440,7 @@ const DocumentPreview = () => {
             ref={fileInputRef}
             type="file"
             multiple
-            accept={isIdp ? ".pdf,.png,.jpg,.jpeg" : ".docx"}
+            accept={isIdp ? ".pdf,.png,.jpg,.jpeg" : ".docx,.pdf"}
             hidden
             onChange={(e) => {
               handleFiles(e.target.files);

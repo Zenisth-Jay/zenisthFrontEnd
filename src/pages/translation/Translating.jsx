@@ -10,6 +10,21 @@ import { useNavigate } from "react-router-dom";
 import { LANGUAGE_MAP } from "../../components/functions/getLanguageLabel";
 import Spinner from "../../components/ui/Spinner";
 
+const downloadJsonFile = (data, filename) => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 const Translating = () => {
   const getLanguageLabel = (code) => LANGUAGE_MAP[code] || code;
 
@@ -75,7 +90,9 @@ const Translating = () => {
   const sourceLanguage = jobResponse.source_language;
   const targetLanguage = jobResponse.target_language;
   const downloadLink = jobResponse.download_link;
+  const inlineOutput = jobResponse.inline_output;
   const batchId = jobResponse.files[0]?.batch_id;
+  const hasInlineOutput = inlineOutput != null;
 
   const failedCount = jobResponse?.metrics?.failed_documents;
   const totalDocs = jobResponse?.metrics?.total_documents;
@@ -155,12 +172,24 @@ const Translating = () => {
 
           <div className="flex justify-between w-full">
             <Button
-              variant={isCompleted && downloadLink ? "primary" : "disable"}
+              variant={
+                isCompleted && (downloadLink || hasInlineOutput)
+                  ? "primary"
+                  : "disable"
+              }
               className="w-[31%] shadow-sm"
               leftIcon={<Download />}
               onClick={() => {
                 if (downloadLink) {
                   window.open(downloadLink, "_blank");
+                  return;
+                }
+
+                if (hasInlineOutput) {
+                  downloadJsonFile(
+                    inlineOutput,
+                    `${jobResponse.job_id || "inline-output"}.json`,
+                  );
                 }
               }}
             >

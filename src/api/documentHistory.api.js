@@ -34,7 +34,7 @@ export const documentHistoryApi = createApi({
     // DELETE DOCUMENT
     deleteDocument: builder.mutation({
       query: ({ doc_id }) => ({
-        url: `/documents/batches/${doc_id}`,
+        url: `/documents/${doc_id}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, err, { batch_id }) =>

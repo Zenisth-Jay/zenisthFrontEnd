@@ -8,7 +8,7 @@ export const tokenApi = createApi({
 
   endpoints: (builder) => ({
     getTokens: builder.query({
-      query: () => `/credits`,
+      query: () => `/credit-balance`,
       providesTags: ["Tokens"],
     }),
   }),

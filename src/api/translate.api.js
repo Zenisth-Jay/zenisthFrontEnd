@@ -16,7 +16,7 @@ export const translateApi = createApi({
     // START TRANSLATE OR IDP JOB
     startJob: builder.mutation({
       query: ({ tagId, application, cost, batch_id }) => ({
-        url: `${application == "IDP" ? "/idp" : "/translate"}/execute`,
+        url: `${application == "IDP" ? "/idp" : "/translate"}/jobs`,
         method: "POST",
         body: {
           tag_id: tagId,

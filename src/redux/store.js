@@ -11,6 +11,7 @@ import { creditManageApi } from "../api/creditManage.api";
 import { userProfileApi } from "../api/userProfile.api";
 import { accessApi } from "../api/access.api";
 import { documentHistoryApi } from "../api/documentHistory.api";
+import { directUploadApi } from "../api/directUpload.api";
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
     [userProfileApi.reducerPath]: userProfileApi.reducer,
     [accessApi.reducerPath]: accessApi.reducer,
     [documentHistoryApi.reducerPath]: documentHistoryApi.reducer,
+    [directUploadApi.reducerPath]: directUploadApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -40,5 +42,6 @@ export const store = configureStore({
       userProfileApi.middleware,
       accessApi.middleware,
       documentHistoryApi.middleware,
+      directUploadApi.middleware,
     ),
 });

@@ -24,6 +24,23 @@ import {
 import { useDispatch } from "react-redux";
 import MainFileUpload from "../../../components/general/MainFileUpload";
 import UploadedFilesGrid from "../../../components/general/UploadedFileGrid";
+import { useDirectUploadDocumentMutation } from "../../../api/directUpload.api";
+
+const DIRECT_UPLOAD_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+
+const fileToBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = typeof result === "string" ? result.split(",")[1] : "";
+      resolve(base64);
+    };
+
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 
 const InfoBox = ({ title, description }) => {
   return (
@@ -37,6 +54,7 @@ const InfoBox = ({ title, description }) => {
 const TranslateDoc = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [directUploadDocument] = useDirectUploadDocumentMutation();
 
   // Check Tool Type
   const { toolType } = useParams();
@@ -101,10 +119,26 @@ const TranslateDoc = () => {
     const id = fileObj.id;
 
     try {
+      const appType = isIdp ? "IDP" : "TRANSLATE";
+
+      if (fileObj.file.size < DIRECT_UPLOAD_MAX_SIZE) {
+        const base64 = await fileToBase64(fileObj.file);
+
+        await directUploadDocument({
+          base64,
+          appType,
+          batchId,
+        }).unwrap();
+
+        dispatch(updateProgress({ id, progress: 100 }));
+        dispatch(markSuccess({ id }));
+        return;
+      }
+
       const payload = {
         fileName: fileObj.file.name,
         fileSize: fileObj.file.size,
-        application: isIdp ? "IDP" : "TRANSLATE",
+        application: appType,
         batchId,
       };
 
@@ -117,6 +151,7 @@ const TranslateDoc = () => {
       const res = await createDocumentAPI(payload);
 
       const { uploadUrl } = res.data;
+      console.log("Received upload URL:", uploadUrl);
 
       await uploadToS3(
         uploadUrl,
@@ -379,58 +414,6 @@ const TranslateDoc = () => {
                 onPreviewFile={(item) => handlePreview(item.file)}
                 totalSize={totalUploadedSizeMB}
               />
-
-              {/* Uploaded Processing Cost Section */}
-              <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 bg-white border border-gray-300 shadow-sm rounded-xl sm:rounded-2xl animate-fade-in-up">
-                <div className="flex flex-col gap-4">
-                  <h3 className="text-xl sm:text-2xl md:text-[28px] font-semibold text-gray-900">
-                    Upload processing cost
-                  </h3>
-                  <hr className="text-gray-300" />
-
-                  {/* 1 */}
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-sm sm:text-lg  text-gray-500">
-                      Total Uploaded Size :
-                    </span>
-                    <span className="text-md sm:text-lg md:text-[20px]  font-bold text-gray-800">
-                      {Number(totalUploadedSizeMB).toFixed(2)}{" "}
-                      <span className="text-sm sm:text-lg font-medium  text-gray-500">
-                        MB
-                      </span>
-                    </span>
-                  </div>
-                  <hr className="text-gray-300" />
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-sm sm:text-lg  text-gray-500">
-                      Rate :
-                    </span>
-                    <span className="text-md sm:text-lg md:text-[20px]  font-bold text-gray-800">
-                      0.5{" "}
-                      <span className="text-sm sm:text-lg font-medium text-gray-500">
-                        credits per MB
-                      </span>
-                    </span>
-                  </div>
-                  <hr className="text-gray-300" />
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-sm sm:text-2xl  text-gray-500">
-                      Total Cost :
-                    </span>
-                    <span className="text-md sm:text-2xl md:text-[24px] font-bold text-gray-800">
-                      {Number((totalUploadedSizeMB * 0.5).toFixed(2))}{" "}
-                      <span className="text-sm sm:text-lg font-medium text-gray-500">
-                        credits
-                      </span>
-                    </span>
-                  </div>
-                </div>
-                <div className="bg-indigo-50 border border-indigo-200 text-gray-600 rounded-lg p-3 sm:p-4 text-base sm:text-lg md:text-xl shadow-sm">
-                  💡 Credits are only deducted once you confirm below and
-                  processing begins. Removing a file updates this estimate
-                  instantly.
-                </div>
-              </div>
 
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 md:gap-10 justify-end">
                 <Button

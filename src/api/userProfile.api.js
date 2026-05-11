@@ -8,7 +8,7 @@ export const userProfileApi = createApi({
 
   endpoints: (builder) => ({
     getUserProfile: builder.query({
-      query: () => `/userProfile`,
+      query: () => `/user-profile`,
     }),
 
     // UPDATE USER PROFILE - CURRENTLY NOT ACTIVE

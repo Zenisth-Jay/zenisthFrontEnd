@@ -23,7 +23,7 @@ export const historyBatchApi = createApi({
     // GET HISTORY BATCHES (paginated)
     getHistoryBatches: builder.query({
       query: ({ page = 1, limit = 10, appType = "translate" }) => ({
-        url: `/${appType}/history?page=${page}&limit=${limit}`,
+        url: `/${appType}/jobs?page=${page}&limit=${limit}`,
       }),
       providesTags: ["HistoryBatches"],
     }),
