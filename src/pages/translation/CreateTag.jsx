@@ -7,7 +7,6 @@ import {
   Languages,
   AlignLeft,
   ChevronDown,
-  Landmark,
   Sparkles,
 } from "lucide-react";
 import SelectElement from "../../components/ui/SelectElement";
@@ -41,9 +40,15 @@ const fileToBase64 = (file) =>
   });
 
 const OUTPUT_FORMAT = [
-  { code: "CSV", label: "CSV" },
+  { code: "CSV", label: "CSV", disabled: true },
   { code: "XML", label: "XML" },
   { code: "JSON", label: "JSON" },
+];
+
+const IDP_INDUSTRY_OPTIONS = [
+  { code: "INVOICE", label: "INVOICE" },
+  { code: "LAW DOCUMENT", label: "LAW DOCUMENT" },
+  { code: "OTHERS", label: "OTHERS" },
 ];
 
 const renderFormats = (formats = [], bgColor, borderColor) => {
@@ -319,6 +324,8 @@ const CreateTag = () => {
     if (name.endsWith(".csv")) return "CSV";
     if (name.endsWith(".json")) return "JSON";
     if (name.endsWith(".xml")) return "XML";
+    if (name.endsWith(".webp")) return "WEBP";
+    if (name.endsWith(".gif")) return "GIF";
 
     if (name.endsWith(".jpg")) return "JPG";
     if (name.endsWith(".jpeg")) return "JPEG";
@@ -522,6 +529,8 @@ const CreateTag = () => {
           "text/xml",
           "image/jpeg",
           "image/png",
+          "image/webp",
+          "image/gif",
           "application/pdf",
         ]
       : ["text/csv"];
@@ -529,7 +538,7 @@ const CreateTag = () => {
     if (!ALLOWED_TYPES.includes(file.type)) {
       toast.error(
         isIdp
-          ? "Only CSV, JSON, XML, jpg, jpeg and png files are allowed"
+          ? "Only CSV, JSON, XML, jpg, jpeg, png, webp and gif files are allowed"
           : "Only CSV files are allowed",
       );
       return;
@@ -587,7 +596,9 @@ const CreateTag = () => {
         <input
           ref={fileInputRef}
           type="file"
-          accept={isIdp ? ".csv,.json,.xml,.jpg,.jpeg,.png,.pdf" : ".csv"}
+          accept={
+            isIdp ? ".csv,.json,.xml,.jpg,.jpeg,.png,.webp,.gif,.pdf" : ".csv"
+          }
           hidden
           onChange={(e) => {
             handleGlossaryFiles(e.target.files);
@@ -628,22 +639,27 @@ const CreateTag = () => {
                 className="w-full"
               />
 
-              <InputElement
-                label={isIdp ? "Industry" : "Tag Category"}
-                name={isIdp ? "tagIndustry" : "tagCategory"}
-                type="text"
-                placeholder={
-                  isIdp
-                    ? "Select Industry..."
-                    : "e.g. Finance, Marketing etc..."
-                }
-                icon={isIdp ? Landmark : FileText}
-                register={register}
-                rules={{
-                  required: `Tag ${isIdp ? "industry" : "category"} is required`,
-                }}
-                className="w-full"
-              />
+              {isIdp ? (
+                <SelectElement
+                  label="Industry"
+                  name="tagIndustry"
+                  register={register}
+                  rules={{ required: "Tag industry is required" }}
+                  options={IDP_INDUSTRY_OPTIONS}
+                  placeholder="Select industry"
+                />
+              ) : (
+                <InputElement
+                  label="Tag Category"
+                  name="tagCategory"
+                  type="text"
+                  placeholder="e.g. Finance, Marketing etc..."
+                  icon={FileText}
+                  register={register}
+                  rules={{ required: "Tag category is required" }}
+                  className="w-full"
+                />
+              )}
             </div>
 
             {/* Descreption */}
@@ -729,32 +745,6 @@ const CreateTag = () => {
             )}
           </div>
 
-          {isIdp && (
-            <div className="w-full flex gap-3">
-              <FormatCard
-                title="Image formats"
-                badgeText="10 credits / page"
-                formats={["JPG", "JPEG", "PNG", "PDF"]}
-                description="Scanned documents, invoices, and photos. It uses OCR to extract content, credit covers the processing cost."
-                borderColor="border-orange-300"
-                bgColor="bg-orange-50"
-                badgeBg="bg-orange-200"
-                badgeTextColor="text-orange-900"
-              />
-
-              <FormatCard
-                title="Structured formats"
-                badgeText="No credits used"
-                formats={["CSV", "JSON", "XML"]}
-                description="Already structured data. IDP reads and maps fields directly, no OCR needed, so no credit charge."
-                borderColor="border-green-300"
-                bgColor="bg-green-50"
-                badgeBg="bg-green-200"
-                badgeTextColor="text-green-900"
-              />
-            </div>
-          )}
-
           {/* Glossary Card */}
           <div className="px-10 py-8 bg-white border border-gray-300 rounded-2xl flex flex-col gap-6">
             {/* Gloassary Header */}
@@ -819,10 +809,10 @@ const CreateTag = () => {
                     title={`Drag and drop your ${isIdp ? "documents" : "glossaries"} here, or click to browse`}
                     supportedText={
                       isIdp
-                        ? "Supported formats: JPG, JPEG, PNG, PDF CSV, JSON, XML"
+                        ? "Supported formats: JPG, JPEG, PNG, WEBP, GIF, PDF, CSV, JSON, XML"
                         : "Supported formats: CSV"
                     }
-                    helperText="Max file size: 2 GB, Max glossaries: 250"
+                    helperText="Max file size: 20 MB"
                   />
                 )}
 

@@ -242,18 +242,6 @@ const DocumentHistoryGrid = () => {
         variantKey: "statusVariant",
       },
       {
-        key: "credits",
-        header: "Credits",
-        width: "0.8fr",
-        align: "center",
-        type: "custom",
-        render: (val) => (
-          <span className="text-gray-700 font-semibold text-lg">
-            {Number(val).toLocaleString()}
-          </span>
-        ),
-      },
-      {
         key: "size",
         header: "Size",
         width: "0.8fr",

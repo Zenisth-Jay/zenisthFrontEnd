@@ -7,14 +7,15 @@ import {
   Languages,
   AlignLeft,
   ChevronDown,
-  Landmark,
   Edit,
   Save,
   Trash2,
   Download,
+  Copy,
+  Check,
 } from "lucide-react";
 import SelectElement from "../../components/ui/SelectElement";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "../../components/ui/Button";
 import { useGetTagByIdQuery, useUpdateTagMutation } from "../../api/tags.api";
 import { toast } from "react-toastify";
@@ -33,9 +34,15 @@ import BackButton from "../../components/ui/BackButton";
 // ];
 
 const OUTPUT_FORMAT = [
-  { code: "CSV", label: "CSV" },
+  { code: "CSV", label: "CSV", disabled: true },
   { code: "XML", label: "XML" },
   { code: "JSON", label: "JSON" },
+];
+
+const IDP_INDUSTRY_OPTIONS = [
+  { code: "INVOICE", label: "INVOICE" },
+  { code: "LAW DOCUMENT", label: "LAW DOCUMENT" },
+  { code: "OTHERS", label: "OTHERS" },
 ];
 
 const buildTagVM = (apiTag) => {
@@ -63,6 +70,7 @@ const buildTagVM = (apiTag) => {
     glossaryContent: apiTag.glossaryContent || {},
 
     isFavorite: apiTag.isFavorite || false,
+    isDefault: Boolean(apiTag.isDefault ?? apiTag.is_default),
     isActive: apiTag.isActive ?? true,
 
     createdAt: apiTag.createdAt,
@@ -224,9 +232,23 @@ const ViewTag = () => {
   const fileInputRef = useRef(null);
 
   const tagVM = useMemo(() => buildTagVM(tagData), [tagData]);
+
+  const idpIndustryOptions = useMemo(() => {
+    const known = new Set(IDP_INDUSTRY_OPTIONS.map((o) => o.code));
+    const current = (tagVM?.industry || "").trim();
+    if (current && !known.has(current)) {
+      return [{ code: current, label: current }, ...IDP_INDUSTRY_OPTIONS];
+    }
+    return IDP_INDUSTRY_OPTIONS;
+  }, [tagVM?.industry]);
+
   const effectiveOutputFormat = selectedOutputFormat || apiOutputFormat;
   const isOutputFormatLocked = isIdp && (tagVM?.version ?? 1) !== 1;
-  const canEditSchema = isIdp && isEditMode && effectiveOutputFormat === "JSON";
+  const canEditSchema =
+    isIdp &&
+    isEditMode &&
+    !tagVM?.isDefault &&
+    effectiveOutputFormat === "JSON";
 
   const originalRef = useRef(null);
   const lastSyncedTagIdRef = useRef(null);
@@ -286,6 +308,14 @@ const ViewTag = () => {
     }
   }, [tagVM, stableTagId, syncSchemaFromTagVM]);
 
+  useLayoutEffect(() => {
+    if (!tagVM?.isDefault || !isEditMode) return;
+    toast.info("Default tags cannot be edited.");
+    navigate(`/operations/${toolType}/tag/view/${tagId}${queryString}`, {
+      replace: true,
+    });
+  }, [tagVM, isEditMode, toolType, tagId, queryString, navigate]);
+
   const addRow = () => {
     setGlossaryRows((prev) => [
       ...prev,
@@ -338,6 +368,11 @@ const ViewTag = () => {
 
   const onSubmit = async (formData) => {
     try {
+      if (tagVM?.isDefault) {
+        toast.error("Default tags cannot be modified.");
+        return;
+      }
+
       const original = originalRef.current;
 
       // Validate editable schema JSON for IDP
@@ -453,6 +488,58 @@ const ViewTag = () => {
     return prettyJson(raw);
   }, [rawSchemaText]);
 
+  const outputClipboardText = useMemo(() => {
+    if (!sampleOutputText?.trim()) return "";
+    return (prettySchema || "").trim();
+  }, [sampleOutputText, prettySchema]);
+
+  const schemaClipboardText = useMemo(() => {
+    if (!rawSchemaText?.trim()) return "";
+    if (canEditSchema) {
+      if (effectiveOutputFormat === "JSON" && isValidJson(rawSchemaText)) {
+        return prettyJson(rawSchemaText);
+      }
+      return rawSchemaText;
+    }
+    return (prettyRawSchema || "").trim();
+  }, [
+    rawSchemaText,
+    canEditSchema,
+    effectiveOutputFormat,
+    prettyRawSchema,
+  ]);
+
+  const idpActiveCopyText = useMemo(() => {
+    if (idpPreviewTab === "output") return outputClipboardText;
+    return schemaClipboardText;
+  }, [idpPreviewTab, outputClipboardText, schemaClipboardText]);
+
+  const [idpCopyDone, setIdpCopyDone] = useState(false);
+
+  useEffect(() => {
+    setIdpCopyDone(false);
+  }, [idpPreviewTab]);
+
+  const handleCopyIdpPreview = useCallback(async () => {
+    const text = idpActiveCopyText?.trim() || "";
+    if (!text) {
+      toast.info(
+        idpPreviewTab === "output"
+          ? "No output preview to copy."
+          : "No schema to copy.",
+      );
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setIdpCopyDone(true);
+      toast.success("Copied to clipboard");
+      window.setTimeout(() => setIdpCopyDone(false), 2200);
+    } catch {
+      toast.error("Could not copy. Try selecting the text manually.");
+    }
+  }, [idpActiveCopyText, idpPreviewTab]);
+
   const handleDownloadOutput = useCallback(() => {
     const content = sampleOutputText?.trim() || "";
     if (!content) {
@@ -562,7 +649,7 @@ const ViewTag = () => {
               </span>
             </div>
 
-            {isViewMode ? (
+            {isViewMode && !tagVM.isDefault ? (
               <Button
                 type="button"
                 leftIcon={<Edit size={18} />}
@@ -574,7 +661,7 @@ const ViewTag = () => {
               >
                 Edit
               </Button>
-            ) : (
+            ) : isViewMode ? null : (
               <Button
                 type="submit"
                 leftIcon={<Save size={18} />}
@@ -604,24 +691,31 @@ const ViewTag = () => {
                   showRequired={false}
                 />
 
-                <InputElement
-                  label={isIdp ? "Industry" : "Tag Category"}
-                  name={isIdp ? "tagIndustry" : "tagCategory"}
-                  type="text"
-                  placeholder={
-                    isIdp
-                      ? "Select Industry..."
-                      : "e.g. Finance, Marketing etc..."
-                  }
-                  icon={isIdp ? Landmark : FileText}
-                  register={register}
-                  rules={{
-                    required: `Tag ${isIdp ? "industry" : "category"} is required`,
-                  }}
-                  className="w-full"
-                  disabled={isViewMode}
-                  showRequired={false}
-                />
+                {isIdp ? (
+                  <SelectElement
+                    label="Industry"
+                    name="tagIndustry"
+                    register={register}
+                    rules={{ required: "Tag industry is required" }}
+                    options={idpIndustryOptions}
+                    placeholder="Select industry"
+                    disabled={isViewMode}
+                    showRequired={false}
+                  />
+                ) : (
+                  <InputElement
+                    label="Tag Category"
+                    name="tagCategory"
+                    type="text"
+                    placeholder="e.g. Finance, Marketing etc..."
+                    icon={FileText}
+                    register={register}
+                    rules={{ required: "Tag category is required" }}
+                    className="w-full"
+                    disabled={isViewMode}
+                    showRequired={false}
+                  />
+                )}
               </div>
 
               {/* Descreption */}
@@ -853,27 +947,54 @@ const ViewTag = () => {
                           Schema
                         </button>
                       </div>
-                      {isViewMode && (
+                      <div className="flex items-center gap-2 flex-wrap">
                         <button
                           type="button"
-                          onClick={
-                            idpPreviewTab === "output"
-                              ? handleDownloadOutput
-                              : handleDownloadSchema
-                          }
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors shadow-sm"
+                          onClick={handleCopyIdpPreview}
+                          className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3.5 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-500/20 hover:border-emerald-400/50 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2"
                           title={
                             idpPreviewTab === "output"
-                              ? `Download as ${apiOutputFormat}`
-                              : "Download schema as JSON"
+                              ? "Copy output preview"
+                              : "Copy schema"
                           }
                         >
-                          <Download size={18} />
-                          {idpPreviewTab === "output"
-                            ? `Download ${apiOutputFormat}`
-                            : "Download JSON"}
+                          {idpCopyDone ? (
+                            <>
+                              <Check size={18} className="text-emerald-600" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={18} className="text-emerald-700" />
+                              Copy{" "}
+                              {idpPreviewTab === "output"
+                                ? "output"
+                                : "schema"}
+                            </>
+                          )}
                         </button>
-                      )}
+                        {isViewMode && (
+                          <button
+                            type="button"
+                            onClick={
+                              idpPreviewTab === "output"
+                                ? handleDownloadOutput
+                                : handleDownloadSchema
+                            }
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors shadow-sm"
+                            title={
+                              idpPreviewTab === "output"
+                                ? `Download as ${apiOutputFormat}`
+                                : "Download schema as JSON"
+                            }
+                          >
+                            <Download size={18} />
+                            {idpPreviewTab === "output"
+                              ? `Download ${apiOutputFormat}`
+                              : "Download JSON"}
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <div className="relative">

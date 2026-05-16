@@ -79,6 +79,12 @@ const Document = ({ file, onDelete, onPreview }) => {
             {formatFileSize(size)}
           </span>
         </div>
+
+        {file.uploadError && (
+          <p className="text-xs text-red-600 font-medium line-clamp-2 mt-1">
+            {file.uploadError}
+          </p>
+        )}
       </div>
     </div>
   );

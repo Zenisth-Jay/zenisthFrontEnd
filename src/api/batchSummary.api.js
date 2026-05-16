@@ -6,6 +6,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 export const batchSummaryApi = createApi({
   reducerPath: "batchSummaryApi",
   baseQuery: baseQueryWithAuth,
+  tagTypes: ["BatchSummary"],
 
   endpoints: (builder) => ({
     getBatchSummary: builder.query({
@@ -15,7 +16,7 @@ export const batchSummaryApi = createApi({
         _extraOptions,
         baseQuery,
       ) {
-        await sleep(2000);
+        await sleep(5000);
 
         let url = `/credits/quote?application=${encodeURIComponent(application)}`;
 
@@ -33,6 +34,10 @@ export const batchSummaryApi = createApi({
 
         return result;
       },
+      providesTags: (_result, _error, { batch_id }) => [
+        { type: "BatchSummary", id: batch_id ?? "unknown" },
+      ],
+      keepUnusedDataFor: 0,
     }),
   }),
 });

@@ -9,9 +9,12 @@ import { KeyRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { useChangePasswordMutation } from "../api/passwordRecovery.api";
 
 const ChangePassword = () => {
   const navigate = useNavigate();
+  const [changePassword, { isLoading: isChangingPassword }] =
+    useChangePasswordMutation();
 
   const {
     register,
@@ -44,9 +47,9 @@ const ChangePassword = () => {
 
   const onSubmit = async (data) => {
     try {
-      const { error } = await supabase.auth.updateUser({
+      await changePassword({
         password: data.password,
-      });
+      }).unwrap();
 
       if (error) throw error;
 
@@ -135,7 +138,10 @@ const ChangePassword = () => {
                 </p>
               )}
             </div>
-            <AuthButton type="submit" disabled={isSubmitting}>
+            <AuthButton
+              type="submit"
+              disabled={isSubmitting || isChangingPassword}
+            >
               Update & Go to Login
             </AuthButton>
           </form>

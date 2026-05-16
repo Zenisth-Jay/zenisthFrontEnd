@@ -1,9 +1,9 @@
 import MainNavbar from "../../components/dashboard/MainNavbar";
 import Stepper from "../../components/general/Stepper";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles, RefreshCw } from "lucide-react";
 import Button from "../../components/ui/Button";
 import SearchBar from "../../components/general/SearchBar";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Tabs from "../../components/general/Tabs";
 import { Star, Briefcase, Bookmark } from "lucide-react";
 import TranslationTag from "../../components/tags/TranslationTag";
@@ -22,7 +22,10 @@ import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { clearUploads } from "../../redux/features/uploadSlice";
 import { useStartJobMutation } from "../../api/translate.api";
-import { useGetBatchSummaryQuery } from "../../api/batchSummary.api";
+import {
+  batchSummaryApi,
+  useGetBatchSummaryQuery,
+} from "../../api/batchSummary.api";
 import { toast } from "react-toastify";
 import Spinner from "../../components/ui/Spinner";
 
@@ -58,6 +61,13 @@ const SelectTag = () => {
           label: "Company Tags",
           id: "company",
           icon: Briefcase,
+          iconClassName: "text-gray-800",
+          iconFill: false,
+        },
+        {
+          label: "Default Tags",
+          id: "default",
+          icon: Star,
           iconClassName: "text-gray-800",
           iconFill: false,
         },
@@ -129,14 +139,32 @@ const SelectTag = () => {
     data: batchSummary,
     isLoading: isBatchLoading,
     isError: isBatchError,
+    isFetching: isBatchRefetching,
+    refetch: refetchBatchSummary,
   } = useGetBatchSummaryQuery(
     { application, userId, batch_id },
-    { skip: !shouldFetchBatchSummary },
+    {
+      skip: !shouldFetchBatchSummary,
+      refetchOnMountOrArgChange: true,
+    },
   );
+
+  useEffect(() => {
+    if (!shouldFetchBatchSummary || !batch_id) return;
+
+    dispatch(
+      batchSummaryApi.util.invalidateTags([
+        { type: "BatchSummary", id: batch_id },
+      ]),
+    );
+    refetchBatchSummary();
+  }, [batch_id, shouldFetchBatchSummary, dispatch, refetchBatchSummary]);
 
   // Filtering
   const filteredTags = useMemo(() => {
     let result = tags;
+
+    result = result.filter((tag) => tag.status != "FAILED");
 
     // 1️⃣ Filter by active tab
     if (activeTab === "my") {
@@ -168,6 +196,11 @@ const SelectTag = () => {
     batchSummary.total_documents == null ||
     batchSummary.total_count == null ||
     batchSummary.total_credits == null;
+
+  const isCountPending =
+    batchSummary &&
+    batchSummary.total_documents != null &&
+    Number(batchSummary.total_count) === 0;
 
   return (
     <div>
@@ -250,6 +283,10 @@ const SelectTag = () => {
                 isSelected={selectedTag?.id === tag.id}
                 onSelect={(t) => setSelectedTag(t)}
                 onToggleFavorite={async (t) => {
+                  if (t.isDefault || t.is_default) {
+                    toast.info("Default tags cannot be favorited.");
+                    return;
+                  }
                   try {
                     await updateTag({
                       id: t.id,
@@ -304,9 +341,58 @@ const SelectTag = () => {
                   </>
                 )} */}
 
+                {!isBatchLoading && !isBatchError && isCountPending && (
+                  <>
+                    <div className=" w-full flex justify justify-between">
+                      <span className=" text-xl text-gray-700">
+                        Document Uploaded
+                      </span>
+                      <span className="text-gray-800 text-2xl font-bold">
+                        {batchSummary.total_documents}
+                      </span>
+                    </div>
+
+                    <div className="w-full p-4 rounded-lg text-base font-medium border border-amber-200 bg-amber-50 text-amber-900">
+                      {isIdp
+                        ? "Total pages detected is still 0. Your documents may still be processing. Please wait a moment and refresh."
+                        : "Total characters detected is still 0. Your documents may still be processing. Please wait a moment and refresh."}
+                    </div>
+
+                    <div className="w-full flex justify-between mt-2">
+                      <Button
+                        variant="outline"
+                        className="w-[47%]"
+                        onClick={() => {
+                          dispatch(clearUploads());
+                          navigate(
+                            `/operations/${isIdp ? "idp" : "translate"}`,
+                          );
+                        }}
+                      >
+                        Cancel
+                      </Button>
+
+                      <Button
+                        className="w-[47%]"
+                        disabled={isBatchRefetching}
+                        leftIcon={
+                          <RefreshCw
+                            size={18}
+                            className={isBatchRefetching ? "animate-spin" : ""}
+                          />
+                        }
+                        onClick={() => refetchBatchSummary()}
+                      >
+                        {isBatchRefetching ? "Refreshing..." : "Refresh"}
+                      </Button>
+                    </div>
+                  </>
+                )}
+
                 {!isBatchLoading &&
                   !isBatchError &&
                   !isBatchInvalid &&
+                  !isCountPending &&
                   batchSummary && (
                     <>
                       <div className=" w-full flex justify justify-between">
@@ -388,7 +474,7 @@ const SelectTag = () => {
                             ); // or your upload page
                           }}
                         >
-                          Back
+                          Cancel
                         </Button>
 
                         {/* <Button

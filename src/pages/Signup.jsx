@@ -3,14 +3,14 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { KeyRound, Mail, MailCheck, User, UserRoundCog } from "lucide-react";
 import { toast } from "react-toastify";
-import { supabase } from "../supabase/supabaseClient";
-import { FunctionsHttpError } from "@supabase/supabase-js";
-
-// Components
 import AuthButton from "../components/Authentication/AuthButton";
 import InputElement from "../components/Authentication/InputElement";
 import Logo from "../components/Authentication/Logo";
 import RightPanel from "../components/Authentication/RightPanel";
+import {
+  useSignUpMutation,
+  useValidateInvitationMutation,
+} from "../api/auth.api";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -21,6 +21,8 @@ const Signup = () => {
   const [isValidating, setIsValidating] = useState(!!token);
   /** Set after successful self-serve signup when the server emails a completion link */
   const [signupLinkSentToEmail, setSignupLinkSentToEmail] = useState(null);
+  const [signUp, { isLoading: isSigningUp }] = useSignUpMutation();
+  const [validateInvitation] = useValidateInvitationMutation();
 
   const {
     register,
@@ -34,122 +36,62 @@ const Signup = () => {
     if (token) {
       const validateToken = async () => {
         try {
-          const { data, error } = await supabase.rpc(
-            "validate_invitation_token",
-            {
-              p_token: token,
-            },
-          );
+          const response = await validateInvitation({
+            token,
+          }).unwrap();
 
-          if (error || !data?.[0]?.is_valid) {
+          const info = response?.[0];
+
+          if (!info?.is_valid) {
             const serverMsg =
-              data?.[0]?.error_message ||
-              error?.message ||
-              "Invalid or expired invitation.";
+              info?.error_message || "Invalid or expired invitation.";
 
             toast.error(serverMsg);
             setIsValidating(false);
             return;
           }
 
-          const info = data[0];
           setInvitationData(info);
 
           // Pre-fill and lock the email field
           setValue("email", info.invited_email);
         } catch (err) {
           console.error("Token validation error:", err);
-          toast.error(err.message || "Failed to validate invitation.");
+
+          const message =
+            err?.data?.error ||
+            err?.data?.message ||
+            err?.message ||
+            "Failed to validate invitation.";
+
+          toast.error(message);
         } finally {
           setIsValidating(false);
         }
       };
+
       validateToken();
     }
-  }, [token, setValue]);
-
-  // const onSignUp = async (data) => {
-  //   try {
-  //     const { data: response, error } = await supabase.functions.invoke(
-  //       "sign-up-orchestrator",
-  //       {
-  //         body: {
-  //           email: data.email,
-  //           password: data.password,
-  //           fullName: data.fullName,
-  //           organizationName: token ? null : data.OrganizationName, // Only send if not an invite
-  //           token: token || null, // Send token if it exists
-  //         },
-  //       },
-  //     );
-
-  //     if (error) {
-  //       if (error instanceof FunctionsHttpError) {
-  //         const errorDetails = await error.context.json();
-  //         throw new Error(errorDetails.error || "Signup failed.");
-  //       }
-  //       throw new Error(error.message || "An unexpected error occurred.");
-  //     }
-
-  //     toast.success(
-  //       token ? "Joined successfully! ✅" : "Account created successfully! ✅",
-  //     );
-
-  //     setTimeout(() => {
-  //       navigate("/login");
-  //     }, 1500);
-  //   } catch (err) {
-  //     toast.error(err.message);
-  //   }
-  // };
+  }, [token, setValue, validateInvitation]);
 
   const onSignUp = async (data) => {
     try {
-      const { data: response, error } = await supabase.functions.invoke(
-        "sign-up-orchestrator",
-        {
-          body: {
-            email: data.email,
-            password: data.password,
-            fullName: data.fullName,
-            organizationName: token ? null : data.OrganizationName,
-            token: token || null,
-          },
-        },
-      );
-
-      // ❌ Non-2xx from Edge Function
-      if (error) {
-        if (error instanceof FunctionsHttpError) {
-          try {
-            const errorDetails = await error.context.json();
-
-            // Your backend sends: { "error": "A user with this email address has already been registered" }
-            const serverMessage =
-              errorDetails?.error ||
-              errorDetails?.message ||
-              "Server error occurred.";
-
-            throw new Error(serverMessage);
-          } catch {
-            throw new Error(error.message || "Server error occurred.");
-          }
-        }
-
-        throw new Error(error.message || "Server error occurred.");
-      }
-
-      // ❌ 200 but error payload
-      if (response?.error) {
-        throw new Error(response.error);
-      }
+      const response = await signUp({
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
+        organizationName: token ? null : data.OrganizationName,
+        token: token || null,
+      }).unwrap();
 
       // ✅ Success
       if (token) {
         toast.success("Joined successfully! ✅");
+
         setTimeout(() => {
           navigate("/login");
         }, 1500);
+
         return;
       }
 
@@ -157,13 +99,11 @@ const Signup = () => {
     } catch (err) {
       console.error("Signup error:", err);
 
-      let message = err.message || "Something went wrong.";
-
-      // Supabase generic error for non-2xx Edge Function
-      if (message.includes("Edge Function returned a non-2xx status code")) {
-        // 👇 Replace with your desired user-facing message
-        message = "A user with this email address has already been registered";
-      }
+      const message =
+        err?.data?.error ||
+        err?.data?.message ||
+        err?.message ||
+        "Something went wrong.";
 
       toast.error(message);
     }

@@ -31,6 +31,8 @@ const TranslationTag = ({
     description,
   } = tag;
 
+  const isDefaultTag = tag.isDefault === true || tag.is_default === true;
+
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -97,15 +99,24 @@ const TranslationTag = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                if (isDefaultTag) return;
                 onToggleFavorite?.(tag);
               }}
-              disabled={tag.status != "COMPLETED"}
+              disabled={tag.status != "COMPLETED" || isDefaultTag}
+              title={
+                isDefaultTag
+                  ? "Default tags cannot be favorited"
+                  : isFavorite
+                    ? "Remove from favorites"
+                    : "Add to favorites"
+              }
+              className={isDefaultTag ? "cursor-not-allowed opacity-40" : ""}
             >
               <Star
                 size={20}
                 strokeWidth={1.5}
                 className={`${isFavorite ? "text-[#FBC02D]" : "text-[#262938]"} transform transition-all duration-200 ease-out 
-             hover:scale-105 active:scale-95`}
+             ${!isDefaultTag ? "hover:scale-105 active:scale-95" : ""}`}
                 fill={isFavorite ? "#FBC02D" : "none"}
               />
             </button>
@@ -140,20 +151,26 @@ const TranslationTag = ({
                     View
                   </button>
 
-                  <button
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuOpen(false);
-                      // TODO: handle edit
-                      navigate(
-                        `/operations/${idp ? "idp" : "translate"}/tag/edit/${tag.id}${queryString}`,
-                      );
-                    }}
-                  >
-                    <Edit size={16} className="text-gray-600" />
-                    Edit
-                  </button>
+                  {!isDefaultTag && (
+                    <button
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        navigate(
+                          `/operations/${idp ? "idp" : "translate"}/tag/edit/${tag.id}${queryString}`,
+                        );
+                      }}
+                    >
+                      <Edit size={16} className="text-gray-600" />
+                      Edit
+                    </button>
+                  )}
+                  {isDefaultTag && (
+                    <div className="px-3 py-2 text-xs text-gray-500 border-t border-gray-100">
+                      Default tags cannot be edited
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -182,7 +199,7 @@ const TranslationTag = ({
           </div>
           <div>
             <span className="w-12.5 h-3.5 px-4 py-2 border border-indigo-200 bg-indigo-50 text-sm font-semibold text-indigo-700 rounded-[50px]">
-              {tag.type}
+              {tag.industry}
             </span>
           </div>
         </div>
@@ -205,21 +222,6 @@ const TranslationTag = ({
             </span>
           </div>
         </div>
-
-        {idp && (
-          <>
-            <div className=" flex gap-5 w-fit px-3 py-2 rounded-[48px] border border-yellow-500">
-              <div className="flex gap-2 items-center">
-                {/* <Coins size={18} strokeWidth={1.5} className=" text-gray-700" /> */}
-                <CreditIcon size={22} className="text-[#545A7A]" />
-                <span className=" text-sm font-medium text-gray-800">
-                  {tag.credits} credits
-                  <span className=" text-gray-500">/doc</span>
-                </span>
-              </div>
-            </div>
-          </>
-        )}
       </div>
 
       {/* Row last */}

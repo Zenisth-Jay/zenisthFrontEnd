@@ -76,7 +76,13 @@ const MainNavbar = () => {
           >
             {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <Logo size="md" />
+          <NavLink
+            to="/dashboard"
+            className="cursor-pointer hover:opacity-90 transition-opacity shrink-0"
+            aria-label="Go to dashboard"
+          >
+            <Logo size="md" />
+          </NavLink>
         </div>
 
         {/* Navigation Links (visible only from 1300px – unchanged styling) */}
@@ -201,7 +207,14 @@ const MainNavbar = () => {
           }`}
         >
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-            <Logo size="nav" />
+            <NavLink
+              to="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className="cursor-pointer hover:opacity-90 transition-opacity"
+              aria-label="Go to dashboard"
+            >
+              <Logo size="nav" />
+            </NavLink>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}

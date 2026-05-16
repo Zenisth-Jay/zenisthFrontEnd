@@ -27,6 +27,8 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
     appType,
   });
 
+  console.log("API Response:", historyResponse);
+
   // 🔹 Map API response to UI rows
   const allRows = useMemo(() => {
     if (!historyResponse?.jobs) return [];
@@ -51,6 +53,7 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
         job_name: job_name, // ✅ full timestamp job name
         uploadedAt: new Date(job.created_at).toLocaleString(),
         documents: job.total_documents,
+        jobStatus: job.job_status,
         status:
           job.job_status === "FAILED"
             ? "Failed"
@@ -67,13 +70,13 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
               : "processing",
         sourceLanguage: isIdp ? null : job.source_lang?.toUpperCase() || "",
         targetLanguage: isIdp ? null : job.target_lang?.toUpperCase() || "",
-        outputFormat: isIdp ? job.output_format : null,
+        outputFormat: job.output_format || job.outputFormat || null,
         domain: job.tag_industry,
         credits: job.cost,
         user_name: job.user_name,
       };
     });
-  }, [historyResponse]);
+  }, [historyResponse, isIdp]);
 
   const totalPages = historyResponse?.pagination?.total_pages || 1;
 
@@ -167,9 +170,9 @@ export default function TranslationHistoryGrid({ search = "", filters = {} }) {
   }
 
   return (
-    <div className=" bg-white border border-gray-300 shadow-md">
+    <div className="bg-white border border-gray-300 shadow-md min-w-0 overflow-hidden">
       {/* Table Header */}
-      <div className="grid grid-cols-[2.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center justify-center gap-4 px-6 py-4 bg-gray-100 border-b border-gray-200 text-[16px] font-semibold text-gray-800">
+      <div className="grid min-w-0 grid-cols-[2.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center justify-center gap-4 px-6 py-4 bg-gray-100 border-b border-gray-200 text-[16px] font-semibold text-gray-800">
         <div className="text-center">Job Document</div>
         <div className="text-center">Status</div>
         <div className="text-center">

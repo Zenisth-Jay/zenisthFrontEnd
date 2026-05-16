@@ -11,46 +11,55 @@ import { loginScema } from "../schemas/auth.schema";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
+import { useLoginMutation } from "../api/auth.api";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [login, { isLoading: isLoggingIn }] = useLoginMutation();
   const {
     register,
     handleSubmit,
     formState: { isSubmitting },
-  } = useForm({
-    // resolver: zodResolver(loginScema), // Re-enable your schema validation
-  });
+  } = useForm({});
 
   const onSignIn = async (data) => {
     try {
-      // 1. Authenticate with Supabase
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
+      const response = await login({
         email: data.email,
         password: data.password,
-      });
+      }).unwrap();
 
-      // 2. Handle Authentication Errors
-      if (error) {
-        // Catch the specific Supabase "ban" error
-        if (error.message.toLowerCase().includes("banned")) {
-          throw new Error(
-            "Your account is deactivated. Please contact support.",
-          );
+      // Store session in Supabase client
+      if (response?.access_token) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: response.access_token,
+          refresh_token: response.refresh_token,
+        });
+
+        if (sessionError) {
+          throw new Error(sessionError.message);
         }
-        // Throw any other standard errors (like "Invalid password")
-        throw new Error(error.message);
       }
 
-      // 3. Success Workflow
-      // toast.success("Login successful! Welcome back ✅");
-
-      // Navigate to dashboard after the session is established
       setTimeout(() => {
         navigate("/dashboard");
       }, 500);
     } catch (err) {
-      toast.error(err.message || "An error occurred during sign in.");
+      console.error("Login error:", err);
+
+      let message =
+        err?.data?.msg ||
+        err?.data?.error_description ||
+        err?.data?.message ||
+        err?.message ||
+        "Login failed.";
+
+      // Handle banned user
+      if (message.toLowerCase().includes("banned")) {
+        message = "Your account is deactivated. Please contact support.";
+      }
+
+      toast.error(message);
     }
   };
 
@@ -130,8 +139,8 @@ const Login = () => {
               </Link>
             </div>
 
-            <AuthButton type="submit" disabled={isSubmitting}>
-              Sign In
+            <AuthButton type="submit" disabled={isSubmitting || isLoggingIn}>
+              {isSubmitting || isLoggingIn ? "Signing In..." : "Sign In"}
             </AuthButton>
           </form>
 

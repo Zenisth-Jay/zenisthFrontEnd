@@ -38,10 +38,12 @@ const uploadSlice = createSlice({
           (f) => f.status === "success" || f.status === "error",
         );
 
-      if (allDone) {
+      const allSucceeded =
+        allDone && state.files.every((f) => f.status === "success");
+
+      if (allSucceeded) {
         state.hasCompletedBatch = true;
 
-        // ✅ persist batch completion
         localStorage.setItem(
           "uploadBatch",
           JSON.stringify({ hasCompletedBatch: true }),
@@ -50,9 +52,12 @@ const uploadSlice = createSlice({
     },
 
     markError(state, action) {
-      const { id } = action.payload;
+      const { id, error } = action.payload;
       const file = state.files.find((f) => f.id === id);
-      if (file) file.status = "error";
+      if (file) {
+        file.status = "error";
+        if (error) file.error = error;
+      }
 
       const allDone =
         state.files.length > 0 &&
@@ -60,10 +65,12 @@ const uploadSlice = createSlice({
           (f) => f.status === "success" || f.status === "error",
         );
 
-      if (allDone) {
+      const allSucceeded =
+        allDone && state.files.every((f) => f.status === "success");
+
+      if (allSucceeded) {
         state.hasCompletedBatch = true;
 
-        // ✅ persist batch completion
         localStorage.setItem(
           "uploadBatch",
           JSON.stringify({ hasCompletedBatch: true }),

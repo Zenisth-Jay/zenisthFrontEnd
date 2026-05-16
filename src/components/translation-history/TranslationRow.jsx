@@ -4,6 +4,7 @@ import {
   ChevronDownIcon,
   LibrarySquare,
   FileText,
+  Eye,
 } from "lucide-react";
 import { useState } from "react";
 import { useGetBatchFilesQuery } from "../../api/HistoryBatch.api";
@@ -36,6 +37,16 @@ const CircleContainer = ({ children, variant = "neutral", className = "" }) => {
       {children}
     </div>
   );
+};
+
+const isJobAllowingJsonView = (jobStatus) => {
+  const u = String(jobStatus || "").toUpperCase();
+  return u === "COMPLETED" || u === "PARTIAL_FAILURE";
+};
+
+const isFileOutputViewable = (fileStatus) => {
+  const u = String(fileStatus || "").toUpperCase();
+  return u === "COMPLETED" || u === "SUCCESS";
 };
 
 const StatusWithErrorTooltip = ({ status, errorMessage }) => {
@@ -100,6 +111,9 @@ const TranslationRow = ({ row }) => {
   const childPages = [];
   for (let i = childStart; i <= childEnd; i++) childPages.push(i);
 
+  const isJsonOutput =
+    String(row.outputFormat || "").toUpperCase() === "JSON";
+
   const handleToggle = () => {
     setOpen((prev) => {
       const next = !prev;
@@ -111,31 +125,36 @@ const TranslationRow = ({ row }) => {
   };
 
   return (
-    <div className="border-b border-gray-300">
+    <div className="border-b border-gray-300 min-w-0">
       {/* Header Row */}
-      <div className="grid grid-cols-[2.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm">
+      <div className="grid min-w-0 grid-cols-[2.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm">
         {/* Job Document */}
-        <div className=" w-full flex items-center truncate gap-2">
+        <div className="min-w-0 w-full flex items-center gap-2 text-left">
           <div
-            className=" w-[60%] flex items-center gap-2 cursor-pointer"
+            className="min-w-0 flex-1 flex items-center gap-2 cursor-pointer"
             onClick={() =>
               navigate(
                 `/operations/${toolType}/${isIdp ? "extracting" : "translating"}?jobId=${row.id}`,
               )
             }
           >
-            <LibrarySquare size={35} className="text-gray-800" />
-            <div className="flex flex-col w-55 truncate items-start">
-              <h1 className="text-gray-900 text-[14px] truncate font-semibold">
+            <LibrarySquare
+              size={35}
+              className="text-gray-800 shrink-0 flex-shrink-0"
+            />
+            <div className="min-w-0 flex-1 flex flex-col items-start">
+              <h1 className="w-full min-w-0 text-gray-900 text-[14px] truncate font-semibold text-left">
                 {row.job_name}
               </h1>
-              <span className="text-xs truncate text-gray-700 font-normal">
+              <span className="w-full min-w-0 text-xs truncate text-gray-700 font-normal text-left">
                 {row.uploadedAt}
               </span>
             </div>
           </div>
 
-          <CircleContainer>{`${row.documents} Documents`}</CircleContainer>
+          <div className="shrink-0">
+            <CircleContainer>{`${row.documents} Documents`}</CircleContainer>
+          </div>
         </div>
 
         <div className="flex items-center justify-center">
@@ -186,7 +205,7 @@ const TranslationRow = ({ row }) => {
 
       {/* Accordion Content */}
       {open && (
-        <div className="border-b border-gray-300">
+        <div className="border-b border-gray-300 min-w-0">
           {isFilesLoading && (
             <div className="px-6 py-4 text-sm text-gray-500">Loading...</div>
           )}
@@ -204,21 +223,27 @@ const TranslationRow = ({ row }) => {
           )}
 
           {!isFilesLoading &&
-            files.map((child) => (
+            files.map((child) => {
+              const showJsonViewButton =
+                isJsonOutput &&
+                isJobAllowingJsonView(row.jobStatus) &&
+                isFileOutputViewable(child.status);
+
+              return (
               <div
                 key={`${child.document_name}-${child.time_stamp}`}
-                className="grid grid-cols-[2.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center text-center gap-4 px-6 py-4 text-sm border-t border-gray-300"
+                className="grid min-w-0 grid-cols-[2.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm border-t border-gray-300 text-center"
               >
-                <div className="flex items-center gap-2">
-                  <FileText className="text-indigo-700" />
-                  <div className="flex flex-col truncate items-start">
+                <div className="min-w-0 flex items-center gap-2 text-left">
+                  <FileText className="text-indigo-700 shrink-0 flex-shrink-0" />
+                  <div className="min-w-0 flex-1 flex flex-col items-start text-left">
                     <h1
-                      className="text-gray-900 text-[15px] truncate font-medium"
+                      className="w-full min-w-0 text-gray-900 text-[15px] truncate font-medium"
                       title={child.document_name}
                     >
                       {child.document_name}
                     </h1>
-                    <span className="text-xs truncate text-gray-600">
+                    <span className="w-full min-w-0 text-xs truncate text-gray-600">
                       {new Date(child.time_stamp).toLocaleString()}
                     </span>
                   </div>
@@ -251,10 +276,7 @@ const TranslationRow = ({ row }) => {
                   )}
                 </CircleContainer>
 
-                <CircleContainer
-                  variant="tag"
-                  extraClassName=" hover:bg-gray-600"
-                >
+                <CircleContainer variant="tag" className="truncate text-sm">
                   {row.domain}
                 </CircleContainer>
 
@@ -266,9 +288,32 @@ const TranslationRow = ({ row }) => {
                   {row.user_name}
                 </p>
 
-                <button className="flex items-center justify-center">--</button>
+                <div className="flex items-center justify-center shrink-0">
+                  {showJsonViewButton ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const name = child.document_name || "";
+                        navigate(
+                          `/operations/${toolType}/history/job/${row.id}/view-json-output${
+                            name
+                              ? `?file=${encodeURIComponent(name)}`
+                              : ""
+                          }`,
+                        );
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    >
+                      <Eye size={16} strokeWidth={2} />
+                      View
+                    </button>
+                  ) : (
+                    <span className="text-gray-400 text-sm">—</span>
+                  )}
+                </div>
               </div>
-            ))}
+            );
+            })}
 
           {/* Child Pagination */}
           {!isFilesLoading && childTotalPages > 1 && (
@@ -342,7 +387,7 @@ const TranslationRow = ({ row }) => {
 // 🔹 Parent Grid
 export default function TranslationRowGrid({ rows = [] }) {
   return (
-    <div className="w-full">
+    <div className="w-full min-w-0">
       {rows.length === 0 && (
         <div className="px-6 py-4 text-sm text-gray-500">No records found.</div>
       )}

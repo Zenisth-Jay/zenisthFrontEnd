@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "../supabase/supabaseClient";
 import Logo from "../components/Authentication/Logo";
 import RightPanel from "../components/Authentication/RightPanel";
 import InputElement from "../components/Authentication/InputElement";
@@ -8,9 +7,12 @@ import { Mail, MailCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { useForgotPasswordMutation } from "../api/auth.api";
 
 const ForgotPass = () => {
   const [resetLinkSentToEmail, setResetLinkSentToEmail] = useState(null);
+  const [forgotPassword, { isLoading: isSendingReset }] =
+    useForgotPasswordMutation();
 
   const {
     register,
@@ -22,16 +24,23 @@ const ForgotPass = () => {
 
   const onSubmit = async (data) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-        // Points to your ChangePassword route
-        redirectTo: `https://dv6j5qb9g974j.cloudfront.net/change-password`,
-      });
-
-      if (error) throw error;
+      await forgotPassword({
+        email: data.email,
+        redirectTo: "https://dv6j5qb9g974j.cloudfront.net/change-password",
+      }).unwrap();
 
       setResetLinkSentToEmail(data.email?.trim() || "");
     } catch (err) {
-      toast.error(err.message || "Something went wrong. Please try again.");
+      console.error("Forgot password error:", err);
+
+      const message =
+        err?.data?.msg ||
+        err?.data?.error_description ||
+        err?.data?.message ||
+        err?.message ||
+        "Something went wrong. Please try again.";
+
+      toast.error(message);
     }
   };
   return (
@@ -127,8 +136,13 @@ const ForgotPass = () => {
                   />
                 </div>
 
-                <AuthButton type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Sending..." : "Send reset link"}
+                <AuthButton
+                  type="submit"
+                  disabled={isSubmitting || isSendingReset}
+                >
+                  {isSubmitting || isSendingReset
+                    ? "Sending..."
+                    : "Send reset link"}
                 </AuthButton>
               </form>
 

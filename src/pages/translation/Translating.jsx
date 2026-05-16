@@ -1,9 +1,14 @@
 import TranslatingAnimation from "../../components/animation/TranslatingAnimation";
 import MainNavbar from "../../components/dashboard/MainNavbar";
 import Stepper from "../../components/general/Stepper";
-import { Languages, Eye, SquarePen, FileText, Download } from "lucide-react";
+import {
+  Languages,
+  SquarePen,
+  FileText,
+  Download,
+  CalendarClock,
+} from "lucide-react";
 import Button from "../../components/ui/Button";
-import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useGetJobStatusQuery } from "../../api/HistoryBatch.api";
 import { useNavigate } from "react-router-dom";
@@ -91,8 +96,12 @@ const Translating = () => {
   const targetLanguage = jobResponse.target_language;
   const downloadLink = jobResponse.download_link;
   const inlineOutput = jobResponse.inline_output;
-  const batchId = jobResponse.files[0]?.batch_id;
+  const batchId = jobResponse.files?.[0]?.batch_id;
   const hasInlineOutput = inlineOutput != null;
+
+  const isRetentionExpired =
+    jobResponse.isRetentionExpired === true ||
+    jobResponse.is_retention_expired === true;
 
   const failedCount = jobResponse?.metrics?.failed_documents;
   const totalDocs = jobResponse?.metrics?.total_documents;
@@ -107,6 +116,10 @@ const Translating = () => {
   const isProcessing = status === "PROCESSING" || status == "QUEUED";
   const isCompleted = status === "COMPLETED" || status == "PARTIAL_FAILURE";
   const isFailed = status === "FAILED";
+
+  const hasDownloadableContent = Boolean(downloadLink || hasInlineOutput);
+  const canDownload =
+    isCompleted && hasDownloadableContent && !isRetentionExpired;
 
   return (
     <>
@@ -170,31 +183,59 @@ const Translating = () => {
             </div>
           )}
 
-          <div className="flex justify-between w-full">
-            <Button
-              variant={
-                isCompleted && (downloadLink || hasInlineOutput)
-                  ? "primary"
-                  : "disable"
-              }
-              className="w-[31%] shadow-sm"
-              leftIcon={<Download />}
-              onClick={() => {
-                if (downloadLink) {
-                  window.open(downloadLink, "_blank");
-                  return;
-                }
+          <div className="flex justify-between w-full gap-4">
+            <div className="relative w-[31%] group/rent">
+              <Button
+                variant={canDownload ? "primary" : "disable"}
+                className="relative z-0 w-full shadow-sm"
+                disabled={!canDownload}
+                leftIcon={<Download />}
+                onClick={() => {
+                  if (!canDownload) return;
+                  if (downloadLink) {
+                    window.open(downloadLink, "_blank");
+                    return;
+                  }
 
-                if (hasInlineOutput) {
-                  downloadJsonFile(
-                    inlineOutput,
-                    `${jobResponse.job_id || "inline-output"}.json`,
-                  );
-                }
-              }}
-            >
-              Download
-            </Button>
+                  if (hasInlineOutput) {
+                    downloadJsonFile(
+                      inlineOutput,
+                      `${jobResponse.job_id || "inline-output"}.json`,
+                    );
+                  }
+                }}
+              >
+                Download
+              </Button>
+              {isRetentionExpired && (
+                <>
+                  <div
+                    className="absolute inset-0 z-[1] cursor-not-allowed rounded-lg"
+                    aria-hidden
+                  />
+                  <div
+                    className="pointer-events-none absolute z-[2] left-1/2 bottom-full mb-3 w-[min(calc(100vw-2rem),22rem)] -translate-x-1/2 rounded-xl border border-amber-200 bg-white px-4 py-3 shadow-xl ring-1 ring-black/5 opacity-0 translate-y-1 transition-all duration-200 ease-out group-hover/rent:opacity-100 group-hover/rent:translate-y-0"
+                    role="tooltip"
+                  >
+                    <div className="absolute left-1/2 top-full -mt-px h-2 w-2 -translate-x-1/2 rotate-45 border-b border-r border-amber-200 bg-white" />
+                    <div className="flex gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                        <CalendarClock size={20} strokeWidth={2} />
+                      </div>
+                      <div className="min-w-0 text-left">
+                        <p className="text-sm font-semibold text-gray-900">
+                          Download no longer available
+                        </p>
+                        <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                          The retention period for this job has ended, so output
+                          files can no longer be downloaded.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
             <Button
               leftIcon={<SquarePen className="" />}
               variant={isFailed ? "primary" : "outline"}

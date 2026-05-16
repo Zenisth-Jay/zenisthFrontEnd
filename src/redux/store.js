@@ -12,6 +12,8 @@ import { userProfileApi } from "../api/userProfile.api";
 import { accessApi } from "../api/access.api";
 import { documentHistoryApi } from "../api/documentHistory.api";
 import { directUploadApi } from "../api/directUpload.api";
+import { authApi } from "../api/auth.api";
+import { passwordRecoveryApi } from "../api/passwordRecovery.api";
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +30,8 @@ export const store = configureStore({
     [accessApi.reducerPath]: accessApi.reducer,
     [documentHistoryApi.reducerPath]: documentHistoryApi.reducer,
     [directUploadApi.reducerPath]: directUploadApi.reducer,
+    [authApi.reducerPath]: authApi.reducer,
+    [passwordRecoveryApi.reducerPath]: passwordRecoveryApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -43,5 +47,7 @@ export const store = configureStore({
       accessApi.middleware,
       documentHistoryApi.middleware,
       directUploadApi.middleware,
+      authApi.middleware,
+      passwordRecoveryApi.middleware,
     ),
 });

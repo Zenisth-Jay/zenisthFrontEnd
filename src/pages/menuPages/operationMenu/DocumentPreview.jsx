@@ -14,7 +14,9 @@ import {
   markError,
   markBatchComplete,
   clearUploads,
+  closeOverlay,
 } from "../../../redux/features/uploadSlice";
+import { batchSummaryApi } from "../../../api/batchSummary.api";
 import { useDispatch } from "react-redux";
 import MainFileUpload from "../../../components/general/MainFileUpload";
 import UploadedFilesGrid from "../../../components/general/UploadedFileGrid";
@@ -44,6 +46,17 @@ const isDeletedStatus = (status) =>
   String(status ?? "")
     .trim()
     .toUpperCase() === "DELETED";
+
+const getUploadErrorMessage = (err, fileName) => {
+  const data = err?.data ?? err?.response?.data;
+
+  if (typeof data === "string" && data.trim()) return data;
+
+  const apiMsg = data?.error ?? data?.message ?? err?.error ?? err?.message;
+
+  if (typeof apiMsg === "string" && apiMsg.trim()) return apiMsg;
+  return `Failed to upload "${fileName}". Please try again.`;
+};
 
 const DocumentPreview = () => {
   const navigate = useNavigate();
@@ -141,6 +154,7 @@ const DocumentPreview = () => {
 
   const [existingFiles, setExistingFiles] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
+  const [isUploadingNew, setIsUploadingNew] = useState(false);
 
   const files = useMemo(() => {
     const localFilesNormalized = newFiles.map((f) => ({
@@ -174,9 +188,18 @@ const DocumentPreview = () => {
 
   const [deleteDocument] = useDeleteDocumentMutation();
 
-  // Upload only new (local) files into the same batch; runs after navigate so overlay shows on next page
-  const uploadNewFilesOnly = () => {
-    if (newFiles.length === 0) return;
+  // Upload only new (local) files into the same batch before navigating
+  const uploadNewFilesOnly = async () => {
+    if (newFiles.length === 0) return { success: true, failedCount: 0 };
+
+    setIsUploadingNew(true);
+    setNewFiles((prev) =>
+      prev.map((f) => ({
+        ...f,
+        status: "uploading",
+        progress: 0,
+      })),
+    );
 
     dispatch(clearUploads());
     dispatch(openOverlay());
@@ -193,30 +216,45 @@ const DocumentPreview = () => {
       );
     });
 
-    // (async () => {
-    //   for (const fileObj of newFiles) {
-    //     await startUpload(fileObj, currentBatchId);
-    //   }
-    // })();
+    let failedCount = 0;
+    let lastErrorMessage = null;
+    const isAddingToExistingBatch = Boolean(currentBatchId);
+    let isFirst = !isAddingToExistingBatch;
+    const totalBatchSize = newFiles.reduce((sum, f) => sum + f.file.size, 0);
 
-    (async () => {
-      let isFirst = true;
-
-      const totalBatchSize = newFiles.reduce((sum, f) => sum + f.file.size, 0);
-
-      for (const fileObj of newFiles) {
-        await startUpload(fileObj, currentBatchId, isFirst, totalBatchSize);
-        isFirst = false;
+    for (const fileObj of newFiles) {
+      const result = await startUpload(
+        fileObj,
+        currentBatchId,
+        isFirst,
+        totalBatchSize,
+      );
+      if (result !== true) {
+        failedCount += 1;
+        lastErrorMessage = result;
       }
-    })();
+      isFirst = false;
+    }
+
+    setIsUploadingNew(false);
+
+    if (failedCount > 0) {
+      dispatch(closeOverlay());
+      dispatch(clearUploads());
+      if (lastErrorMessage) {
+        toast.error(lastErrorMessage, { autoClose: 5000 });
+      }
+    }
+
+    return { success: failedCount === 0, failedCount };
   };
 
   const getSelectTagPath = () =>
     `/operations/${isIdp ? "idp" : "translate"}/select-tag?batchId=${currentBatchId}`;
 
-  const handleNextStep = (e) => {
+  const handleNextStep = async (e) => {
     e.stopPropagation();
-    if (files.length === 0) return;
+    if (files.length === 0 || isUploadingNew) return;
 
     const hasNewFiles = newFiles.length > 0;
 
@@ -235,18 +273,39 @@ const DocumentPreview = () => {
           }),
         );
       });
+      if (currentBatchId) {
+        dispatch(
+          batchSummaryApi.util.invalidateTags([
+            { type: "BatchSummary", id: currentBatchId },
+          ]),
+        );
+      }
       dispatch(markBatchComplete());
       navigate(getSelectTagPath());
       return;
     }
 
-    // Has new files – navigate first, then upload runs in background (overlay on next page)
+    const { success } = await uploadNewFilesOnly();
+
+    if (!success) {
+      return;
+    }
+
+    if (currentBatchId) {
+      dispatch(
+        batchSummaryApi.util.invalidateTags([
+          { type: "BatchSummary", id: currentBatchId },
+        ]),
+      );
+    }
+
+    dispatch(markBatchComplete());
     navigate(getSelectTagPath());
-    uploadNewFilesOnly();
   };
 
   const startUpload = async (fileObj, batchId, isFirst, totalBatchSize) => {
     const id = fileObj.id;
+    const fileName = fileObj.file.name;
 
     try {
       const appType = isIdp ? "IDP" : "TRANSLATE";
@@ -258,11 +317,17 @@ const DocumentPreview = () => {
           base64,
           appType,
           batchId,
+          fileName,
         }).unwrap();
 
         dispatch(updateProgress({ id, progress: 100 }));
         dispatch(markSuccess({ id }));
-        return;
+        setNewFiles((prev) =>
+          prev.map((f) =>
+            f.id === id ? { ...f, status: "success", progress: 100 } : f,
+          ),
+        );
+        return true;
       }
 
       const payload = {
@@ -272,7 +337,6 @@ const DocumentPreview = () => {
         batchId,
       };
 
-      // ✅ IMPORTANT (same as TranslateDoc)
       if (isFirst) {
         payload.isFirstDocument = true;
         payload.totalBatchSize = totalBatchSize;
@@ -281,7 +345,9 @@ const DocumentPreview = () => {
       const res = await createDocumentAPI(payload);
       const { uploadUrl } = res.data;
 
-      console.log("Obtained upload URL", { uploadUrl });
+      if (!uploadUrl) {
+        throw new Error("Upload URL was not returned. Please try again.");
+      }
 
       await uploadToS3(
         uploadUrl,
@@ -293,13 +359,27 @@ const DocumentPreview = () => {
         },
         (percent) => {
           dispatch(updateProgress({ id, progress: percent }));
+          setNewFiles((prev) =>
+            prev.map((f) => (f.id === id ? { ...f, progress: percent } : f)),
+          );
         },
       );
 
       dispatch(markSuccess({ id }));
+      setNewFiles((prev) =>
+        prev.map((f) =>
+          f.id === id ? { ...f, status: "success", progress: 100 } : f,
+        ),
+      );
+      return true;
     } catch (err) {
       console.error(err);
-      dispatch(markError({ id }));
+      const message = getUploadErrorMessage(err, fileName);
+      dispatch(markError({ id, error: message }));
+      setNewFiles((prev) =>
+        prev.map((f) => (f.id === id ? { ...f, status: "error" } : f)),
+      );
+      return message;
     }
   };
 
@@ -429,6 +509,22 @@ const DocumentPreview = () => {
     );
   }
 
+  if (filesError) {
+    return (
+      <>
+        <MainNavbar />
+        <div className="p-10 text-center">
+          <p className="text-red-600 font-medium">
+            Failed to load documents for this batch.
+          </p>
+          <p className="text-gray-600 mt-2">
+            Please refresh the page or try again later.
+          </p>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <MainNavbar />
@@ -512,6 +608,7 @@ const DocumentPreview = () => {
                   variant="outline"
                   className="w-full sm:w-40 md:w-67"
                   onClick={handleCancelAll}
+                  disabled={isUploadingNew}
                 >
                   Cancel
                 </Button>
@@ -520,8 +617,9 @@ const DocumentPreview = () => {
                   rightIcon={<ArrowRight size={18} />}
                   onClick={handleNextStep}
                   className="w-full sm:w-40 md:w-67"
+                  disabled={isUploadingNew}
                 >
-                  Next Step
+                  {isUploadingNew ? "Uploading..." : "Next Step"}
                 </Button>
               </div>
             </>

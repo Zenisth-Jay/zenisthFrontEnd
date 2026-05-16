@@ -62,7 +62,7 @@ const TranslateDoc = () => {
 
   // Allowed FIles
   const ALLOWED_TYPES = isIdp
-    ? ["application/pdf", "image/png", "image/jpeg"]
+    ? ["application/pdf", "image/png", "image/jpeg", "image/webp", "image/gif"]
     : [
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/pdf",
@@ -123,11 +123,13 @@ const TranslateDoc = () => {
 
       if (fileObj.file.size < DIRECT_UPLOAD_MAX_SIZE) {
         const base64 = await fileToBase64(fileObj.file);
+        const fileName = fileObj.file.name;
 
         await directUploadDocument({
           base64,
           appType,
           batchId,
+          fileName,
         }).unwrap();
 
         dispatch(updateProgress({ id, progress: 100 }));
@@ -169,7 +171,14 @@ const TranslateDoc = () => {
       dispatch(markSuccess({ id }));
     } catch (err) {
       console.error(err);
-      dispatch(markError({ id }));
+      const message =
+        err?.data?.message ??
+        err?.data?.error ??
+        err?.response?.data?.message ??
+        err?.message ??
+        `Failed to upload "${fileObj.file.name}". Please try again.`;
+      dispatch(markError({ id, error: message }));
+      toast.error(message, { autoClose: 5000 });
     }
   };
 
@@ -206,7 +215,7 @@ const TranslateDoc = () => {
     if (invalidFiles.length > 0) {
       toast.error(
         isIdp
-          ? "Only PDF, PNG, and JPG files are allowed"
+          ? "Only PDF, PNG, JPG, WEBP, and GIF files are allowed"
           : "Only DOCX and PDF files are allowed",
         { autoClose: 3000 },
       );
@@ -284,7 +293,7 @@ const TranslateDoc = () => {
             ref={fileInputRef}
             type="file"
             multiple
-            accept={isIdp ? ".pdf,.png,.jpg,.jpeg" : ".docx,.pdf"}
+            accept={isIdp ? ".pdf,.png,.jpg,.jpeg,.webp,.gif" : ".docx,.pdf"}
             hidden
             onChange={(e) => {
               handleFiles(e.target.files);
@@ -302,8 +311,8 @@ const TranslateDoc = () => {
               <p className="text-base sm:text-lg font-medium text-gray-800 mt-1">
                 {files.length == 0
                   ? isIdp
-                    ? "Just upload your scanned file we'll automatically detect and separate the documents inside."
-                    : "Upload the documents you want to translate. We’ll prepare it for the next step."
+                    ? "Upload once and use the same document for multiple jobs."
+                    : "Upload once and use the same document for multiple jobs."
                   : "Verify your uploads and make any changes before processing."}
               </p>
             </div>
@@ -385,7 +394,7 @@ const TranslateDoc = () => {
               onFilesSelected={handleFiles}
               onBrowseClick={() => fileInputRef.current?.click()}
               title="Drag and drop your documents here, or click to browse"
-              supportedText={`Supported formats: ${isIdp ? "PDF , PNG, JPG, JPEG" : "DOCX, PDF"}`}
+              supportedText={`Supported formats: ${isIdp ? "PDF, PNG, JPG, JPEG, WEBP, GIF" : "DOCX, PDF"}`}
               helperText="Max file size: 20 MB, Max Total File Size: 5GB"
             />
           )}

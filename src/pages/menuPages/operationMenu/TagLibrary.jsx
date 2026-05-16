@@ -6,7 +6,6 @@ import SearchBar from "../../../components/general/SearchBar";
 import Tabs from "../../../components/general/Tabs";
 import {
   useGetTagsQuery,
-  useToggleFavoriteTagMutation,
   useUpdateTagMutation,
 } from "../../../api/tags.api";
 import TranslationTag from "../../../components/tags/TranslationTag";
@@ -18,6 +17,7 @@ import {
 } from "react-router-dom";
 import Spinner from "../../../components/ui/Spinner";
 import BackButton from "../../../components/ui/BackButton";
+import { toast } from "react-toastify";
 
 const TagLibrary = () => {
   const navigate = useNavigate();
@@ -57,6 +57,13 @@ const TagLibrary = () => {
           label: "Company Tags",
           id: "company",
           icon: Briefcase,
+          iconClassName: "text-gray-800",
+          iconFill: false,
+        },
+        {
+          label: "Default Tags",
+          id: "default",
+          icon: Star,
           iconClassName: "text-gray-800",
           iconFill: false,
         },
@@ -211,6 +218,10 @@ const TagLibrary = () => {
               tag={tag}
               width={"w-82"}
               onToggleFavorite={async (t) => {
+                if (t.isDefault || t.is_default) {
+                  toast.info("Default tags cannot be favorited.");
+                  return;
+                }
                 try {
                   await updateTag({
                     id: t.id,

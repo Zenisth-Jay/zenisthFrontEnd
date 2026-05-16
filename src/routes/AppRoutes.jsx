@@ -11,6 +11,7 @@ import ChangePassword from "../pages/ChangePassword";
 import Dashboard from "../pages/main/Dashboard";
 import TranslateDoc from "../pages/menuPages/operationMenu/TranslateDoc";
 import TranslateHistory from "../pages/menuPages/operationMenu/TranslateHistory";
+import JobJsonOutputViewer from "../pages/menuPages/operationMenu/JobJsonOutputViewer";
 import TagLibrary from "../pages/menuPages/operationMenu/TagLibrary";
 import ApiKeys from "../pages/menuPages/resourcesMenu/ApiKeys";
 import ApiReferences from "../pages/menuPages/resourcesMenu/ApiReferences";
@@ -73,6 +74,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <TranslateHistory />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/operations/:toolType/history/job/:jobId/view-json-output"
+        element={
+          <ProtectedRoute>
+            <JobJsonOutputViewer />
           </ProtectedRoute>
         }
       />

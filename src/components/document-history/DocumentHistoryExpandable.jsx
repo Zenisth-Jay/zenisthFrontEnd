@@ -10,7 +10,9 @@ import { Pill } from "../ui/ConfigurableTable";
 import { VARIANTS } from "../../data/variants";
 
 const isDeletedStatus = (status) =>
-  String(status ?? "").trim().toUpperCase() === "DELETED";
+  String(status ?? "")
+    .trim()
+    .toUpperCase() === "DELETED";
 
 const getBaseColumns = (onDelete) => [
   {
@@ -22,7 +24,9 @@ const getBaseColumns = (onDelete) => [
       return (
         <div className="flex items-center gap-2 w-full">
           <FileText
-            className={deleted ? "text-gray-400 shrink-0" : "text-indigo-700 shrink-0"}
+            className={
+              deleted ? "text-gray-400 shrink-0" : "text-indigo-700 shrink-0"
+            }
             size={20}
           />
           <div className="flex flex-col justify-center flex-1 truncate items-start gap-0.5">
@@ -86,24 +90,6 @@ const getBaseColumns = (onDelete) => [
     },
   },
   {
-    key: "credits",
-    width: "0.8fr",
-    align: "center",
-    render: (val, row) => {
-      const deleted = isDeletedStatus(row.status);
-      return (
-        <span
-          className={[
-            "text-gray-700 font-semibold text-lg",
-            deleted ? "line-through text-gray-400" : "",
-          ].join(" ")}
-        >
-          {Number(val).toLocaleString()}
-        </span>
-      );
-    },
-  },
-  {
     key: "size",
     width: "0.8fr",
     align: "center",
@@ -153,7 +139,9 @@ const getBaseColumns = (onDelete) => [
           onDelete?.(fileRow);
         }}
         className="p-1.5 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-        aria-label={isDeletedStatus(fileRow.status) ? "File deleted" : "Delete file"}
+        aria-label={
+          isDeletedStatus(fileRow.status) ? "File deleted" : "Delete file"
+        }
       >
         {isDeletedStatus(fileRow.status) ? (
           <Ban size={20} className="text-gray-400" />
@@ -216,40 +204,39 @@ export default function DocumentHistoryExpandable({ row }) {
   const childRows = useMemo(() => {
     if (!filesData?.data) return [];
 
-    return filesData.data
-      .map((file) => ({
-        id: file.id,
-        name: file.filename,
+    return filesData.data.map((file) => ({
+      id: file.id,
+      name: file.filename,
 
-        uploadedAt: `Uploaded ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString(
-          [],
-          {
-            hour: "2-digit",
-            minute: "2-digit",
-          },
-        )}`,
+      uploadedAt: `Uploaded ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString(
+        [],
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+        },
+      )}`,
 
-        operation: file.operation,
+      operation: file.operation,
 
-        status: optimisticallyDeletedIds.has(file.id) ? "DELETED" : file.status,
-        statusVariant: (() => {
-          const derivedStatus = optimisticallyDeletedIds.has(file.id)
-            ? "DELETED"
-            : file.status;
+      status: optimisticallyDeletedIds.has(file.id) ? "DELETED" : file.status,
+      statusVariant: (() => {
+        const derivedStatus = optimisticallyDeletedIds.has(file.id)
+          ? "DELETED"
+          : file.status;
 
-          return derivedStatus === "UPLOADED" || derivedStatus === "COMPLETED"
-            ? "successful"
-            : derivedStatus === "FAILED"
-              ? "failed"
-              : "neutral";
-        })(),
+        return derivedStatus === "UPLOADED" || derivedStatus === "COMPLETED"
+          ? "successful"
+          : derivedStatus === "FAILED"
+            ? "failed"
+            : "neutral";
+      })(),
 
-        credits: file.credits,
+      credits: file.credits,
 
-        size: `${file.size ?? 0}`,
+      size: `${file.size ?? 0}`,
 
-        uploadedBy: row.uploadedBy,
-      }));
+      uploadedBy: row.uploadedBy,
+    }));
   }, [filesData, row, optimisticallyDeletedIds]);
 
   const childTotalPages = filesData?.pagination?.total_pages || 1;
